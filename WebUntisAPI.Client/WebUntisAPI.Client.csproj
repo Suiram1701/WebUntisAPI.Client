@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net6.0;net7.0;net6.0-windows;net7.0-windows;net6.0-macos;net7.0-macos;net6.0-linux;net7.0-linux;net6.0-andoid;net7.0-android;net6.0-ios;net7.0-ios;net47;net481</TargetFrameworks>
+    <TargetFrameworks>net6.0;net7.0;net6.0-windows;net7.0-windows;net6.0-android;net7.0-android;net7.0-ios;net47;net481</TargetFrameworks>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
@@ -30,6 +30,10 @@
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Extensions\" />
   </ItemGroup>
 
 </Project>
