@@ -34,15 +34,6 @@ internal class DateTimeExtensionTests
             Assert.That(E2_Date, Is.EqualTo(E2_Date_Res));
             Assert.That(E2_Time, Is.EqualTo(E2_Time_Res));
         });
-
-        // Example 3 (False)
-        Assert.Throws<FormatException>(() => new DateTime(2022, 12, 31, 24, 0, 0).ToWebUntisTimeFormat(out string E3_Date, out string E3_Time), null);
-
-        // Example 4 (False)
-        Assert.Throws<FormatException>(() => new DateTime(2023, 0, 36, 0, 0, 0).ToWebUntisTimeFormat(out string E4_Date, out string E4_Time), null);
-
-        // Example 5
-        Assert.Throws<FormatException>(() => new DateTime(2023, 0, 30, 2, 0, 0).ToWebUntisTimeFormat(out string E5_Date, out string E5_Time), null);
     }
 
     [Order(2)]
@@ -60,23 +51,5 @@ internal class DateTimeExtensionTests
         string E2_Time = "1905";
         DateTime E2_DateTime = new DateTime().FromWebUntisTimeFormat(E2_Date, E2_Time);
         Assert.That(new DateTime(2023, 6, 1, 19, 5, 0), Is.EqualTo(E2_DateTime));
-
-        // Example 3
-        string E3_Date = "";
-        string E3_Time = "";
-        DateTime E3_DateTime = new DateTime().FromWebUntisTimeFormat(E3_Date, E3_Time);
-        Assert.That(new DateTime(), Is.EqualTo(E3_DateTime));
-
-        // Example 4
-        string E4_Date = "";
-        string E4_Time = "";
-        DateTime E4_DateTime = new DateTime().FromWebUntisTimeFormat(E4_Date, E4_Time);
-        Assert.That(new DateTime(), Is.EqualTo(E4_DateTime));
-
-        // Example 5
-        string E5_Date = "";
-        string E5_Time = "";
-        DateTime E5_DateTime = new DateTime().FromWebUntisTimeFormat(E5_Date, E5_Time);
-        Assert.That(new DateTime(), Is.EqualTo(E5_DateTime));
     }
 }

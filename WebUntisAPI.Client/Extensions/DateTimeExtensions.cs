@@ -24,8 +24,8 @@ namespace WebUntisAPI.Client.Extensions
         /// <param name="timeString">Time string</param>
         public static void ToWebUntisTimeFormat(this DateTime dateTime, out string dateString, out string timeString)
         {
-            dateString = dateTime.Year.ToString() + dateTime.Month.ToString() + dateTime.Day.ToString();
-            timeString = dateTime.Hour.ToString() + dateTime.Minute.ToString();
+            dateString = dateTime.ToString("yyyyMMdd");
+            timeString = dateTime.ToString("HHmm");
         }
 
         /// <summary>
@@ -57,12 +57,12 @@ namespace WebUntisAPI.Client.Extensions
                 throw new FormatException($"The string {(isDateValid ? timeString : dateString)} isn't in the valid format!");
 
             // Parse the numbers in the string to value
-            int year = int.Parse(dateString.Substring(0, 3));
-            int month = int.Parse(dateString.Substring(4, 5));
-            int day = int.Parse(dateString.Substring(6, 7));
+            int year = int.Parse(dateString.Substring(0, 4));
+            int month = int.Parse(dateString.Substring(4, 2));
+            int day = int.Parse(dateString.Substring(6, 2));
 
-            int hour = int.Parse(timeString.Substring(0, 1));
-            int minute = int.Parse(timeString.Substring(2, 3));
+            int hour = int.Parse(timeString.Substring(0, 2));
+            int minute = int.Parse(timeString.Substring(2, 2));
 
             // date and time string to DateTime instance
             return new DateTime(year, month, day, hour, minute, 0);
