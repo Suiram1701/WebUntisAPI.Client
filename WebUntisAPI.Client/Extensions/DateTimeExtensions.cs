@@ -24,8 +24,8 @@ namespace WebUntisAPI.Client.Extensions
         /// <param name="timeString">Time string</param>
         public static void ToWebUntisTimeFormat(this DateTime dateTime, out string dateString, out string timeString)
         {
-            dateString = dateTime.Year.ToString() + dateTime.Month.ToString() + dateTime.Day.ToString();
-            timeString = dateTime.Hour.ToString() + dateTime.Minute.ToString();
+            dateString = dateTime.ToString("yyyy-MM-dd");
+            timeString = dateTime.Hour + dateTime.ToString("mm");
         }
 
         /// <summary>
@@ -46,8 +46,8 @@ namespace WebUntisAPI.Client.Extensions
         /// <exception cref="FormatException">Thrown when one of the given strings isn't in the right format</exception>
         public static DateTime FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString)
         {
-            Regex dateRegex = new Regex(@"^\d{4}(0[1-9]|1[0-2])(0[1-9]|[1-2][0-9]|3[0-1])$");     // Regex for the WebUntis date format
-            Regex timeRegex = new Regex("^([0-1][0-9]|2[0-3])[0-5][0-9]$");     // Regex for the WebUntis time format
+            Regex dateRegex = new Regex(@"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$");     // Regex for the WebUntis date format
+            Regex timeRegex = new Regex("^([0-9]|1[0-9]|2[0-3])[0-5][0-9]$");     // Regex for the WebUntis time format
 
             // Check if the date- and time strings are valid
             bool isDateValid = dateRegex.IsMatch(dateString);
@@ -57,12 +57,13 @@ namespace WebUntisAPI.Client.Extensions
                 throw new FormatException($"The string {(isDateValid ? timeString : dateString)} isn't in the valid format!");
 
             // Parse the numbers in the string to value
-            int year = int.Parse(dateString.Substring(0, 3));
-            int month = int.Parse(dateString.Substring(4, 5));
-            int day = int.Parse(dateString.Substring(6, 7));
+            int year = int.Parse(dateString.Substring(0, 4));
+            int month = int.Parse(dateString.Substring(5, 2));
+            int day = int.Parse(dateString.Substring(8, 2));
 
-            int hour = int.Parse(timeString.Substring(0, 1));
-            int minute = int.Parse(timeString.Substring(2, 3));
+            bool is4Letters = timeString.Length == 4;
+            int hour = int.Parse(is4Letters ? timeString.Substring(0, 2) : timeString.Substring(0, 1));
+            int minute = int.Parse(is4Letters ? timeString.Substring(2, 2) : timeString.Substring(1, 2));
 
             // date and time string to DateTime instance
             return new DateTime(year, month, day, hour, minute, 0);
