@@ -22,7 +22,7 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// The Url for the school search API
         /// </summary>
-        private static readonly Uri API_Url = new Uri("https://mobile.webuntis.com/ms/schoolquery2");
+        private static readonly Uri _API_Url = new Uri("https://mobile.webuntis.com/ms/schoolquery2");
 
         /// <summary>
         /// Search for schools by the given name
@@ -54,7 +54,7 @@ namespace WebUntisAPI.Client
             // Send request
             HttpResponseMessage response;
             using (HttpClient client = new HttpClient())
-                response = await client.PostAsync(API_Url, requestContent, ct);
+                response = await client.PostAsync(_API_Url, requestContent, ct);
 
             JSONRPCResponeModel<SchoolSearchResultModel> responeModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<SchoolSearchResultModel>>(await response.Content.ReadAsStringAsync());
 
