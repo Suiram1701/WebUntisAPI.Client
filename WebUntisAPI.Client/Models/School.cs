@@ -10,7 +10,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// Represent a Untis school
     /// </summary>
-    public struct SchoolModel
+    public struct School
     {
         /// <summary>
         /// Real name of the school

@@ -17,7 +17,7 @@ internal class SchoolSearchTests
     [Test]
     public void NormalSearch()
     {
-        Task<SchoolModel[]> schools = SchoolSearch.SearchAsync("Marie-Curie", CancellationToken.None);
+        Task<School[]> schools = SchoolSearch.SearchAsync("Marie-Curie", CancellationToken.None);
         schools.Wait();
         if (schools.Result.Length > 0)
             Assert.Pass();
@@ -47,7 +47,7 @@ internal class SchoolSearchTests
     [Test]
     public void NoSchoolsFound()
     {
-        Task<SchoolModel[]> schools = SchoolSearch.SearchAsync("MMMMMMMMMMMMMMMMMMMMMMMMMMM", CancellationToken.None);
+        Task<School[]> schools = SchoolSearch.SearchAsync("MMMMMMMMMMMMMMMMMMMMMMMMMMM", CancellationToken.None);
         schools.Wait();
         if (schools.Result.Length == 0)
             Assert.Pass();

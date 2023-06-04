@@ -4,21 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client
 {
     /// <summary>
-    /// A model for the school search result
+    /// Types of a user
     /// </summary>
-    internal struct SchoolSearchResultModel
+    public enum PersonType
     {
         /// <summary>
-        /// Idk
+        /// A Untis teacher
         /// </summary>
-        public int size;
+        Teacher = 2,
 
         /// <summary>
-        /// All schools found
+        /// A Untis student
         /// </summary>
-        public School[] schools;
+        Student = 5
     }
 }

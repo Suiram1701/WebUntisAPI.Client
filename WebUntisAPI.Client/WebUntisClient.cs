@@ -9,6 +9,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
+using Newtonsoft.Json;
+using WebUntisAPI.Client.Exceptions;
+using System.Threading;
 
 namespace WebUntisAPI.Client
 {
@@ -17,7 +20,7 @@ namespace WebUntisAPI.Client
     /// </summary>
     /// <remarks>
     ///     <para>
-    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="Logout()"/> and <see cref="Dispose()"/> when you don't need the connection.
+    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(string)"/> and <see cref="Dispose()"/> when you don't need the connection.
     ///     </para>
     ///     <para>
     ///     Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis is permanently blocked by the WebUntis API.
@@ -26,60 +29,174 @@ namespace WebUntisAPI.Client
     public class WebUntisClient : IDisposable
     {
         /// <summary>
-        /// The id with that the client make requests
+        /// Unique identifier for the client app
         /// </summary>
-        public string RequestId { get; }
+        public string ClientName { get; }
+
+        /// <summary>
+        /// The time in milliseconds until requests will be timeouted
+        /// </summary>
+        public int Timeout { get; }
+
+        /// <summary>
+        /// <see langword="true"/> when the client is currently logged in
+        /// </summary>
+        public bool LoggedIn => _loggedIn;
+        private bool _loggedIn = false;
 
         /// <summary>
         /// Url of the WebUntis server
         /// </summary>
-        public string ServerUrl { get; }
+        public string ServerUrl => _serverUrl;
+        private string _serverUrl;
 
+        /// <summary>
+        /// The Untis name of the school
+        /// </summary>
+        public string LoginName => _loginName;
+        private string _loginName;
+
+        /// <summary>
+        /// Current client
+        /// </summary>
         private HttpClient _client;
 
         /// <summary>
-        /// Connect to the WebUntis server
+        /// Sesson id for requests
         /// </summary>
-        /// <param name="school">School to connect</param>
-        /// <param name="id">Identifier for the requests</param>
+        private string _sessonId;
+
+        /// <summary>
+        /// Initialize a new client
+        /// </summary>
+        /// <param name="clientName">Unique identifier for the client app</param>
         /// <param name="timeout">The time in milliseconds until requests will be timeouted</param>
-        /// <exception cref="PingException">Thrown when the WebUntis server ins't reachable</exception>
-        public WebUntisClient(SchoolModel school, string id = "WebUntisAPI", int timeout = 500) : this(school.server, school.loginName, id, timeout)
+        public WebUntisClient(string clientName, int timeout = 500)
         {
+            ClientName = clientName;
+            Timeout = timeout;
+            _client = new HttpClient()
+            {
+                Timeout = TimeSpan.FromMilliseconds(Timeout)
+            };
         }
 
         /// <summary>
-        /// Connect to the WebUntis server
+        /// Login as a user in a school to get and write data
         /// </summary>
-        /// <param name="server">Server name of the WebUntis server</param>
-        /// <param name="loginName">Name of the school in WebUntis system</param>
-        /// <param name="id">Identifier for the requests</param>
-        /// <exception cref="PingException">Thrown when the WebUntis server ins't reachable</exception>
-        public WebUntisClient(string server, string loginName, string id = "WebUntisAPI", int timeout = 500)
+        /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, CancellationToken, string)"/>)</param>
+        /// <param name="username">Name of the user to login</param>
+        /// <param name="password">Password of the user to login</param>
+        /// <param name="ct">Cancelationtoken</param>
+        /// <param name="id">Identifier for the request</param>
+        /// <returns><see langword="true"/> when the login was successfull</returns>
+        /// <exception cref="ArgumentException">The server name is invalid</exception>
+        /// <exception cref="HttpRequestException">There was an error while the request</exception>
+        /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
+        public async Task<bool> LoginAsync(School school, string username, string password, CancellationToken ct, string id = "login") =>
+            await LoginAsync(school.server, school.loginName, username, password, ct, id);
+
+        /// <summary>
+        /// Login as a user in a school to get and write data
+        /// </summary>
+        /// <param name="server">server name to login (example: "herakles.webuntis.com")</param>
+        /// <param name="loginName">School to login (Not the normal school name but the WebUntis internal one)</param>
+        /// <param name="username">Name of the user to login</param>
+        /// <param name="password">Password of the user to login</param>
+        /// <param name="ct">Cancelationtoken</param>
+        /// <param name="id">Identifier for the request</param>
+        /// <returns><see langword="true"/> when the login was successfull</returns>
+        /// <exception cref="ArgumentException">The server name is invalid</exception>
+        /// <exception cref="HttpRequestException">There was an error while the request</exception>
+        /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
+        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, CancellationToken ct, string id = "login")
         {
-            // Test if the WebUntis server is reachable
-            string basicServerUrl = $"https://{server}/WebUntis/?school={loginName}";
-            using (HttpClient client = new HttpClient())
+            // Check if you already logged in
+            if (LoggedIn)
+                return false;
+
+            // Setup server url    
+            Match serverName = Regex.Match(server, @"\w+\.webuntis\.com");
+            if (!serverName.Success)
+                throw new ArgumentException("This isn't a WebUntis server", nameof(server));
+            string serverUrl = "https://" + serverName.Value;
+
+            // Make request for login
+            JSONRPCRequestModel<LoginModel> requestModel = new JSONRPCRequestModel<LoginModel>()
             {
-                Task<HttpResponseMessage> response = client.GetAsync(basicServerUrl);
-                response.Wait();
-                if (!response.Result.IsSuccessStatusCode)
+                id = id,
+                method = "authenticate",
+                @params = new LoginModel()
                 {
-                    client.Dispose();
-                    Dispose();
-                    throw new PingException("Can't connect to WebUntis server");
+                    user = username,
+                    password = password,
+                    client = ClientName,
                 }
-            }
-
-            RequestId = id;
-            ServerUrl = $"https://{server}";
-
-            // Setup http client
-            _client = new HttpClient
-            {
-                BaseAddress = new Uri(ServerUrl),
-                Timeout = TimeSpan.FromMilliseconds(timeout)
             };
+            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+
+            // Send request
+            _client.BaseAddress = new Uri(serverUrl);
+            string schoolName = loginName.ToLower().Replace(' ', '+');
+            HttpResponseMessage response = await _client.PostAsync(serverUrl + "/WebUntis/jsonrpc.do?school=" + schoolName, requestContent, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return false;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            JSONRPCResponeModel<LoginResultModel> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<LoginResultModel>>(await response.Content.ReadAsStringAsync());
+
+            // Check for WebUntis error
+            if (responseModel.error != null)
+                throw responseModel.error;
+
+            // Setup data and get default data
+            _serverUrl = serverUrl;
+            _loginName = loginName;
+            _sessonId = responseModel.result.sessionId;
+            _loggedIn = true;
+
+            return true;
+        }
+
+        /// <summary>
+        /// Logout (You can reuse the client)
+        /// </summary>
+        /// <param name="id">Identifier for the request</param>
+        /// <returns></returns>
+        /// <exception cref="HttpRequestException">There was an error while the request</exception>
+        public async Task LogoutAsync(string id = "logout")
+        {
+            // Check if you logged in
+            if (!LoggedIn)
+                return;
+
+            // Make request for logout
+            JSONRPCRequestModel<object> requestModel = new JSONRPCRequestModel<object>()
+            {
+                id = id,
+                method = "logout",
+                @params = new object()
+            };
+            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+            requestContent.Headers.Add("jsessionid", _sessonId);
+
+            // Send request
+            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent);
+
+            // Clear data
+            _serverUrl = null;
+            _loginName = null;
+            _sessonId = null;
+            _loggedIn = false;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
         }
 
         #region IDisposable
@@ -93,15 +210,20 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Dispose 
+        /// Dispose
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
             {
+                // When not manually logged out then logout
+                if (LoggedIn)
+                    _ = LogoutAsync();
+
                 if (disposing)
                 {
+                    _client.Dispose();
                 }
 
                 _disposedValue = true;
