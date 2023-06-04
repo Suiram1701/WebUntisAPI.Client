@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,7 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Name to search
         /// </summary>
-        public string search;
+        [JsonProperty("search")]
+        public string Search { get; set; }
     }
 }

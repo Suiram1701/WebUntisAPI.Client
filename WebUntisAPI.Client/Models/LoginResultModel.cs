@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,16 +15,19 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Sesson of the login
         /// </summary>
-        public string sessionId;
+        [JsonProperty("sessionId")]
+        public string SessionId { get; set; }
 
         /// <summary>
         /// Type of the person
         /// </summary>
-        public int personType;
+        [JsonProperty("personType")]
+        public int PersonType { get; set; }
 
         /// <summary>
         /// Is of the person
         /// </summary>
-        public int personId;
+        [JsonProperty("personId")]
+        public int PersonId { get; set; }
     }
 }

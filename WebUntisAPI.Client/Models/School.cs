@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -15,31 +16,37 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Real name of the school
         /// </summary>
-        public string displayName { get; set; }
+        [JsonProperty("displayName")]
+        public string DisplayName { get; set; }
 
         /// <summary>
         /// Id of the school
         /// </summary>
-        public long schoolId { get; set; }
+        [JsonProperty("schoolId")]
+        public long SchoolId { get; set; }
 
         /// <summary>
         /// Login name of the school
         /// </summary>
-        public string loginName { get; set; }
+        [JsonProperty("loginName")]
+        public string LoginName { get; set; }
 
         /// <summary>
         /// Real address of the school
         /// </summary>
-        public string address { get; set; }
+        [JsonProperty("address")]
+        public string Address { get; set; }
 
         /// <summary>
         /// Server of the school
         /// </summary>
-        public string server { get; set; }
+        [JsonProperty("server")]
+        public string Server { get; set; }
 
         /// <summary>
         /// Server url of the school
         /// </summary>
-        public string serverUrl { get; set; }
+        [JsonProperty("serverUrl")]
+        public string ServerUrl { get; set; }
     }
 }

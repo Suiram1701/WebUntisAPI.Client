@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,16 +15,19 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Username to login
         /// </summary>
-        public string user;
+        [JsonProperty("user")]
+        public string User { get; set; }
 
         /// <summary>
         /// Password for login
         /// </summary>
-        public string password;
+        [JsonProperty("password")]
+        public string Password { get; set; }
 
         /// <summary>
         /// Unique identifier for the client app
         /// </summary>
-        public string client;
+        [JsonProperty("client")]
+        public string Client { get; set; }
     }
 }

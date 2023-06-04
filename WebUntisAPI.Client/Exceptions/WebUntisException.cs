@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -31,12 +32,14 @@ namespace WebUntisAPI.Client.Exceptions
         /// <summary>
         /// Code of  the error
         /// </summary>
-        public int code { get; set; }
+        [JsonProperty("code")]
+        public int Code { get; set; }
 
         /// <summary>
         /// A message that describes the error
         /// </summary>
-        public string message { get; set; }
+        [JsonProperty("message")]
+        public override string Message { get; }
 
         /// <summary>
         /// A new <see cref="WebUntisException"/>
@@ -45,8 +48,8 @@ namespace WebUntisAPI.Client.Exceptions
         /// <param name="message">Message</param>
         public WebUntisException(int code, string message) : base(message)
         {
-            this.code = code;
-            this.message = message;
+            this.Code = code;
+            this.Message = message;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -17,21 +18,25 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Version of json rpc to use
         /// </summary>
-        public string jsonrpc;
+        [JsonProperty("jsonrpc")]
+        public string JSONRPC { get; set; }
 
         /// <summary>
         /// Identifies the request
         /// </summary>
-        public string id;
+        [JsonProperty("id")]
+        public string Id { get; set; }
 
         /// <summary>
         /// Result of the method
         /// </summary>
-        public TResult result;
+        [JsonProperty("result")]
+        public TResult Result { get; set; }
 
         /// <summary>
         /// A error while on the request
         /// </summary>
-        public WebUntisException error = null;
+        [JsonProperty("error")]
+        public WebUntisException Error { get; set; } = null;
     }
 }

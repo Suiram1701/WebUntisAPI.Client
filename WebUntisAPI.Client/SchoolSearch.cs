@@ -38,13 +38,13 @@ namespace WebUntisAPI.Client
             // Write request content
             JSONRPCRequestModel<SchoolSearchModel[]> requestModel = new JSONRPCRequestModel<SchoolSearchModel[]>()
             {
-                id = id,
-                method = "searchSchool",
-                @params = new SchoolSearchModel[]
+                Id = id,
+                Method = "searchSchool",
+                Params = new SchoolSearchModel[]
                 {
                     new SchoolSearchModel()
                     {
-                        search = name.ToLower()
+                        Search = name.ToLower()
                     }
                 }
             };
@@ -63,16 +63,16 @@ namespace WebUntisAPI.Client
                 throw new HttpRequestException($"The request had an error (Code: {response.StatusCode}).");
 
             // Check for WebUntis error
-            if (responeModel.error != null)
+            if (responeModel.Error != null)
             {
-                if (responeModel.error.code == (int)WebUntisException.Codes.TooManyResults)
+                if (responeModel.Error.Code == (int)WebUntisException.Codes.TooManyResults)
                     return null;
 
-                throw responeModel.error;
+                throw responeModel.Error;
             }
 
             // Evaluate response
-            return responeModel.result.schools;
+            return responeModel.Result.Schools;
         }
     }
 }

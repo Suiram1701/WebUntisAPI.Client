@@ -94,7 +94,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
         public async Task<bool> LoginAsync(School school, string username, string password, CancellationToken ct, string id = "login") =>
-            await LoginAsync(school.server, school.loginName, username, password, ct, id);
+            await LoginAsync(school.Server, school.LoginName, username, password, ct, id);
 
         /// <summary>
         /// Login as a user in a school to get and write data
@@ -124,13 +124,13 @@ namespace WebUntisAPI.Client
             // Make request for login
             JSONRPCRequestModel<LoginModel> requestModel = new JSONRPCRequestModel<LoginModel>()
             {
-                id = id,
-                method = "authenticate",
-                @params = new LoginModel()
+                Id = id,
+                Method = "authenticate",
+                Params = new LoginModel()
                 {
-                    user = username,
-                    password = password,
-                    client = ClientName,
+                    User = username,
+                    Password = password,
+                    Client = ClientName,
                 }
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
@@ -150,18 +150,18 @@ namespace WebUntisAPI.Client
             JSONRPCResponeModel<LoginResultModel> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<LoginResultModel>>(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
-            if (responseModel.error != null)
+            if (responseModel.Error != null)
             {
-                if (responseModel.error.code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
+                if (responseModel.Error.Code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
                     return false;
 
-                throw responseModel.error;
+                throw responseModel.Error;
             }
 
             // Setup data and get default data
             _serverUrl = serverUrl;
             _loginName = loginName;
-            _sessonId = responseModel.result.sessionId;
+            _sessonId = responseModel.Result.SessionId;
             _loggedIn = true;
 
             return true;
@@ -183,9 +183,9 @@ namespace WebUntisAPI.Client
             // Make request for logout
             JSONRPCRequestModel<object> requestModel = new JSONRPCRequestModel<object>()
             {
-                id = id,
-                method = "logout",
-                @params = new object()
+                Id = id,
+                Method = "logout",
+                Params = new object()
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
             requestContent.Headers.Add("jsessionid", _sessonId);
