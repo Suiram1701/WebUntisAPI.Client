@@ -20,7 +20,7 @@ namespace WebUntisAPI.Client
     /// </summary>
     /// <remarks>
     ///     <para>
-    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(string)"/> and <see cref="Dispose()"/> when you don't need the connection.
+    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(CancellationToken, string)"/> and <see cref="Dispose()"/> when you don't need the connection.
     ///     </para>
     ///     <para>
     ///     Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis is permanently blocked by the WebUntis API.
@@ -59,7 +59,7 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Current client
         /// </summary>
-        private HttpClient _client;
+        private readonly HttpClient _client;
 
         /// <summary>
         /// Sesson id for requests
@@ -171,9 +171,10 @@ namespace WebUntisAPI.Client
         /// Logout (You can reuse the client)
         /// </summary>
         /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns>Task for the proccess</returns>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
-        public async Task LogoutAsync(string id = "logout")
+        public async Task LogoutAsync(CancellationToken ct, string id = "logout")
         {
             // Check if you logged in
             if (!LoggedIn)
@@ -190,14 +191,13 @@ namespace WebUntisAPI.Client
             requestContent.Headers.Add("jsessionid", _sessonId);
 
             // Send request
-            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent);
+            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
 
             // Clear data
             _serverUrl = null;
             _loginName = null;
             _sessonId = null;
             _loggedIn = false;
-            _client.BaseAddress = null;
 
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)
@@ -224,7 +224,7 @@ namespace WebUntisAPI.Client
             {
                 // When not manually logged out then logout
                 if (LoggedIn)
-                    _ = LogoutAsync();
+                    _ = LogoutAsync(CancellationToken.None);
 
                 if (disposing)
                 {

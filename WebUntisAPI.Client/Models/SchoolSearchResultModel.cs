@@ -12,11 +12,6 @@ namespace WebUntisAPI.Client.Models
     internal struct SchoolSearchResultModel
     {
         /// <summary>
-        /// Idk
-        /// </summary>
-        public int size;
-
-        /// <summary>
         /// All schools found
         /// </summary>
         public School[] schools;
