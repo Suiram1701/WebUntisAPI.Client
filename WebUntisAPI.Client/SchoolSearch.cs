@@ -22,7 +22,7 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// The Url for the school search API
         /// </summary>
-        private static readonly Uri _API_Url = new Uri("https://mobile.webuntis.com/ms/schoolquery2");
+        private static readonly Uri s_API_Url = new Uri("https://mobile.webuntis.com/ms/schoolquery2");
 
         /// <summary>
         /// Search for schools by the given name
@@ -33,7 +33,7 @@ namespace WebUntisAPI.Client
         /// <returns>All schools found</returns>
         /// <exception cref="WebUntisException">Throws when the API returned an error</exception>
         /// <exception cref="HttpRequestException">Throws when an error happend while request</exception>
-        public static async Task<SchoolModel[]> SearchAsync(string name, CancellationToken ct, string id = "WebUntisAPI")
+        public static async Task<School[]> SearchAsync(string name, CancellationToken ct, string id = "search")
         {
             // Write request content
             JSONRPCRequestModel<SchoolSearchModel[]> requestModel = new JSONRPCRequestModel<SchoolSearchModel[]>()
@@ -54,7 +54,7 @@ namespace WebUntisAPI.Client
             // Send request
             HttpResponseMessage response;
             using (HttpClient client = new HttpClient())
-                response = await client.PostAsync(_API_Url, requestContent, ct);
+                response = await client.PostAsync(s_API_Url, requestContent, ct);
 
             JSONRPCResponeModel<SchoolSearchResultModel> responeModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<SchoolSearchResultModel>>(await response.Content.ReadAsStringAsync());
 

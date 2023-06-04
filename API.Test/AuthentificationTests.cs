@@ -33,10 +33,20 @@ internal class AuthentificationTests
     [Test]
     public void Authentification()
     {
-        using (WebUntisClient client = new WebUntisClient(s_Server, s_LoginName))
+        try
         {
+            using WebUntisClient client = new("WebUntisAPI_TEST");
+            client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+            client.LogoutAsync().Wait();
+        }
+        catch
+        {
+            s_Successfull = false;
+            Assert.Fail();
+            return;
         }
 
         s_Successfull = true;
+        Assert.Pass();
     }
 }
