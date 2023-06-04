@@ -10,19 +10,32 @@ namespace WebUntisAPI.Client.Exceptions
     /// <summary>
     /// An error that the WebUntis server returned
     /// </summary>
-    [DataContract]
     public class WebUntisException : Exception
     {
         /// <summary>
+        /// Some error codes that the webuntis server can return
+        /// </summary>
+        public enum Codes
+        {
+            /// <summary>
+            /// Too many results in a search
+            /// </summary>
+            TooManyResults = -6003,
+
+            /// <summary>
+            /// Wrong data
+            /// </summary>
+            BadCredentials = -8504,
+        }
+
+        /// <summary>
         /// Code of  the error
         /// </summary>
-        [DataMember]
         public int code { get; set; }
 
         /// <summary>
         /// A message that describes the error
         /// </summary>
-        [DataMember]
         public string message { get; set; }
 
         /// <summary>

@@ -11,8 +11,6 @@ namespace API.Test;
 [TestFixture]
 internal class AuthentificationTests
 {
-    public static bool s_Successfull = false;
-
     // Login data to test
     public static string s_Server;
     public static string s_LoginName;
@@ -41,12 +39,9 @@ internal class AuthentificationTests
         }
         catch
         {
-            s_Successfull = false;
             Assert.Fail();
             return;
         }
-
-        s_Successfull = true;
         Assert.Pass();
     }
 }

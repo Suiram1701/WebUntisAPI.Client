@@ -89,7 +89,7 @@ namespace WebUntisAPI.Client
         /// <param name="password">Password of the user to login</param>
         /// <param name="ct">Cancelationtoken</param>
         /// <param name="id">Identifier for the request</param>
-        /// <returns><see langword="true"/> when the login was successfull</returns>
+        /// <returns><see langword="true"/> when the login was successfull. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
@@ -105,7 +105,7 @@ namespace WebUntisAPI.Client
         /// <param name="password">Password of the user to login</param>
         /// <param name="ct">Cancelationtoken</param>
         /// <param name="id">Identifier for the request</param>
-        /// <returns><see langword="true"/> when the login was successfull</returns>
+        /// <returns><see langword="true"/> when the login was successfull. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
@@ -136,14 +136,13 @@ namespace WebUntisAPI.Client
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
 
             // Send request
-            _client.BaseAddress = new Uri(serverUrl);
             string schoolName = loginName.ToLower().Replace(' ', '+');
             HttpResponseMessage response = await _client.PostAsync(serverUrl + "/WebUntis/jsonrpc.do?school=" + schoolName, requestContent, ct);
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return false;
-
+                
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
@@ -152,7 +151,12 @@ namespace WebUntisAPI.Client
 
             // Check for WebUntis error
             if (responseModel.error != null)
+            {
+                if (responseModel.error.code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
+                    return false;
+
                 throw responseModel.error;
+            }
 
             // Setup data and get default data
             _serverUrl = serverUrl;
@@ -167,7 +171,7 @@ namespace WebUntisAPI.Client
         /// Logout (You can reuse the client)
         /// </summary>
         /// <param name="id">Identifier for the request</param>
-        /// <returns></returns>
+        /// <returns>Task for the proccess</returns>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         public async Task LogoutAsync(string id = "logout")
         {
@@ -193,6 +197,7 @@ namespace WebUntisAPI.Client
             _loginName = null;
             _sessonId = null;
             _loggedIn = false;
+            _client.BaseAddress = null;
 
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)

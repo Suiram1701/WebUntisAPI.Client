@@ -29,18 +29,12 @@ internal class SchoolSearchTests
     [Test]
     public void ToManySchoolsFound()
     {
-        bool success;
-        try
-        {
-            SchoolSearch.SearchAsync("M", CancellationToken.None).Wait();
-            success = false;
-        }
-        catch (AggregateException ex) when (ex.InnerException.GetType() == typeof(WebUntisException))
-        {
-            success = true;
-        }
-
-        Assert.IsTrue(success);
+        Task<School[]> schools = SchoolSearch.SearchAsync("M", CancellationToken.None);
+        schools.Wait();
+        if (schools.Result == null)
+            Assert.Pass();
+        else
+            Assert.Fail();
     }
 
     [Order(3)]
