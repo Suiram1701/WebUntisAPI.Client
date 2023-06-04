@@ -21,4 +21,20 @@ namespace WebUntisAPI.Client
         /// </summary>
         Student = 5
     }
+
+    /// <summary>
+    /// The gender of a student
+    /// </summary>
+    public enum Gender
+    {
+        /// <summary>
+        /// Male
+        /// </summary>
+        Male = 0,
+
+        /// <summary>
+        /// Female
+        /// </summary>
+        Female = 1,
+    }
 }

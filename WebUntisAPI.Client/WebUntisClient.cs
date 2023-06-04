@@ -12,6 +12,7 @@ using WebUntisAPI.Client.Models;
 using Newtonsoft.Json;
 using WebUntisAPI.Client.Exceptions;
 using System.Threading;
+using System.ComponentModel;
 
 namespace WebUntisAPI.Client
 {
@@ -26,7 +27,7 @@ namespace WebUntisAPI.Client
     ///     Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis is permanently blocked by the WebUntis API.
     ///     </para>
     /// </remarks>
-    public class WebUntisClient : IDisposable
+    public partial class WebUntisClient : IDisposable
     {
         /// <summary>
         /// Unique identifier for the client app

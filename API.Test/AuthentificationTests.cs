@@ -11,14 +11,7 @@ namespace API.Test;
 [TestFixture]
 internal class AuthentificationTests
 {
-    // Login data to test
-    public static string s_Server;
-    public static string s_LoginName;
-    public static string s_UserName;
-    public static string s_Password;
-
-    [SetUp]
-    public void Setup()
+    static AuthentificationTests()
     {
         // Load a file where i saved login data
         using StreamReader str = new("LoginData.txt");
@@ -27,6 +20,12 @@ internal class AuthentificationTests
         s_UserName = str.ReadLine();
         s_Password = str.ReadLine();
     }
+
+    // Login data to test
+    public static string s_Server;
+    public static string s_LoginName;
+    public static string s_UserName;
+    public static string s_Password;
 
     [Test]
     public void Authentification()
