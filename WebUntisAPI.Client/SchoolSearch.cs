@@ -33,7 +33,7 @@ namespace WebUntisAPI.Client
         /// <returns>All schools found, an empty array when no school found or <see langword="null"/> when too many schools found</returns>
         /// <exception cref="WebUntisException">Throws when the WebUntis API returned an error</exception>
         /// <exception cref="HttpRequestException">Throws when an error happend while request</exception>
-        public static async Task<School[]> SearchAsync(string name, CancellationToken ct, string id = "search")
+        public static async Task<School[]> SearchAsync(string name, string id = "getStudents", CancellationToken ct = default)
         {
             // Write request content
             JSONRPCRequestModel<SchoolSearchModel[]> requestModel = new JSONRPCRequestModel<SchoolSearchModel[]>()

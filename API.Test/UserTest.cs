@@ -27,9 +27,9 @@ internal class UserTest
     [Order(1)]
     public void GetStudents()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password, CancellationToken.None).Wait();
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Student[]> students = Client.GetAllStudentsAsync(CancellationToken.None);
+        Task<Student[]> students = Client.GetAllStudentsAsync();
         students.Wait();
         if (students.Result.Length > 0)
             Assert.Pass();
@@ -41,6 +41,6 @@ internal class UserTest
     [Test]
     public void TearUp()
     {
-        Client.LogoutAsync(CancellationToken.None).Wait();
+        Client.LogoutAsync().Wait();
     }
 }

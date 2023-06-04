@@ -21,7 +21,7 @@ namespace WebUntisAPI.Client
     /// </summary>
     /// <remarks>
     ///     <para>
-    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(CancellationToken, string)"/> and <see cref="Dispose()"/> when you don't need the connection.
+    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(string, CancellationToken)"/> and <see cref="Dispose()"/> when you don't need the connection.
     ///     </para>
     ///     <para>
     ///     Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis is permanently blocked by the WebUntis API.
@@ -85,7 +85,7 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Login as a user in a school to get and write data
         /// </summary>
-        /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, CancellationToken, string)"/>)</param>
+        /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, string, CancellationToken)"/>)</param>
         /// <param name="username">Name of the user to login</param>
         /// <param name="password">Password of the user to login</param>
         /// <param name="ct">Cancelationtoken</param>
@@ -94,8 +94,8 @@ namespace WebUntisAPI.Client
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
-        public async Task<bool> LoginAsync(School school, string username, string password, CancellationToken ct, string id = "login") =>
-            await LoginAsync(school.Server, school.LoginName, username, password, ct, id);
+        public async Task<bool> LoginAsync(School school, string username, string password, string id = "getStudents", CancellationToken ct = default) =>
+            await LoginAsync(school.Server, school.LoginName, username, password, id, ct);
 
         /// <summary>
         /// Login as a user in a school to get and write data
@@ -110,7 +110,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
-        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, CancellationToken ct, string id = "login")
+        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "getStudents", CancellationToken ct = default)
         {
             // Check if you already logged in
             if (LoggedIn)
@@ -175,7 +175,7 @@ namespace WebUntisAPI.Client
         /// <param name="ct">Cancellation token</param>
         /// <returns>Task for the proccess</returns>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
-        public async Task LogoutAsync(CancellationToken ct, string id = "logout")
+        public async Task LogoutAsync(string id = "getStudents", CancellationToken ct = default)
         {
             // Check if you logged in
             if (!LoggedIn)
@@ -225,7 +225,7 @@ namespace WebUntisAPI.Client
             {
                 // When not manually logged out then logout
                 if (LoggedIn)
-                    _ = LogoutAsync(CancellationToken.None);
+                    _ = LogoutAsync();
 
                 if (disposing)
                 {

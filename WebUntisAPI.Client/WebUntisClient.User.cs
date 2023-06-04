@@ -23,7 +23,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you don't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
-        public async Task<Student[]> GetAllStudentsAsync(CancellationToken ct, string id = "getStudents")
+        public async Task<Student[]> GetAllStudentsAsync(string id = "getStudents", CancellationToken ct = default)
         {
             if (!LoggedIn)
                 throw new UnauthorizedAccessException("You're not logged in");

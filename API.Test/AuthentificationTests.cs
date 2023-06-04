@@ -33,8 +33,8 @@ internal class AuthentificationTests
         try
         {
             using WebUntisClient client = new("WebUntisAPI_TEST");
-            client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password, CancellationToken.None).Wait();
-            client.LogoutAsync(CancellationToken.None).Wait();
+            client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+            client.LogoutAsync().Wait();
         }
         catch
         {
