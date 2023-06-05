@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace WebUntisAPI.Client
 {
     /// <summary>
-    /// Types of a user
+    /// Types of users
     /// </summary>
-    public enum PersonType
+    public enum UserType
     {
         /// <summary>
         /// A Untis teacher

@@ -85,6 +85,9 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Login as a user in a school to get and write data
         /// </summary>
+        /// <remarks>
+        /// Information about the user you logged in with is automatically requested
+        /// </remarks>
         /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, string, CancellationToken)"/>)</param>
         /// <param name="username">Name of the user to login</param>
         /// <param name="password">Password of the user to login</param>
@@ -100,6 +103,9 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Login as a user in a school to get and write data
         /// </summary>
+        /// <remarks>
+        /// Information about the user you logged in with is automatically requested
+        /// </remarks>
         /// <param name="server">server name to login (example: "herakles.webuntis.com")</param>
         /// <param name="loginName">School to login (Not the normal school name but the WebUntis internal one)</param>
         /// <param name="username">Name of the user to login</param>
@@ -159,11 +165,15 @@ namespace WebUntisAPI.Client
                 throw responseModel.Error;
             }
 
-            // Setup data and get default data
+            // Set data
             _serverUrl = serverUrl;
             _loginName = loginName;
             _sessonId = responseModel.Result.SessionId;
             _loggedIn = true;
+
+            // Get logged in user data
+            _userType = (UserType)responseModel.Result.PersonType;
+            _user = (await GetAllStudentsAsync(ct: ct)).FirstOrDefault(s => s.Id == responseModel.Result.PersonId);
 
             return true;
         }

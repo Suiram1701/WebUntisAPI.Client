@@ -15,6 +15,29 @@ namespace WebUntisAPI.Client
     public partial class WebUntisClient
     {
         /// <summary>
+        /// The type of the user as that you currently logged in (Student or teacher)
+        /// </summary>
+        /// <remarks>
+        /// <see langword="null"/> when you're not logged in
+        /// </remarks>
+        public UserType? UserType => _userType;
+        private UserType? _userType = null;
+
+        /// <summary>
+        /// The user as that you currently logged in
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///     <see langword="null"/> when you're not logged in
+        ///     </para>
+        ///     <para>
+        ///     Don't change any value!
+        ///     </para>
+        /// </remarks>
+        public IUser User => _user;
+        private IUser _user = null;
+
+        /// <summary>
         /// Get all students on the school
         /// </summary>
         /// <param name="ct">Cancellation token</param>
