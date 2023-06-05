@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A student
     /// </summary>
+    [DebuggerDisplay("Name = {ForeName} {LongName}")]
     public sealed class Student : IUser
     {
         /// <inheritdoc/>

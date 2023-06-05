@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -11,6 +12,7 @@ namespace WebUntisAPI.Client.Exceptions
     /// <summary>
     /// An error that the WebUntis server returned
     /// </summary>
+    [DebuggerDisplay("Message = {Message}, Code = {Code}")]
     public class WebUntisException : Exception
     {
         /// <summary>

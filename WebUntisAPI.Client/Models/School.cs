@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
@@ -11,6 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// Represent a Untis school
     /// </summary>
+    [DebuggerDisplay("Name = {DisplayName}, Id = {SchoolId}")]
     public struct School
     {
         /// <summary>
