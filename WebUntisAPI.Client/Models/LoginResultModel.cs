@@ -25,7 +25,7 @@ namespace WebUntisAPI.Client.Models
         public int PersonType { get; set; }
 
         /// <summary>
-        /// Is of the person
+        /// Id of the person
         /// </summary>
         [JsonProperty("personId")]
         public int PersonId { get; set; }

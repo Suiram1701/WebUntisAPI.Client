@@ -37,6 +37,20 @@ internal class UserTest
             Assert.Fail();
     }
 
+    [Test]
+    [Order(2)]
+    public void GetTeachers()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Teacher[]> teachers = Client.GetAllTeachersAsync();
+        teachers.Wait();
+        if (teachers.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
     [Order(3)]
     [Test]
     public void TearUp()
