@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// A student
     /// </summary>
     [DebuggerDisplay("Name = {ForeName} {LongName}")]
-    public sealed class Student : IUser
+    public class Student : IUser
     {
         /// <inheritdoc/>
         public int Id { get; set; }

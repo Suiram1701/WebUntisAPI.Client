@@ -11,6 +11,8 @@ namespace API.Test;
 [TestFixture]
 internal class AuthentificationTests
 {
+    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST");
+
     static AuthentificationTests()
     {
         // Load a file where i saved login data

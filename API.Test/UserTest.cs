@@ -14,15 +14,6 @@ namespace API.Test;
 [TestFixture]
 internal class UserTest
 {
-    private static WebUntisClient Client { get; set; }
-
-    [Order(0)]
-    [SetUp]
-    public void Setup()
-    {
-        Client = new("WebUntisAPI_TEST");
-    }
-
     [Test]
     [Order(1)]
     public void GetStudents()

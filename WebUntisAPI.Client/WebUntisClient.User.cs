@@ -27,12 +27,7 @@ namespace WebUntisAPI.Client
         /// The user as that you currently logged in
         /// </summary>
         /// <remarks>
-        ///     <para>
-        ///     <see langword="null"/> when you're not logged in
-        ///     </para>
-        ///     <para>
-        ///     Don't change any value!
-        ///     </para>
+        /// <see langword="null"/> when you're not logged in
         /// </remarks>
         public IUser User => _user;
         private IUser _user = null;
