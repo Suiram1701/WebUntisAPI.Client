@@ -27,13 +27,20 @@ namespace WebUntisAPI.Client.Extensions
         /// Convert a color string to the Hexadecimal format: RRGGBB
         /// </summary>
         /// <param name="color"></param>
+        /// <param name="colorString">The string to convert</param>
+        /// <param name="throwOnException">Throw a exception on validation error. When not to throw on exception and an exception happened is the return value <see langword="null"/></param>
         /// <returns>The created color</returns>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="colorString"/> isn't in the correct format</exception>
-        public static Color FromHexColorFormat(this Color color, string colorString)
+        public static Color? FromHexColorFormat(this Color color, string colorString, bool throwOnException = true)
         {
             if (!Regex.IsMatch(colorString, @"[\da-fA-F]{6}"))
-                throw new ArgumentException("The color string isn't in a correct format", nameof(colorString));
+            {
+                if (!throwOnException)
+                    return null;
 
+                throw new ArgumentException("The color string isn't in a correct format", nameof(colorString));
+            }
+                
             // Convert the hex string to the single color channels
             int red = Convert.ToByte(colorString.Substring(0, 2), 16);
             int green = Convert.ToByte(colorString.Substring(2, 2), 16);

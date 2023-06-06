@@ -42,9 +42,10 @@ namespace WebUntisAPI.Client.Extensions
         /// <param name="dateTime">Instance</param>
         /// <param name="dateString">Date string</param>
         /// <param name="timeString">Time string</param>
-        /// <returns>The new instance that contains the given time</returns>
+        /// <param name="throwOnException">Throw a exception on validation error</param>
+        /// <returns>The new instance that contains the given time. When not to throw on exception and an exception happened is the return value <see langword="null"/></returns>
         /// <exception cref="FormatException">Thrown when one of the given strings isn't in the right format</exception>
-        public static DateTime FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString)
+        public static DateTime? FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString, bool throwOnException = true)
         {
             Regex dateRegex = new Regex(@"^\d{4}-(0\d|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$");     // Regex for the WebUntis date format
             Regex timeRegex = new Regex(@"^(\d|1\d|2[0-3])[0-5]\d$");     // Regex for the WebUntis time format
@@ -54,7 +55,13 @@ namespace WebUntisAPI.Client.Extensions
             bool isTimeValid = timeRegex.IsMatch(timeString);
 
             if (!isDateValid || !isTimeValid)
+            {
+                if (!throwOnException)
+                    return null;
+
                 throw new FormatException($"The string {(isDateValid ? timeString : dateString)} isn't in the valid format!");
+            }
+                
 
             // Parse the numbers in the string to value
             int year = int.Parse(dateString.Substring(0, 4));
