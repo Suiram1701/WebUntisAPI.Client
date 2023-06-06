@@ -46,8 +46,14 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you don't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Student[]> GetAllStudentsAsync(string id = "getStudents", CancellationToken ct = default)
         {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
             if (!LoggedIn)
                 throw new UnauthorizedAccessException("You're not logged in");
 
@@ -89,8 +95,14 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you don't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Teacher[]> GetAllTeachersAsync(string id = "getTeachers", CancellationToken ct = default)
         {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
             if (!LoggedIn)
                 throw new UnauthorizedAccessException("You're not logged in");
 

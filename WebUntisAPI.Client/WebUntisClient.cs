@@ -97,6 +97,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<bool> LoginAsync(School school, string username, string password, string id = "getStudents", CancellationToken ct = default) =>
             await LoginAsync(school.Server, school.LoginName, username, password, id, ct);
 
@@ -116,8 +117,13 @@ namespace WebUntisAPI.Client
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "getStudents", CancellationToken ct = default)
         {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
             // Check if you already logged in
             if (LoggedIn)
                 return false;
@@ -186,8 +192,13 @@ namespace WebUntisAPI.Client
         /// <param name="ct">Cancellation token</param>
         /// <returns>Task for the proccess</returns>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task LogoutAsync(string id = "getStudents", CancellationToken ct = default)
         {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
             // Check if you logged in
             if (!LoggedIn)
                 return;
