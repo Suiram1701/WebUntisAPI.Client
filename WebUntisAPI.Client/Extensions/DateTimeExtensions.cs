@@ -46,8 +46,8 @@ namespace WebUntisAPI.Client.Extensions
         /// <exception cref="FormatException">Thrown when one of the given strings isn't in the right format</exception>
         public static DateTime FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString)
         {
-            Regex dateRegex = new Regex(@"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$");     // Regex for the WebUntis date format
-            Regex timeRegex = new Regex("^([0-9]|1[0-9]|2[0-3])[0-5][0-9]$");     // Regex for the WebUntis time format
+            Regex dateRegex = new Regex(@"^\d{4}-(0\d|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$");     // Regex for the WebUntis date format
+            Regex timeRegex = new Regex(@"^(\d|1\d|2[0-3])[0-5]\d$");     // Regex for the WebUntis time format
 
             // Check if the date- and time strings are valid
             bool isDateValid = dateRegex.IsMatch(dateString);
