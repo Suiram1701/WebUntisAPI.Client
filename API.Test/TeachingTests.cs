@@ -24,4 +24,17 @@ internal class TeachingTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetClass()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Class[]> classes = Client.GetAllClassesAsync();
+        classes.Wait();
+        if (classes.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }

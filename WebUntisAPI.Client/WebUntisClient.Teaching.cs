@@ -55,9 +55,46 @@ namespace WebUntisAPI.Client
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            JsonSerializerSettings settings = new JsonSerializerSettings();
-            settings.Converters.Add(new ColorJsonConverter());
-            JSONRPCResponeModel<List<Subject>> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<List<Subject>>>(await response.Content.ReadAsStringAsync(), settings);
+            JSONRPCResponeModel<List<Subject>> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<List<Subject>>>(await response.Content.ReadAsStringAsync());
+
+            // Check for WebUntis error
+            if (responseModel.Error != null)
+                throw responseModel.Error;
+
+            return responseModel.Result.ToArray();
+        }
+
+        public async Task<Class[]> GetAllClassesAsync(string id = "getClasses", CancellationToken ct = default)
+        {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            // Make request
+            JSONRPCRequestModel<object> requestModel = new JSONRPCRequestModel<object>()
+            {
+                Id = id,
+                Method = "getKlassen",
+                Params = new object()
+            };
+            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+
+            // Send request
+            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return null;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            JSONRPCResponeModel<List<Class>> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<List<Class>>>(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
             if (responseModel.Error != null)
