@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models
 {
@@ -49,12 +50,14 @@ namespace WebUntisAPI.Client.Models
         /// Fore color of the subject
         /// </summary>
         [JsonProperty("foreColor")]
+        [JsonConverter(typeof(ColorJsonConverter))]
         public Color ForeColor { get; set; }
 
         /// <summary>
         /// Back color of the subject
         /// </summary>
         [JsonProperty("backColor")]
+        [JsonConverter(typeof(ColorJsonConverter))]
         public Color BackColor { get; set; }
     }
 }

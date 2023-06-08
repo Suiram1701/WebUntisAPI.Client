@@ -14,23 +14,20 @@ namespace WebUntisAPI.Client.Converter
     /// <summary>
     /// A json converter to convert a <see cref="Color"/> to the Hex color format (RRGGBB)
     /// </summary>
-    public sealed class ColorJsonConverter : JsonConverter
+    public sealed class ColorJsonConverter : JsonConverter<Color>
     {
         /// <inheritdoc/>
-        public override bool CanConvert(Type objectType) => objectType == typeof(Color) || objectType == typeof(string);
-
-        /// <inheritdoc/>
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override Color ReadJson(JsonReader reader, Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             // Get value
             JToken jToken = JToken.Load(reader);
             string value = jToken.Value<string>();
 
             // Convert value
-            return new Color().FromHexColorFormat(value, false) ?? (object)value;
+            return new Color().FromHexColorFormat(value);
         }
 
         /// <inheritdoc/>
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) => ((Color)value).ToHexColorFormat();
+        public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer) => serializer.Serialize(writer, value.ToHexColorFormat());
     }
 }
