@@ -49,34 +49,20 @@ namespace WebUntisAPI.Client
             return classes.ToArray();
         }
 
-            // Make request
-            JSONRPCRequestModel<object> requestModel = new JSONRPCRequestModel<object>()
-            {
-                Id = id,
-                Method = "getKlassen",
-                Params = new object()
-            };
-            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-
-            // Send request
-            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
-
-            // Check cancellation token
-            if (ct.IsCancellationRequested)
-                return null;
-
-            // Verify response
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
-            JSONRPCResponeModel<List<Class>> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<List<Class>>>(await response.Content.ReadAsStringAsync());
-
-            // Check for WebUntis error
-            if (responseModel.Error != null)
-                throw responseModel.Error;
-
-            return responseModel.Result.ToArray();
+        /// <summary>
+        /// Get all rooms on the school
+        /// </summary>
+        /// <param name="id">Identifier of the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>All rooms on the school</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<Room[]> GetAllRoomsAsync(string id = "getRooms", CancellationToken ct = default)
+        {
+            List<Room> rooms = await MakeRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
+            return rooms.ToArray();
         }
     }
-
 }
