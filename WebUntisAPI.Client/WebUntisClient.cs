@@ -227,6 +227,64 @@ namespace WebUntisAPI.Client
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
         }
 
+        /// <summary>
+        /// Make an internal basic request to the WebUntis server
+        /// </summary>
+        /// <typeparam name="TRequest">Type of the request parameter</typeparam>
+        /// <typeparam name="TResult">Type of the returned result</typeparam>
+        /// <param name="requestUrl">Path to the API on the server</param>
+        /// <param name="id">Identifier of the request</param>
+        /// <param name="methodName">Name of the request method</param>
+        /// <param name="requestParams">Parameter of the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The result</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        private async Task<TResult> MakeRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
+        {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            // Make request
+            JSONRPCRequestModel<TRequest> requestModel = new JSONRPCRequestModel<TRequest>()
+            {
+                Id = id,
+                Method = methodName,
+                Params = requestParams
+            };
+            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+
+            // Send request
+            HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            JSONRPCResponeModel<TResult> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<TResult>>(await response.Content.ReadAsStringAsync());
+
+            // Check JSON RPC version and request id
+            if (requestModel.JSONRPC != responseModel.JSONRPC || requestModel.Id != responseModel.Id)
+                throw new HttpRequestException("The WebUntis API returned a wrong result");
+
+            // Check for WebUntis error
+            if (responseModel.Error != null)
+                throw responseModel.Error;
+
+            return responseModel.Result;
+        }
+
         #region IDisposable
         private bool _disposedValue;
 

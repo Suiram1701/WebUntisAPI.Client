@@ -16,32 +16,6 @@ namespace WebUntisAPI.Client.Converter
     /// </summary>
     public sealed class ClassJsonConverter : JsonConverter<Class>
     {
-        ///// <inheritdoc/>
-        //public override int[] ReadJson(JsonReader reader, Type objectType, int[] existingValue, bool hasExistingValue, JsonSerializer serializer)
-        //{
-        //    // Setup
-        //    JObject classObject = JObject.Load(reader);
-        //    List<int> teachers = new List<int>();
-
-        //    // Read values
-        //    int index = 1;
-        //    while (classObject["teacher" + index++]?.ToObject<int>() is int teacher)
-        //        teachers.Add(teacher);
-
-        //    return teachers.ToArray();
-        //}
-
-        ///// <inheritdoc/>
-        //public override void WriteJson(JsonWriter writer, int[] value, JsonSerializer serializer)
-        //{
-        //    JObject teacherObject = new JObject();
-
-        //    for (int i = 0; i < value.Length; i++)
-        //        teacherObject.Add("teacher" + (i + 1), value[i]);
-
-        //    teacherObject.WriteTo(writer);
-        //}
-
         /// <inheritdoc/>
         public override Class ReadJson(JsonReader reader, Type objectType, Class existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
