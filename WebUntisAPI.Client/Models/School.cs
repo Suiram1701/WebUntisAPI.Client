@@ -13,7 +13,7 @@ namespace WebUntisAPI.Client.Models
     /// Represent a Untis school
     /// </summary>
     [DebuggerDisplay("Name = {DisplayName}, Id = {SchoolId}")]
-    public struct School
+    public class School
     {
         /// <summary>
         /// Real name of the school

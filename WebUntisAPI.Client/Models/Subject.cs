@@ -14,7 +14,7 @@ namespace WebUntisAPI.Client.Models
     /// A subject
     /// </summary>
     [DebuggerDisplay("Name = {LongName}")]
-    public struct Subject
+    public class Subject
     {
         /// <summary>
         /// Id of the subject

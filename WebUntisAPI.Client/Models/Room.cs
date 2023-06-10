@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// A Room
     /// </summary>
     [DebuggerDisplay("Name = {LongName}")]
-    public struct Room
+    public class Room
     {
         /// <summary>
         /// Id of the room
