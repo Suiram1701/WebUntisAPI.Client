@@ -29,6 +29,11 @@ namespace WebUntisAPI.Client.Exceptions
             /// Wrong data
             /// </summary>
             BadCredentials = -8504,
+
+            /// <summary>
+            /// Json rpc method not found
+            /// </summary>
+            MethodNotFound = -32601
         }
 
         /// <summary>
@@ -50,8 +55,8 @@ namespace WebUntisAPI.Client.Exceptions
         /// <param name="message">Message</param>
         public WebUntisException(int code, string message) : base(message)
         {
-            this.Code = code;
-            this.Message = message;
+            Code = code;
+            Message = message;
         }
     }
 }
