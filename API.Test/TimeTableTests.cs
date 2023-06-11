@@ -13,6 +13,19 @@ namespace API.Test;
 internal class TimeTableTests
 {
     [Test]
+    public void GetStatusData()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<StatusData> status = Client.GetStatusDataAsync();
+        status.Wait();
+        if (status.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
     public void GetTimeGrid()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
