@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Extensions;
+using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client.Converter
 {

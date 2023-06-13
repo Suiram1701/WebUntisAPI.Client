@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
-namespace WebUntisAPI.Client
+namespace WebUntisAPI.Client.Models
 {
     /// <summary>
     /// A school year

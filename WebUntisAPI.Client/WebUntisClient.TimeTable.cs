@@ -50,10 +50,26 @@ namespace WebUntisAPI.Client
         /// <param name="id">Identifier for the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>All school years</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<SchoolYear[]> GetAllSchoolYearsAsync(string id = "getSchoolyears", CancellationToken ct = default)
         {
             List<SchoolYear> schoolYears = await MakeRequestAsync<object, List<SchoolYear>>(id, "getSchoolyears", new object(), ct);
             return schoolYears.ToArray();
+        }
+
+        /// <summary>
+        /// Get the current school year
+        /// </summary>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns></returns>
+        public async Task<SchoolYear> GetCurrentSchoolYearAsync(string id = "getCurrentSchoolyear", CancellationToken ct = default)
+        {
+            SchoolYear schoolYear = await MakeRequestAsync<object, SchoolYear>(id, "getCurrentSchoolyear", new object(), ct);
+            return schoolYear;
         }
     }
 }
