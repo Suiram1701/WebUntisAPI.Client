@@ -32,20 +32,35 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get all classes on the school
+        /// Get all classes on the school from the current school year
         /// </summary>
         /// <param name="id">Identifier of the request</param>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>All classes on the school</returns>
+        /// <returns>All classes on the school from current school year</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the hppt request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Class[]> GetAllClassesAsync(string id = "getClasses", CancellationToken ct = default)
         {
-            //TODO: School year overload
-
             List<Class> classes = await MakeRequestAsync<object, List<Class>>(id, "getKlassen", new object(), ct);
+            return classes.ToArray();
+        }
+
+        /// <summary>
+        /// Get all classes on the school from the selected school year
+        /// </summary>
+        /// <param name="id">Identifier of the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <param name="schoolYear">The school year from the classes</param>
+        /// <returns>All classes on the school for the school year</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the hppt request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<Class[]> GetClassesAsync(SchoolYear schoolYear, string id = "getClassesBySchoolYear", CancellationToken ct = default)
+        {
+            List<Class> classes = await MakeRequestAsync<SchoolYearModel, List<Class>>(id, "getKlassen", new SchoolYearModel() { Id = schoolYear.Id }, ct);
             return classes.ToArray();
         }
 
