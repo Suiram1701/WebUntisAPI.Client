@@ -25,8 +25,8 @@ namespace WebUntisAPI.Client.Converter
                     hours.Add(new SchoolHour()
                     {
                         Name = hour["name"].Value<string>(),
-                        StartTime = new DateTime().FromWebUntisTimeFormat("2020-01-01", hour["startTime"].Value<string>()),
-                        EndTime = new DateTime().FromWebUntisTimeFormat("2020-01-01", hour["endTime"].Value<string>())
+                        StartTime = new DateTime().FromWebUntisTimeFormat("20200101", hour["startTime"].Value<string>()),
+                        EndTime = new DateTime().FromWebUntisTimeFormat("20200101", hour["endTime"].Value<string>())
                     });
 
                 timegrid[(Day)dayTimegrid["day"].Value<int>()] = hours.ToArray();

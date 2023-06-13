@@ -43,5 +43,17 @@ namespace WebUntisAPI.Client
             Timegrid timeGrid = await MakeRequestAsync<object, Timegrid>(id, "getTimegridUnits", new object(), ct);
             return timeGrid;
         }
+
+        /// <summary>
+        /// Get all available school years
+        /// </summary>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>All school years</returns>
+        public async Task<SchoolYear[]> GetAllSchoolYearsAsync(string id = "getSchoolyears", CancellationToken ct = default)
+        {
+            List<SchoolYear> schoolYears = await MakeRequestAsync<object, List<SchoolYear>>(id, "getSchoolyears", new object(), ct);
+            return schoolYears.ToArray();
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client;
 using WebUntisAPI.Client.Models;
 using static API.Test.AuthentificationTests;
 
@@ -33,6 +34,19 @@ internal class TimeTableTests
         Task<Timegrid> timegrid = Client.GetTimegridAsync();
         timegrid.Wait();
         if (timegrid.Result.SchoolDays > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetSchoolYears()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<SchoolYear[]> schoolYears = Client.GetAllSchoolYearsAsync();
+        schoolYears.Wait();
+        if (schoolYears.Result.Length > 0)
             Assert.Pass();
         else
             Assert.Fail();
