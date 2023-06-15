@@ -9,7 +9,7 @@ namespace WebUntisAPI.Client.Models
 {
     internal struct SchoolYearModel
     {
-        [JsonProperty("id")]
+        [JsonProperty("schoolyearId")]
         public int Id { get; set; }
     }
 }

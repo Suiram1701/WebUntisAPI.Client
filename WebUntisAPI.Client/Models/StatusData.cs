@@ -21,19 +21,24 @@ namespace WebUntisAPI.Client.Models
         public ForeBackColors LessonColors { get; set; }
 
         /// <summary>
-        /// idk
+        /// Colors for a office hour
         /// </summary>
         public ForeBackColors OhColors { get; set; }
 
         /// <summary>
-        /// idk
+        /// Colors for a standby
         /// </summary>
         public ForeBackColors SbColors { get; set; }
 
         /// <summary>
-        /// idk
+        /// Colors for a break supervision
         /// </summary>
         public ForeBackColors BsColors { get; set; }
+
+        /// <summary>
+        /// Colors for a examination
+        /// </summary>
+        public ForeBackColors ExColors { get; set; }
 
         /// <summary>
         /// Colors for cancelled lessons

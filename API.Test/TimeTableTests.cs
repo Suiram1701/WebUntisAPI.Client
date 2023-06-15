@@ -63,4 +63,17 @@ internal class TimeTableTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetHolidays()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Holidays[]> holidays = Client.GetAllHolidaysAsync();
+        holidays.Wait();
+        if (holidays.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }
