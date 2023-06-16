@@ -29,6 +29,16 @@ namespace WebUntisAPI.Client.Exceptions
             /// Wrong data
             /// </summary>
             BadCredentials = -8504,
+
+            /// <summary>
+            /// Access denied for the requested timetable
+            /// </summary>
+            NoRightForTimetable = -8509,
+
+            /// <summary>
+            /// The element that you requested was not found
+            /// </summary>
+            NoSuchElementFound = -7002
         }
 
         /// <summary>
