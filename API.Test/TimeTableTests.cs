@@ -76,4 +76,17 @@ internal class TimeTableTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetTimetable()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Period[]> timetable = Client.GetTimetableForStudentAsync(Client.User as Student, new DateTime(2023, 06, 09), new DateTime(2023, 06, 16));
+        timetable.Wait();
+        if (timetable.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }
