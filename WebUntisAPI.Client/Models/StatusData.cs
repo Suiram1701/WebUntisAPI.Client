@@ -18,7 +18,7 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Colors for a normal lesson
         /// </summary>
-        public ForeBackColors LessonColors { get; set; }
+        public ForeBackColors LsColors { get; set; }
 
         /// <summary>
         /// Colors for a office hour
@@ -49,6 +49,21 @@ namespace WebUntisAPI.Client.Models
         /// Colors for irregular lessons
         /// </summary>
         public ForeBackColors IrregularLessonColors { get; set; }
-  
+
+        /// <summary>
+        /// Get the <see cref="ForeBackColors"/> from the lesson type
+        /// </summary>
+        /// <param name="lessonType">The lesson type</param>
+        /// <returns>The colors</returns>
+        public ForeBackColors GetLessonTypeColor(LessonType lessonType) =>
+            (ForeBackColors)GetType().GetProperties().First(p => p.Name.ToLower() == (lessonType.ToString() + "Colors").ToLower()).GetValue(this);
+
+        /// <summary>
+        /// Get the <see cref="ForeBackColors"/> from the lesson type
+        /// </summary>
+        /// <param name="code">The code</param>
+        /// <returns>The colors. <see langword="null"/> when the code was <see cref="Code.None"/></returns>
+        public ForeBackColors? GetCodeColor(Code code) =>
+            GetType().GetProperties().FirstOrDefault(p => p.Name.ToLower() == (code.ToString() + "LessonColors").ToLower())?.GetValue(this) as ForeBackColors?;
     }
 }

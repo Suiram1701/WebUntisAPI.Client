@@ -24,7 +24,7 @@ namespace WebUntisAPI.Client.Converter
 
             return new StatusData
             {
-                LessonColors = lessonTypes.First(obj => obj.ContainsKey("ls"))["ls"].ToObject<ForeBackColors>(),
+                LsColors = lessonTypes.First(obj => obj.ContainsKey("ls"))["ls"].ToObject<ForeBackColors>(),
                 OhColors = lessonTypes.First(obj => obj.ContainsKey("oh"))["oh"].ToObject<ForeBackColors>(),
                 SbColors = lessonTypes.First(obj => obj.ContainsKey("sb"))["sb"].ToObject<ForeBackColors>(),
                 BsColors = lessonTypes.First(obj => obj.ContainsKey("bs"))["bs"].ToObject<ForeBackColors>(),
@@ -42,7 +42,7 @@ namespace WebUntisAPI.Client.Converter
 
             writer.WriteStartObject();
             writer.WritePropertyName("ls");
-            serializer.Serialize(writer, value.LessonColors);
+            serializer.Serialize(writer, value.LsColors);
             writer.WriteEndObject();
 
             writer.WriteStartObject();

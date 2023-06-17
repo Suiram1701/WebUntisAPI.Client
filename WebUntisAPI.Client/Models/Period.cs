@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A lesson period
     /// </summary>
-    [DebuggerDisplay("On: {Date.Month, nq}.{Date.Day, nq}.{Date.Year, nq}, From {StartTime.Hour, nq}:{StartTime.Minute, nq} to {EndTime.Hour, nq}:{EndTime.Minute, nq}")]
+    [DebuggerDisplay("On: {Date.Month, nq}.{Date.Day, nq}.{Date.Year, nq}, From {StartTime.Hour, nq}:{StartTime.Minute, nq} to {EndTime.Hour, nq}:{EndTime.Minute, nq}, Type = {LessonType, nq}")]
     public class Period
     {
         /// <summary>
@@ -71,6 +71,30 @@ namespace WebUntisAPI.Client.Models
         /// </summary>
         [JsonProperty("ro")]
         public ObjectId[] RoomIds { get; set; }
+
+        /// <summary>
+        /// The type of tghe lesson
+        /// </summary>
+        [JsonProperty("lstype")]
+        public LessonType LessonType { get; set; } = LessonType.Ls;
+
+        /// <summary>
+        /// Code for a the lesson
+        /// </summary>
+        [JsonProperty("code")]
+        public Code Code { get; set; } = Code.None;
+
+        /// <summary>
+        /// Statistical flags of the lesson
+        /// </summary>
+        [JsonProperty("statflags")]
+        public string StatisticalFlags { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Text of the lesson
+        /// </summary>
+        [JsonProperty("lstext")]
+        public string LessonText { get; set; } = string.Empty;
 
         /// <summary>
         /// The activity type in the lesson

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -77,5 +78,65 @@ namespace WebUntisAPI.Client
         /// Saturday
         /// </summary>
         Saturday = 7,
+    }
+
+    /// <summary>
+    /// All diefrent types of lesons
+    /// </summary>
+    public enum LessonType
+    {
+        /// <summary>
+        /// Lesson
+        /// </summary>
+        [JsonProperty("ls")]
+        Ls = 0,
+
+        /// <summary>
+        /// Office hour
+        /// </summary>
+        [JsonProperty("oh")]
+        Oh = 1,
+
+        /// <summary>
+        /// Standby
+        /// </summary>
+        [JsonProperty("sb")]
+        Sb = 2,
+
+        /// <summary>
+        /// Break supervision
+        /// </summary>
+        [JsonProperty("bs")]
+        Bs = 3,
+
+        /// <summary>
+        /// Examination
+        /// </summary>
+        [JsonProperty("ex")]
+        Ex = 4
+    }
+
+    /// <summary>
+    /// Various codes for the lessons
+    /// </summary>
+    public enum Code
+    {
+        /// <summary>
+        /// No code
+        /// </summary>
+        [JsonProperty("")]
+        None = 0,
+
+        /// <summary>
+        /// A cancelled lesson
+        /// </summary>
+        [JsonProperty("cancelled")]
+        Cancelled = 1,
+
+        /// <summary>
+        /// An irregular lesson
+        /// </summary>
+        [JsonProperty("irregular")]
+        Irregular = 2,
     }
 }
