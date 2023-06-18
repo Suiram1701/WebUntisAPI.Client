@@ -85,16 +85,40 @@ namespace WebUntisAPI.Client.Models
         public Code Code { get; set; } = Code.None;
 
         /// <summary>
+        /// Number of the lesson
+        /// </summary>
+        [JsonProperty("lsnumber")]
+        public int LessonNumber { get; set; }
+
+        /// <summary>
         /// Statistical flags of the lesson
         /// </summary>
         [JsonProperty("statflags")]
         public string StatisticalFlags { get; set; } = string.Empty;
 
         /// <summary>
-        /// Text of the lesson
+        /// Informations about the lesson
         /// </summary>
         [JsonProperty("lstext")]
         public string LessonText { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Additional informations about the student group
+        /// </summary>
+        [JsonProperty("sg")]
+        public string StudentGroup { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Additional text when it is a substitution
+        /// </summary>
+        [JsonProperty("substText")]
+        public string SubstitutionText { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Additional informations for the students
+        /// </summary>
+        [JsonProperty("info")]
+        public string Info { get; set; } = string.Empty;
 
         /// <summary>
         /// The activity type in the lesson

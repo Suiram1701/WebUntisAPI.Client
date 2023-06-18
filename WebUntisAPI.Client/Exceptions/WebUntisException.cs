@@ -38,7 +38,12 @@ namespace WebUntisAPI.Client.Exceptions
             /// <summary>
             /// The element that you requested was not found
             /// </summary>
-            NoSuchElementFound = -7002
+            NoSuchElementFound = -7002,
+
+            /// <summary>
+            /// Access dinied for substitutions
+            /// </summary>
+            NoRightForGetSubstitutions = -8509
         }
 
         /// <summary>

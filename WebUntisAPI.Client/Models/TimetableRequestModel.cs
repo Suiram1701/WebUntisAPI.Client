@@ -8,12 +8,12 @@ using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models
 {
+    [JsonConverter(typeof(TimetableRequestModelJsonConverter))]
     internal struct TimetableRequestModel
     {
         /// <summary>
         /// Id of that what you want too request
         /// </summary>
-        [JsonProperty("id")]
         public int Id { get; set; }
 
         /// <summary>
@@ -29,21 +29,16 @@ namespace WebUntisAPI.Client.Models
         ///         <item>5 = student</item>
         ///     </list>
         /// </remarks>
-        [JsonProperty("type")]
         public int Type { get; set; }
 
         /// <summary>
         /// Start date of requested informations
         /// </summary>
-        [JsonProperty("startDate")]
-        [JsonConverter(typeof(DateJsonConverter))]
         public DateTime StartDate { get; set; }
 
         /// <summary>
         /// End date of the requested informations
         /// </summary>
-        [JsonProperty("endDate")]
-        [JsonConverter(typeof(DateJsonConverter))]
         public DateTime EndDate { get; set; }
     }
 }

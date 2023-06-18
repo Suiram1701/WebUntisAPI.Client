@@ -82,7 +82,7 @@ internal class TimeTableTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Period[]> timetable = Client.GetTimetableForStudentAsync(Client.User as Student, new DateTime(2023, 06, 09), new DateTime(2023, 06, 16));
+        Task<Period[]> timetable = Client.GetTimetableForStudentAsync(Client.User as Student, new DateTime(2023, 05, 29), new DateTime(2023, 06, 2));
         timetable.Wait();
         if (timetable.Result.Length > 0)
             Assert.Pass();
