@@ -50,4 +50,17 @@ internal class TeachingTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetDepartment()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Department[]> departments = Client.GetAllDepartmentsAsync();
+        departments.Wait();
+        if (departments.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }

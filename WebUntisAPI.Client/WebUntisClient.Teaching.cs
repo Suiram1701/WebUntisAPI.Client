@@ -79,5 +79,21 @@ namespace WebUntisAPI.Client
             List<Room> rooms = await MakeRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
             return rooms.ToArray();
         }
+
+        /// <summary>
+        /// Get all departments
+        /// </summary>
+        /// <param name="id">Identifier for request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>All departments</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<Department[]> GetAllDepartmentsAsync(string id = "getDepartments", CancellationToken ct = default)
+        {
+            List<Department> departments = await MakeRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
+            return departments.ToArray();
+        }
     }
 }
