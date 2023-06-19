@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models
 {
@@ -17,6 +18,7 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Name of the school hour
         /// </summary>
+        [JsonProperty("name")]
         public string Name { get; set; }
 
         /// <summary>
@@ -25,6 +27,8 @@ namespace WebUntisAPI.Client.Models
         /// <remarks>
         /// Only <see cref="DateTime.Hour"/> and <see cref="DateTime.Minute"/> is set and the date is always set on the 1.1.2020
         /// </remarks>
+        [JsonProperty("startTime")]
+        [JsonConverter(typeof(TimeJsonConverter))]
         public DateTime StartTime { get; set; }
 
         /// <summary>
@@ -33,6 +37,8 @@ namespace WebUntisAPI.Client.Models
         /// <remarks>
         /// Only <see cref="DateTime.Hour"/> and <see cref="DateTime.Minute"/> is set and the date is always set on the 1.1.2020
         /// </remarks>
+        [JsonProperty("endTime")]
+        [JsonConverter(typeof(TimeJsonConverter))]
         public DateTime EndTime { get; set; }
     }
 }

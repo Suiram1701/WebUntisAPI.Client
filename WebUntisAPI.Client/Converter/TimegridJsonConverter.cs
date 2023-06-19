@@ -22,12 +22,7 @@ namespace WebUntisAPI.Client.Converter
             {
                 List<SchoolHour> hours = new List<SchoolHour>();
                 foreach (JObject hour in dayTimegrid["timeUnits"].Cast<JObject>())
-                    hours.Add(new SchoolHour()
-                    {
-                        Name = hour["name"].Value<string>(),
-                        StartTime = new DateTime().FromWebUntisTimeFormat("20200101", hour["startTime"].Value<string>()),
-                        EndTime = new DateTime().FromWebUntisTimeFormat("20200101", hour["endTime"].Value<string>())
-                    });
+                    hours.Add(serializer.Deserialize<SchoolHour>(hour.CreateReader()));
 
                 timegrid[(Day)dayTimegrid["day"].Value<int>()] = hours.ToArray();
             }
@@ -48,22 +43,8 @@ namespace WebUntisAPI.Client.Converter
                 writer.WritePropertyName("timeUnits");
                 writer.WriteStartArray();     // Write all school hours
                 foreach (SchoolHour hour in schoolHours)
-                {
-                    writer.WriteStartObject();
+                    serializer.Serialize(writer, hour);
 
-                    writer.WritePropertyName("name");
-                    writer.WriteValue(hour.Name);
-
-                    hour.StartTime.ToWebUntisTimeFormat(out string _, out string startTimeString);
-                    writer.WritePropertyName("startTime");
-                    writer.WriteValue(startTimeString);
-
-                    hour.EndTime.ToWebUntisTimeFormat(out string _, out string endTimeString);
-                    writer.WritePropertyName("endTime");
-                    writer.WriteValue(endTimeString);
-
-                    writer.WriteEndObject();
-                }
                 writer.WriteEndArray();
                 writer.WriteEndObject();
             }

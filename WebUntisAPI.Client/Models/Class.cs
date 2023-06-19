@@ -22,7 +22,6 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Id of the class
         /// </summary>
-        [JsonProperty("id")]
         public int Id { get; set; }
 
         /// <summary>
@@ -44,21 +43,5 @@ namespace WebUntisAPI.Client.Models
         /// An array of all teachers of the class
         /// </summary>
         public int[] Teachers { get; set; }
-
-        /// <summary>
-        /// Get all taechers of this class
-        /// </summary>
-        /// <param name="client">The client for the request (This should be the same client with that you requested the class)</param>
-        /// <param name="id">Identifier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The teachers of the class</returns>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Teacher[]> GetTeachersAsync(WebUntisClient client, string id = "getClassTeachers", CancellationToken ct = default)
-        {
-            int[] classTeachers = Teachers;
-            return (await client.GetAllTeachersAsync(id, ct)).Where(t => classTeachers.Contains(t.Id)).ToArray();
-        }
     }
 }

@@ -19,28 +19,28 @@ namespace WebUntisAPI.Client.Models
         /// <summary>
         /// Id of the school year
         /// </summary>
+        [JsonProperty("id")]
         public int Id { get; set; }
 
         /// <summary>
         /// Name of the school year
         /// </summary>
-        /// <remarks>
-        /// Example value: 2022/2023
-        /// </remarks>
+        [JsonProperty("name")]
         public string Name { get; set; }
 
         /// <summary>
         /// The date where the school year begins
         /// </summary>
+        [JsonProperty("startDate")]
+        [JsonConverter(typeof(DateJsonConverter))]
         public DateTime StartDate { get; set; }
 
         /// <summary>
         /// The date where the school year ends
         /// </summary>
+        [JsonProperty("endDate")]
+        [JsonConverter(typeof(DateJsonConverter))]
         public DateTime EndDate { get; set; }
-
-        /// <inheritdoc/>
-        public override string ToString() => Name;
 
         #region IEquatable<SchoolYear>
         /// <inheritdoc/>
