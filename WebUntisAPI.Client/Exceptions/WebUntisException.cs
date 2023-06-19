@@ -34,6 +34,21 @@ namespace WebUntisAPI.Client.Exceptions
             /// Json rpc method not found
             /// </summary>
             MethodNotFound = -32601
+
+            /// <summary>
+            /// Access denied for the requested timetable
+            /// </summary>
+            NoRightForTimetable = -8509,
+
+            /// <summary>
+            /// The element that you requested was not found
+            /// </summary>
+            NoSuchElementFound = -7002,
+
+            /// <summary>
+            /// Access dinied for substitutions
+            /// </summary>
+            NoRightForGetSubstitutions = -8509
         }
 
         /// <summary>

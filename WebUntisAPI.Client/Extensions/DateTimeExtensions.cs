@@ -24,7 +24,7 @@ namespace WebUntisAPI.Client.Extensions
         /// <param name="timeString">Time string</param>
         public static void ToWebUntisTimeFormat(this DateTime dateTime, out string dateString, out string timeString)
         {
-            dateString = dateTime.ToString("yyyy-MM-dd");
+            dateString = dateTime.ToString("yyyyMMdd");
             timeString = dateTime.Hour + dateTime.ToString("mm");
         }
 
@@ -46,8 +46,8 @@ namespace WebUntisAPI.Client.Extensions
         /// <exception cref="FormatException">Thrown when one of the given strings isn't in the right format</exception>
         public static DateTime FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString)
         {
-            Regex dateRegex = new Regex(@"^\d{4}-(0\d|1[0-2])-(0[1-9]|[1-2]\d|3[0-1])$");     // Regex for the WebUntis date format
-            Regex timeRegex = new Regex(@"^(\d|1\d|2[0-3])[0-5]\d$");     // Regex for the WebUntis time format
+            Regex dateRegex = new Regex(@"^\d{4}(?:0\d|1[0-2])(?:0[1-9]|[1-2]\d|3[0-1])$");     // Regex for the WebUntis date format
+            Regex timeRegex = new Regex(@"^(?:\d|1\d|2[0-3])[0-5]\d$");     // Regex for the WebUntis time format
 
             // Check if the date- and time strings are valid
             bool isDateValid = dateRegex.IsMatch(dateString);
@@ -59,8 +59,8 @@ namespace WebUntisAPI.Client.Extensions
 
             // Parse the numbers in the string to value
             int year = int.Parse(dateString.Substring(0, 4));
-            int month = int.Parse(dateString.Substring(5, 2));
-            int day = int.Parse(dateString.Substring(8, 2));
+            int month = int.Parse(dateString.Substring(4, 2));
+            int day = int.Parse(dateString.Substring(6, 2));
 
             bool is4Letters = timeString.Length == 4;
             int hour = int.Parse(is4Letters ? timeString.Substring(0, 2) : timeString[0].ToString());

@@ -11,7 +11,7 @@ namespace API.Test;
 [TestFixture]
 internal class AuthentificationTests
 {
-    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST");
+    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST", 1000);
 
     static AuthentificationTests()
     {
