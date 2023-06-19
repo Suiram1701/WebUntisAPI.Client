@@ -11,7 +11,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// One school hour
     /// </summary>
-    [DebuggerDisplay("Name = {Name}, from {StartTime.Hour}:{StartTime.Minute} to {EndTime.Hour}:{EndTime.Minute}")]
+    [DebuggerDisplay("Name: {Name, nq}, From: {StartTime.Hour, nq}:{StartTime.Minute, nq} to {EndTime.Hour, nq}:{EndTime.Minute, nq}")]
     public class SchoolHour
     {
         /// <summary>

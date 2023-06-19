@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A holiday
     /// </summary>
-    [DebuggerDisplay("Name = {LongName}")]
+    [DebuggerDisplay("Name: {LongName, nq}")]
     public struct Holidays
     {
         /// <summary>

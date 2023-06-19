@@ -15,7 +15,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A class
     /// </summary>
-    [DebuggerDisplay("Name = {LongName}")]
+    [DebuggerDisplay("Name: {LongName, nq}")]
     [JsonConverter(typeof(ClassJsonConverter))]
     public class Class
     {

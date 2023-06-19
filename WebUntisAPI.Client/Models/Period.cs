@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A lesson period
     /// </summary>
-    [DebuggerDisplay("On: {Date.Month, nq}.{Date.Day, nq}.{Date.Year, nq}, From {StartTime.Hour, nq}:{StartTime.Minute, nq} to {EndTime.Hour, nq}:{EndTime.Minute, nq}, Type = {LessonType, nq}")]
+    [DebuggerDisplay("On: {Date.Month, nq}.{Date.Day, nq}.{Date.Year, nq}, From: {StartTime.Hour, nq}:{StartTime.Minute, nq} to {EndTime.Hour, nq}:{EndTime.Minute, nq}, Type = {LessonType, nq}")]
     public class Period
     {
         /// <summary>
@@ -58,28 +58,24 @@ namespace WebUntisAPI.Client.Models
         /// Ids of all involved teachers
         /// </summary>
         [JsonProperty("te")]
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ObjectId[] TeacherIds { get; set; }
 
         /// <summary>
         /// Ids of all involved subjects
         /// </summary>
         [JsonProperty("su")]
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ObjectId[] SubjectsIds { get; set; }
 
         /// <summary>
         /// Ids of all involved room
         /// </summary>
         [JsonProperty("ro")]
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public ObjectId[] RoomIds { get; set; }
 
         /// <summary>
         /// The type of tghe lesson
         /// </summary>
         [JsonProperty("lstype")]
-        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public LessonType LessonType { get; set; } = LessonType.Ls;
 
         /// <summary>

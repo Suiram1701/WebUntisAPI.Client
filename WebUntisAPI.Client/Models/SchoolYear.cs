@@ -13,8 +13,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A school year
     /// </summary>
-    [DebuggerDisplay("{Name}")]
-    [JsonConverter(typeof(SchoolYearJsonConverter))]
+    [DebuggerDisplay("Name: {Name, nq}")]
     public class SchoolYear : IEquatable<SchoolYear>, IComparable<SchoolYear>
     {
         /// <summary>

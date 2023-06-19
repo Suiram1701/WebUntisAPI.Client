@@ -11,7 +11,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A teacher
     /// </summary>
-    [DebuggerDisplay("Name = {ForeName} {LongName}")]
+    [DebuggerDisplay("Name: {ForeName, nq} {LongName, nq}")]
     public class Teacher : IUser
     {
         /// <inheritdoc/>

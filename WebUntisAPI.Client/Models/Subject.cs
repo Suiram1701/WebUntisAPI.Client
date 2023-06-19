@@ -13,7 +13,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A subject
     /// </summary>
-    [DebuggerDisplay("Name = {LongName}")]
+    [DebuggerDisplay("Name: {LongName, nq}")]
     public class Subject
     {
         /// <summary>

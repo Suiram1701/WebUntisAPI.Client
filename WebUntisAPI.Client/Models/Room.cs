@@ -11,7 +11,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A Room
     /// </summary>
-    [DebuggerDisplay("Name = {LongName}")]
+    [DebuggerDisplay("Name: {LongName, nq}")]
     public class Room
     {
         /// <summary>

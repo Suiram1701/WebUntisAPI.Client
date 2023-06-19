@@ -12,7 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// Represent a Untis school
     /// </summary>
-    [DebuggerDisplay("Name = {DisplayName}, Id = {SchoolId}")]
+    [DebuggerDisplay("Name: {DisplayName, nq}")]
     public class School
     {
         /// <summary>
