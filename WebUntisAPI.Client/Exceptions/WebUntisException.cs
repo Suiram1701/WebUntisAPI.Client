@@ -33,7 +33,7 @@ namespace WebUntisAPI.Client.Exceptions
             /// <summary>
             /// Json rpc method not found
             /// </summary>
-            MethodNotFound = -32601
+            MethodNotFound = -32601,
 
             /// <summary>
             /// Access denied for the requested timetable

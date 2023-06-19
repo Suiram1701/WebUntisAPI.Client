@@ -63,4 +63,17 @@ internal class TeachingTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetLatestImportTime()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<DateTime> time = Client.GetLatestImportTimeAsync();
+        time.Wait();
+        if (time.Result <= DateTime.Now)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }

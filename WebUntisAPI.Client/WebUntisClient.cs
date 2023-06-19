@@ -228,6 +228,22 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
+        /// Get the latest update date of the WebUntis data
+        /// </summary>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The latest update date in <see cref="DateTimeKind.Utc"/></returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<DateTime> GetLatestImportTimeAsync(string id = "getLatestImportTime", CancellationToken ct = default)
+        {
+            long timestamp = await MakeRequestAsync<object, long>(id, "getLatestImportTime", new object(), ct);
+            return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddTicks(timestamp * 10000);
+        }
+
+        /// <summary>
         /// Make an internal basic request to the WebUntis server
         /// </summary>
         /// <typeparam name="TRequest">Type of the request parameter</typeparam>
