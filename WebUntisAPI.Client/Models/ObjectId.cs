@@ -12,6 +12,7 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// The id of an object and when its irregular the original id and the current id
     /// </summary>
+    [DebuggerDisplay("{ToString(), nq}")]
     public struct ObjectId
     {
         /// <summary>
@@ -26,6 +27,14 @@ namespace WebUntisAPI.Client.Models
         [DefaultValue(null)]
         [JsonProperty("orgid")]
         public int? OriginalId { get; set; }
+
+        /// <inheritdoc/>
+        public override string ToString()
+        {
+            if (OriginalId is int orgId)
+                return Id.ToString()  + " " + "(" + orgId + ")";
+            else
+                return Id.ToString();
+        }
     }
 }
-
