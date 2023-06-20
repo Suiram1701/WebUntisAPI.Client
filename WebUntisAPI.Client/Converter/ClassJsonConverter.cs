@@ -14,7 +14,7 @@ namespace WebUntisAPI.Client.Converter
     /// <summary>
     /// Convert the teachers in webuntis get classes response to int array
     /// </summary>
-    public sealed class ClassJsonConverter : JsonConverter<Class>
+    internal class ClassJsonConverter : JsonConverter<Class>
     {
         /// <inheritdoc/>
         public override Class ReadJson(JsonReader reader, Type objectType, Class existingValue, bool hasExistingValue, JsonSerializer serializer)

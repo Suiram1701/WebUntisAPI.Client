@@ -10,7 +10,7 @@ using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client.Converter
 {
-    internal sealed class TimegridJsonConverter : JsonConverter<Timegrid>
+    internal class TimegridJsonConverter : JsonConverter<Timegrid>
     {
         /// <inheritdoc/>
         public override Timegrid ReadJson(JsonReader reader, Type objectType, Timegrid existingValue, bool hasExistingValue, JsonSerializer serializer)
@@ -24,7 +24,7 @@ namespace WebUntisAPI.Client.Converter
                 foreach (JObject hour in dayTimegrid["timeUnits"].Cast<JObject>())
                     hours.Add(serializer.Deserialize<SchoolHour>(hour.CreateReader()));
 
-                timegrid[(Day)dayTimegrid["day"].Value<int>()] = hours.ToArray();
+                timegrid.SchoolDays.Add((Day)dayTimegrid["day"].Value<int>(), hours.ToArray());
             }
             return timegrid;
         }

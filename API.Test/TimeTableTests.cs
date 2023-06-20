@@ -32,7 +32,7 @@ internal class TimeTableTests
 
         Task<Timegrid> timegrid = Client.GetTimegridAsync();
         timegrid.Wait();
-        if (timegrid.Result.SchoolDays > 0)
+        if (timegrid.Result.SchoolDayCount > 0)
             Assert.Pass();
         else
             Assert.Fail();

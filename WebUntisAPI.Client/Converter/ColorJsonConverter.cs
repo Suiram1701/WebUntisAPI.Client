@@ -14,7 +14,7 @@ namespace WebUntisAPI.Client.Converter
     /// <summary>
     /// A json converter to convert a <see cref="Color"/> to the Hex color format (RRGGBB)
     /// </summary>
-    public sealed class ColorJsonConverter : JsonConverter<Color>
+    internal class ColorJsonConverter : JsonConverter<Color>
     {
         /// <inheritdoc/>
         public override Color ReadJson(JsonReader reader, Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
