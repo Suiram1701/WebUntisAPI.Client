@@ -1,15 +1,10 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WebUntisAPI.Client.Models;
-using WebUntisAPI.Client.Converter;
 using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client
 {

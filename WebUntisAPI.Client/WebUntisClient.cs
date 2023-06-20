@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
+﻿using Newtonsoft.Json;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using WebUntisAPI.Client.Models;
-using Newtonsoft.Json;
-using WebUntisAPI.Client.Exceptions;
 using System.Threading;
-using System.ComponentModel;
+using System.Threading.Tasks;
+using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client
 {
@@ -155,7 +151,7 @@ namespace WebUntisAPI.Client
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return false;
-                
+
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
