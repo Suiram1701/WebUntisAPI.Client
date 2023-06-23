@@ -34,7 +34,7 @@ After your login you can send requests to get informations about your timetable 
 The methods an what they do shoud be self-explained.<br>
 
 ## Issues
-When you had an error that you don't understand or you don't understand how you can use the library you can create an issue so that I can help you ba your problem.
+When you had an error that you don't understand or you don't understand how you can use the library you can create an issue so that I can help you by your problem.
 [![GitHub](https://img.shields.io/badge/GitHub-Issues-red)](https://github.com/Suiram1701/WebUntisAPI.Client/issues)
 
 <hr>
