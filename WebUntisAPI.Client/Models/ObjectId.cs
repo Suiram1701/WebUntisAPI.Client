@@ -1,11 +1,6 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace WebUntisAPI.Client.Models
 {
@@ -32,7 +27,7 @@ namespace WebUntisAPI.Client.Models
         public override string ToString()
         {
             if (OriginalId is int orgId)
-                return Id.ToString()  + " " + "(" + orgId + ")";
+                return Id.ToString() + " " + "(" + orgId + ")";
             else
                 return Id.ToString();
         }

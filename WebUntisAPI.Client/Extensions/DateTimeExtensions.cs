@@ -55,7 +55,7 @@ namespace WebUntisAPI.Client.Extensions
 
             if (!isDateValid || !isTimeValid)
                 throw new FormatException($"The string {(isDateValid ? timeString : dateString)} isn't in the valid format!");
-                
+
 
             // Parse the numbers in the string to value
             int year = int.Parse(dateString.Substring(0, 4));

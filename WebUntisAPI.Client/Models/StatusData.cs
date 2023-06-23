@@ -1,10 +1,5 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models
@@ -26,7 +21,7 @@ namespace WebUntisAPI.Client.Models
         public ForeBackColors OhColors { get; set; }
 
         /// <summary>
-        /// Colors for a standby
+        /// Colors for a standby hour
         /// </summary>
         public ForeBackColors SbColors { get; set; }
 
@@ -36,7 +31,7 @@ namespace WebUntisAPI.Client.Models
         public ForeBackColors BsColors { get; set; }
 
         /// <summary>
-        /// Colors for a examination
+        /// Colors for a examination hour
         /// </summary>
         public ForeBackColors ExColors { get; set; }
 

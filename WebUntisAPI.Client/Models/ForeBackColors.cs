@@ -1,16 +1,11 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models
 {
     /// <summary>
-    /// Fore- and background color fore something
+    /// Fore- and background color for something
     /// </summary>
     public struct ForeBackColors
     {
