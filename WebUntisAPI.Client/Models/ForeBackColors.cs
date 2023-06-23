@@ -5,7 +5,7 @@ using WebUntisAPI.Client.Converter;
 namespace WebUntisAPI.Client.Models
 {
     /// <summary>
-    /// Fore- and background color fore something
+    /// Fore- and background color for something
     /// </summary>
     public struct ForeBackColors
     {

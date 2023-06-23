@@ -21,7 +21,7 @@ namespace WebUntisAPI.Client.Models
         public ForeBackColors OhColors { get; set; }
 
         /// <summary>
-        /// Colors for a standby
+        /// Colors for a standby hour
         /// </summary>
         public ForeBackColors SbColors { get; set; }
 
@@ -31,7 +31,7 @@ namespace WebUntisAPI.Client.Models
         public ForeBackColors BsColors { get; set; }
 
         /// <summary>
-        /// Colors for a examination
+        /// Colors for a examination hour
         /// </summary>
         public ForeBackColors ExColors { get; set; }
 

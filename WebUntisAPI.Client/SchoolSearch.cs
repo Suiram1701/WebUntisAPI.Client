@@ -23,9 +23,10 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Search for schools by the given name
         /// </summary>
+        /// 
         /// <param name="name">Name to search</param>
         /// <param name="ct">Token to cancel the search request</param>
-        /// <param name="id">Name to identifies the request</param>
+        /// <param name="id">Identifier for the request</param>
         /// <returns>All schools found, an empty array when no school found or <see langword="null"/> when too many schools found</returns>
         /// <exception cref="WebUntisException">Throws when the WebUntis API returned an error</exception>
         /// <exception cref="HttpRequestException">Throws when an error happend while request</exception>

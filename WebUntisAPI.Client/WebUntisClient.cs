@@ -16,12 +16,7 @@ namespace WebUntisAPI.Client
     /// A client that connect to WebUntis server to load data
     /// </summary>
     /// <remarks>
-    ///     <para>
-    ///     Please use this class in a using declaration. When you dont use it in a using declaration please call <see cref="LogoutAsync(string, CancellationToken)"/> and <see cref="Dispose()"/> when you don't need the connection.
-    ///     </para>
-    ///     <para>
-    ///     Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis is permanently blocked by the WebUntis API.
-    ///     </para>
+    /// Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis could permanently blocked by the WebUntis API.
     /// </remarks>
     public partial class WebUntisClient : IDisposable
     {
@@ -68,7 +63,7 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
         /// <param name="timeout">The time in milliseconds until requests will be timeouted</param>
-        public WebUntisClient(string clientName, int timeout = 500)
+        public WebUntisClient(string clientName, int timeout = 1000)
         {
             ClientName = clientName;
             Timeout = timeout;
@@ -127,7 +122,7 @@ namespace WebUntisAPI.Client
             // Setup server url    
             Match serverName = Regex.Match(server, @"\w+\.webuntis\.com");
             if (!serverName.Success)
-                throw new ArgumentException("This isn't a WebUntis server", nameof(server));
+                throw new ArgumentException("This isn't a valid WebUntis server address", nameof(server));
             string serverUrl = "https://" + serverName.Value;
 
             // Make request for login
