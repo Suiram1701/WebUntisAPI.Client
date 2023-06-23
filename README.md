@@ -4,13 +4,13 @@ This .NET library allows you to connect you with a WebUntis account and load all
 
 ## Download sources:
 - [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)<br>
-- [![NuGet](https://img.shields.io/badge/NuGet-Package-blue)](https://www.nuget.org/packages/WebUntisAPI.Client)
+- [![NuGet](https://img.shields.io/badge/NuGet-Package-blue)](https://www.nuget.org/packages/Suiram1.WebUntisAPI.Client)
 
 ## Documentation:
 The documentation is integrated in the package so that all classes and methods explain what they do. Here're the basics to use the library:
 
 ### Add references to this library
-The simplest way is to add the [NuGet](https://www.nuget.org/packages/WebUntisAPI.Client) package to your project,
+The simplest way is to add the [NuGet](https://www.nuget.org/packages/Suiram1.WebUntisAPI.Client) package to your project,
 but when you don't want to use NuGet you can also download the [binarys](https://github.com/Suiram1701/WebUntisAPI.Client/releases) of the package and add the reference the contained .dll
 
 ### 1. Creating a client and login:
