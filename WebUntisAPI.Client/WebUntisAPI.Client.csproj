@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net47;net481</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <PackageId>Suiram1.WebUntisAPI.Client</PackageId>
+    <Title>WebUntisAPI.Client</Title>
+    <Authors>Suiram1</Authors>
+    <RepositoryUrl>https://github.com/Suiram1701/WebUntisAPI.Client</RepositoryUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageTags>WebUntis;Untis;API;Timetable;C#;JSON</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright © Suiram1 2023</Copyright>
+    <Description>A library in .NET to interact with the WebUntis API.</Description>
+    <Company>Suiram1</Company>
+    <AssemblyVersion>0.1.0</AssemblyVersion>
+    <FileVersion>0.1.0</FileVersion>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE.txt">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	  <PackageReference Condition="'$(TargetFramework)' == 'net47' or '$(TargetFramework)' == 'net481'" Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+
+</Project>
