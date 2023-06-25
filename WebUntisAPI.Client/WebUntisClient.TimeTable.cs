@@ -103,7 +103,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetOwnTimetableAsync(DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForClass", CancellationToken ct = default)
+        public async Task<Period[]> GetOwnTimetableAsync(DateTime startDate = default, DateTime endDate = default, string id = "GetOwnTimtable", CancellationToken ct = default)
         {
             if (UserType == Client.UserType.Student)
                 return await GetTimetableForStudentAsync((Student)User, startDate, endDate, id, ct);

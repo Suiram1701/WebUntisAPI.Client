@@ -126,11 +126,11 @@ namespace WebUntisAPI.Client
             string serverUrl = "https://" + serverName.Value;
 
             // Make request for login
-            JSONRPCRequestModel<LoginModel> requestModel = new JSONRPCRequestModel<LoginModel>()
+            JSONRPCRequestModel<LoginRequestModel> requestModel = new JSONRPCRequestModel<LoginRequestModel>()
             {
                 Id = id,
                 Method = "authenticate",
-                Params = new LoginModel()
+                Params = new LoginRequestModel()
                 {
                     User = username,
                     Password = password,

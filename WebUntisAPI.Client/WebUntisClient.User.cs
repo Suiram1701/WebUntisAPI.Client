@@ -59,5 +59,29 @@ namespace WebUntisAPI.Client
             List<Teacher> teachers = await MakeRequestAsync<object, List<Teacher>>(id, "getTeachers", new object(), ct);
             return teachers.ToArray();
         }
+
+        /// <summary>
+        /// Search for the id of a user where you know fore- and surname
+        /// </summary>
+        /// <param name="forename">Forename of the user (It doesn't matter if it is upper or lower case)</param>
+        /// <param name="surname">Surname of the user (It doesn't matter if it is upper or lower case)</param>
+        /// <param name="type">Type of the user</param>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The <see cref="IUser.Id"/> of the requested user. 0 if the user isn't found</returns>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
+        public async Task<int> GetPersonIdAsync(string forename, string surname, UserType type, string id = "getPersonId", CancellationToken ct = default)
+        {
+            GetPersonIdRequestModel model = new GetPersonIdRequestModel()
+            {
+                Forename = forename,
+                Surname = surname,
+                UserType = (int)type
+            };
+            return await MakeRequestAsync<GetPersonIdRequestModel, int>(id, "getPersonId", model, ct);
+        }
     }
 }

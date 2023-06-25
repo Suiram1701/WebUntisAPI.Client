@@ -5,7 +5,8 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// Model for the param of the login
     /// </summary>
-    internal struct LoginModel
+    internal struct LoginRequestModel
+
     {
         /// <summary>
         /// Username to login

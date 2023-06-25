@@ -42,10 +42,17 @@ internal class UserTest
             Assert.Fail();
     }
 
-    [Order(3)]
     [Test]
-    public void TearUp()
+    [Order(3)]
+    public void GetPersonId()
     {
-        Client.LogoutAsync().Wait();
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<int> personId = Client.GetPersonIdAsync(Client.User.ForeName, Client.User.LongName, Client.UserType ?? UserType.Student);
+        personId.Wait();
+        if (personId.Result == Client.User.Id)
+            Assert.Pass();
+        else
+            Assert.Fail();
     }
 }
