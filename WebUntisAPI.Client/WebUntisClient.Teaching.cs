@@ -90,5 +90,28 @@ namespace WebUntisAPI.Client
             List<Department> departments = await MakeRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
             return departments.ToArray();
         }
+
+        /// <summary>
+        /// Get all classreg events
+        /// </summary>
+        /// <param name="startDate">Start date for the requested events</param>
+        /// <param name="endDate">End date for the requested events</param>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellatio token</param>
+        /// <returns>All classreg events in the given date range</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
+        {
+            GetClassregEventsRequestModel model = new GetClassregEventsRequestModel()
+            {
+                StartDate = startDate,
+                EndDate = endDate
+            };
+            List<ClassregEvent> classregEvents = await MakeRequestAsync<GetClassregEventsRequestModel, List<ClassregEvent>>(id, "getClassregEvents", model, ct);
+            return classregEvents.ToArray();
+        }
     }
 }

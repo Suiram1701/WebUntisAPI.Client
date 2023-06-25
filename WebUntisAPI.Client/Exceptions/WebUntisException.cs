@@ -7,7 +7,7 @@ namespace WebUntisAPI.Client.Exceptions
     /// <summary>
     /// An error that the WebUntis server returned
     /// </summary>
-    [DebuggerDisplay("Message = {Message}, Code = {Code}")]
+    [DebuggerDisplay("Message = {Message, nq}, Code = {Code, nq}")]
     public class WebUntisException : Exception
     {
         /// <summary>
@@ -41,9 +41,9 @@ namespace WebUntisAPI.Client.Exceptions
             NoSuchElementFound = -7002,
 
             /// <summary>
-            /// Access dinied for substitutions
+            /// Access dinied for the method
             /// </summary>
-            NoRightForGetSubstitutions = -8509
+            NoRightForMethod = -8509
         }
 
         /// <summary>
