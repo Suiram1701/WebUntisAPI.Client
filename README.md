@@ -4,16 +4,16 @@ This .NET library allows you to connect you with a WebUntis account and load all
 
 ## Download sources:
 - [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)<br>
-- [![NuGet](https://img.shields.io/badge/NuGet-Package-blue)](https://www.nuget.org/packages/WebUntisAPI.Client)
+- [![NuGet](https://img.shields.io/badge/NuGet-Package-blue)](https://www.nuget.org/packages/Suiram1.WebUntisAPI.Client)
 
 ## Documentation:
 The documentation is integrated in the package so that all classes and methods explain what they do. Here're the basics to use the library:
 
-### Add references to this library
-The simplest way is to add the [NuGet](https://www.nuget.org/packages/WebUntisAPI.Client) package to your project,
+### 1. Add references to this library
+The simplest way is to add the [NuGet](https://www.nuget.org/packages/Suiram1.WebUntisAPI.Client) package to your project,
 but when you don't want to use NuGet you can also download the [binarys](https://github.com/Suiram1701/WebUntisAPI.Client/releases) of the package and add the reference the contained .dll
 
-### 1. Creating a client and login:
+### 2. Creating a client and login:
 
 ```C#
 using (WebUntisClient client = new WebUntisClient("App name"))
@@ -29,7 +29,7 @@ Remarks:<br>
 - When you use the client in a using statement you would automatically logged out when it disposed
 - Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis could permanently blocked by the WebUntis API.
 
-### 2. Send requests
+### 3. Send requests
 After your login you can send requests to get informations about your timetable and all about.<br>
 The methods an what they do shoud be self-explained.<br>
 
