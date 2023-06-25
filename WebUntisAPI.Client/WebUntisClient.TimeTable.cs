@@ -92,6 +92,26 @@ namespace WebUntisAPI.Client
 
         #region Timetable
         /// <summary>
+        /// Get the timetable the user as their you logged in
+        /// </summary>
+        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
+        /// <param name="endDate">End date of the timetable (default is the current date)</param>
+        /// <param name="id">Identier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The periods for the user</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<Period[]> GetOwnTimetableAsync(DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForClass", CancellationToken ct = default)
+        {
+            if (UserType == Client.UserType.Student)
+                return await GetTimetableForStudentAsync((Student)User, startDate, endDate, id, ct);
+            else
+                return await GetTimetableForTeacherAsync((Teacher)User, startDate, endDate, id, ct);
+        }
+
+        /// <summary>
         /// Get the timetable for a class
         /// </summary>
         /// <param name="class">The class from the timetable</param>
