@@ -17,7 +17,7 @@ internal class TeachingTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Subject[]> subjects = Client.GetAllSubjectsAsync();
+        Task<Subject[]> subjects = Client.GetSubjectsAsync();
         subjects.Wait();
         if (subjects.Result.Length > 0)
             Assert.Pass();
@@ -43,7 +43,7 @@ internal class TeachingTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Room[]> rooms = Client.GetAllRoomsAsync();
+        Task<Room[]> rooms = Client.GetRoomsAsync();
         rooms.Wait();
         if (rooms.Result.Length > 0)
             Assert.Pass();
@@ -56,7 +56,7 @@ internal class TeachingTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Department[]> departments = Client.GetAllDepartmentsAsync();
+        Task<Department[]> departments = Client.GetDepartmentsAsync();
         departments.Wait();
         if (departments.Result != null)
             Assert.Pass();

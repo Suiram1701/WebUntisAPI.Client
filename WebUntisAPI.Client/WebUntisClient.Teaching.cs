@@ -20,7 +20,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Subject[]> GetAllSubjectsAsync(string id = "getSubjects", CancellationToken ct = default)
+        public async Task<Subject[]> GetSubjectsAsync(string id = "getSubjects", CancellationToken ct = default)
         {
             List<Subject> subjects = await MakeRequestAsync<object, List<Subject>>(id, "getSubjects", new object(), ct);
             return subjects.ToArray();
@@ -36,7 +36,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the hppt request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Class[]> GetAllClassesAsync(string id = "getClasses", CancellationToken ct = default)
+        public async Task<Class[]> GetClassesAsync(string id = "getClasses", CancellationToken ct = default)
         {
             List<Class> classes = await MakeRequestAsync<object, List<Class>>(id, "getKlassen", new object(), ct);
             return classes.ToArray();
@@ -69,7 +69,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Room[]> GetAllRoomsAsync(string id = "getRooms", CancellationToken ct = default)
+        public async Task<Room[]> GetRoomsAsync(string id = "getRooms", CancellationToken ct = default)
         {
             List<Room> rooms = await MakeRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
             return rooms.ToArray();
@@ -85,7 +85,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Department[]> GetAllDepartmentsAsync(string id = "getDepartments", CancellationToken ct = default)
+        public async Task<Department[]> GetDepartmentsAsync(string id = "getDepartments", CancellationToken ct = default)
         {
             List<Department> departments = await MakeRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
             return departments.ToArray();

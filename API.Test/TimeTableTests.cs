@@ -43,7 +43,7 @@ internal class TimeTableTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<SchoolYear[]> schoolYears = Client.GetAllSchoolYearsAsync();
+        Task<SchoolYear[]> schoolYears = Client.GetSchoolYearsAsync();
         schoolYears.Wait();
         if (schoolYears.Result.Length > 0)
             Assert.Pass();
@@ -69,7 +69,7 @@ internal class TimeTableTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Holidays[]> holidays = Client.GetAllHolidaysAsync();
+        Task<Holidays[]> holidays = Client.GetHolidaysAsync();
         holidays.Wait();
         if (holidays.Result.Length > 0)
             Assert.Pass();

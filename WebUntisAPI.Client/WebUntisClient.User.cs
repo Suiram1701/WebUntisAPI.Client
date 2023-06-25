@@ -38,7 +38,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when you don't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<Student[]> GetAllStudentsAsync(string id = "getStudents", CancellationToken ct = default)
+        public async Task<Student[]> GetStudentsAsync(string id = "getStudents", CancellationToken ct = default)
         {
             List<Student> students = await MakeRequestAsync<object, List<Student>>(id, "getStudents", new object(), ct);
             return students.ToArray();
@@ -54,7 +54,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<Teacher[]> GetAllTeachersAsync(string id = "getTeachers", CancellationToken ct = default)
+        public async Task<Teacher[]> GetTeachersAsync(string id = "getTeachers", CancellationToken ct = default)
         {
             List<Teacher> teachers = await MakeRequestAsync<object, List<Teacher>>(id, "getTeachers", new object(), ct);
             return teachers.ToArray();

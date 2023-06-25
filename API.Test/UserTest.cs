@@ -20,7 +20,7 @@ internal class UserTest
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Student[]> students = Client.GetAllStudentsAsync();
+        Task<Student[]> students = Client.GetStudentsAsync();
         students.Wait();
         if (students.Result.Length > 0)
             Assert.Pass();
@@ -34,7 +34,7 @@ internal class UserTest
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Teacher[]> teachers = Client.GetAllTeachersAsync();
+        Task<Teacher[]> teachers = Client.GetTeachersAsync();
         teachers.Wait();
         if (teachers.Result.Length > 0)
             Assert.Pass();

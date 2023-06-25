@@ -170,7 +170,7 @@ namespace WebUntisAPI.Client
 
             // Get logged in user data
             _userType = (UserType)responseModel.Result.PersonType;
-            IUser[] users = _userType == Client.UserType.Student ? (IUser[])await GetAllStudentsAsync(ct: ct) : await GetAllTeachersAsync(ct: ct);
+            IUser[] users = _userType == Client.UserType.Student ? (IUser[])await GetStudentsAsync(ct: ct) : await GetTeachersAsync(ct: ct);
             _user = users.FirstOrDefault(u => u.Id == responseModel.Result.PersonId);
 
             return true;
