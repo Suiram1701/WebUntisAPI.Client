@@ -230,7 +230,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<DateTime> GetLatestImportTimeAsync(string id = "getLatestImportTime", CancellationToken ct = default)
         {
-            long timestamp = await MakeRequestAsync<object, long>(id, "getLatestImportTime", new object(), ct);
+            long timestamp = await MakeJSONRPCRequestAsync<object, long>(id, "getLatestImportTime", new object(), ct);
             return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddTicks(timestamp * 10000);
         }
 
@@ -249,7 +249,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        private async Task<TResult> MakeRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
+        private async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
         {
             // Check for disposing
             if (_disposedValue)

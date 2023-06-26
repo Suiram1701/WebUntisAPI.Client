@@ -40,7 +40,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Student[]> GetStudentsAsync(string id = "getStudents", CancellationToken ct = default)
         {
-            List<Student> students = await MakeRequestAsync<object, List<Student>>(id, "getStudents", new object(), ct);
+            List<Student> students = await MakeJSONRPCRequestAsync<object, List<Student>>(id, "getStudents", new object(), ct);
             return students.ToArray();
         }
 
@@ -56,7 +56,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Teacher[]> GetTeachersAsync(string id = "getTeachers", CancellationToken ct = default)
         {
-            List<Teacher> teachers = await MakeRequestAsync<object, List<Teacher>>(id, "getTeachers", new object(), ct);
+            List<Teacher> teachers = await MakeJSONRPCRequestAsync<object, List<Teacher>>(id, "getTeachers", new object(), ct);
             return teachers.ToArray();
         }
 
@@ -81,7 +81,7 @@ namespace WebUntisAPI.Client
                 Surname = surname,
                 UserType = (int)type
             };
-            return await MakeRequestAsync<GetPersonIdRequestModel, int>(id, "getPersonId", model, ct);
+            return await MakeJSONRPCRequestAsync<GetPersonIdRequestModel, int>(id, "getPersonId", model, ct);
         }
     }
 }

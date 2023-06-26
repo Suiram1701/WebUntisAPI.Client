@@ -76,4 +76,17 @@ internal class TeachingTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetNewsFeed()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<News> news = Client.GetNewsFeedAsync(new DateTime(2023, 06, 23));
+        news.Wait();
+        if (news.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }

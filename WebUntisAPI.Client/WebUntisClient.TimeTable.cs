@@ -22,7 +22,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<StatusData> GetStatusDataAsync(string id = "getStatusData", CancellationToken ct = default)
         {
-            StatusData statusData = await MakeRequestAsync<object, StatusData>(id, "getStatusData", new object(), ct);
+            StatusData statusData = await MakeJSONRPCRequestAsync<object, StatusData>(id, "getStatusData", new object(), ct);
             return statusData;
         }
 
@@ -38,7 +38,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Timegrid> GetTimegridAsync(string id = "getTimegrid", CancellationToken ct = default)
         {
-            Timegrid timeGrid = await MakeRequestAsync<object, Timegrid>(id, "getTimegridUnits", new object(), ct);
+            Timegrid timeGrid = await MakeJSONRPCRequestAsync<object, Timegrid>(id, "getTimegridUnits", new object(), ct);
             return timeGrid;
         }
 
@@ -54,7 +54,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<SchoolYear[]> GetSchoolYearsAsync(string id = "getSchoolyears", CancellationToken ct = default)
         {
-            List<SchoolYear> schoolYears = await MakeRequestAsync<object, List<SchoolYear>>(id, "getSchoolyears", new object(), ct);
+            List<SchoolYear> schoolYears = await MakeJSONRPCRequestAsync<object, List<SchoolYear>>(id, "getSchoolyears", new object(), ct);
             return schoolYears.ToArray();
         }
 
@@ -70,7 +70,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<SchoolYear> GetCurrentSchoolYearAsync(string id = "getCurrentSchoolyear", CancellationToken ct = default)
         {
-            SchoolYear schoolYear = await MakeRequestAsync<object, SchoolYear>(id, "getCurrentSchoolyear", new object(), ct);
+            SchoolYear schoolYear = await MakeJSONRPCRequestAsync<object, SchoolYear>(id, "getCurrentSchoolyear", new object(), ct);
             return schoolYear;
         }
 
@@ -86,8 +86,31 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Holidays[]> GetHolidaysAsync(string id = "getHolidays", CancellationToken ct = default)
         {
-            List<Holidays> holidays = await MakeRequestAsync<object, List<Holidays>>(id, "getHolidays", new object(), ct);
+            List<Holidays> holidays = await MakeJSONRPCRequestAsync<object, List<Holidays>>(id, "getHolidays", new object(), ct);
             return holidays.ToArray();
+        }
+
+        /// <summary>
+        /// Get all classreg events
+        /// </summary>
+        /// <param name="startDate">Start date for the requested events</param>
+        /// <param name="endDate">End date for the requested events</param>
+        /// <param name="id">Identifier for the request</param>
+        /// <param name="ct">Cancellatio token</param>
+        /// <returns>All classreg events in the given date range</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
+        {
+            GetClassregEventsRequestModel model = new GetClassregEventsRequestModel()
+            {
+                StartDate = startDate,
+                EndDate = endDate
+            };
+            List<ClassregEvent> classregEvents = await MakeJSONRPCRequestAsync<GetClassregEventsRequestModel, List<ClassregEvent>>(id, "getClassregEvents", model, ct);
+            return classregEvents.ToArray();
         }
 
         #region Timetable
@@ -140,7 +163,7 @@ namespace WebUntisAPI.Client
                 StartDate = startDate,
                 EndDate = endDate
             };
-            List<Period> timetable = await MakeRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
             return timetable.ToArray();
         }
 
@@ -173,7 +196,7 @@ namespace WebUntisAPI.Client
                 StartDate = startDate,
                 EndDate = endDate
             };
-            List<Period> timetable = await MakeRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
             return timetable.ToArray();
         }
 
@@ -206,7 +229,7 @@ namespace WebUntisAPI.Client
                 StartDate = startDate,
                 EndDate = endDate
             };
-            List<Period> timetable = await MakeRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
             return timetable.ToArray();
         }
 
@@ -239,7 +262,7 @@ namespace WebUntisAPI.Client
                 StartDate = startDate,
                 EndDate = endDate
             };
-            List<Period> timetable = await MakeRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
             return timetable.ToArray();
         }
 
@@ -272,7 +295,7 @@ namespace WebUntisAPI.Client
                 StartDate = startDate,
                 EndDate = endDate
             };
-            List<Period> timetable = await MakeRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
             return timetable.ToArray();
         }
         #endregion

@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client
@@ -22,7 +25,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Subject[]> GetSubjectsAsync(string id = "getSubjects", CancellationToken ct = default)
         {
-            List<Subject> subjects = await MakeRequestAsync<object, List<Subject>>(id, "getSubjects", new object(), ct);
+            List<Subject> subjects = await MakeJSONRPCRequestAsync<object, List<Subject>>(id, "getSubjects", new object(), ct);
             return subjects.ToArray();
         }
 
@@ -38,7 +41,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Class[]> GetClassesAsync(string id = "getClasses", CancellationToken ct = default)
         {
-            List<Class> classes = await MakeRequestAsync<object, List<Class>>(id, "getKlassen", new object(), ct);
+            List<Class> classes = await MakeJSONRPCRequestAsync<object, List<Class>>(id, "getKlassen", new object(), ct);
             return classes.ToArray();
         }
 
@@ -55,7 +58,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Class[]> GetClassesAsync(SchoolYear schoolYear, string id = "getClassesBySchoolYear", CancellationToken ct = default)
         {
-            List<Class> classes = await MakeRequestAsync<SchoolYearModel, List<Class>>(id, "getKlassen", new SchoolYearModel() { Id = schoolYear.Id }, ct);
+            List<Class> classes = await MakeJSONRPCRequestAsync<SchoolYearModel, List<Class>>(id, "getKlassen", new SchoolYearModel() { Id = schoolYear.Id }, ct);
             return classes.ToArray();
         }
 
@@ -71,7 +74,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Room[]> GetRoomsAsync(string id = "getRooms", CancellationToken ct = default)
         {
-            List<Room> rooms = await MakeRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
+            List<Room> rooms = await MakeJSONRPCRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
             return rooms.ToArray();
         }
 
@@ -87,31 +90,42 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Department[]> GetDepartmentsAsync(string id = "getDepartments", CancellationToken ct = default)
         {
-            List<Department> departments = await MakeRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
+            List<Department> departments = await MakeJSONRPCRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
             return departments.ToArray();
         }
 
         /// <summary>
-        /// Get all classreg events
+        /// Get all the news for the school as string
         /// </summary>
-        /// <param name="startDate">Start date for the requested events</param>
-        /// <param name="endDate">End date for the requested events</param>
-        /// <param name="id">Identifier for the request</param>
-        /// <param name="ct">Cancellatio token</param>
-        /// <returns>All classreg events in the given date range</returns>
+        /// <param name="date">Date to get the news</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The new at the school for the requested day</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
+        public async Task<News> GetNewsFeedAsync(DateTime date, CancellationToken ct = default)
         {
-            GetClassregEventsRequestModel model = new GetClassregEventsRequestModel()
-            {
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<ClassregEvent> classregEvents = await MakeRequestAsync<GetClassregEventsRequestModel, List<ClassregEvent>>(id, "getClassregEvents", model, ct);
-            return classregEvents.ToArray();
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            date.ToWebUntisTimeFormat(out string dateString, out _);
+            HttpResponseMessage response = await _client.GetAsync(ServerUrl + "/WebUntis/api/public/news/newsWidgetData?date=" + dateString, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            JToken data = JObject.Parse(await response.Content.ReadAsStringAsync()).GetValue("data");
+            return data.ToObject<News>();
         }
     }
 }
