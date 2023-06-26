@@ -120,7 +120,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/public/news/newsWidgetData?date=" + dateString)
             };
-            SetRequestHeaders(request.Headers);
+            SetRequestHeader(request.Headers);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 

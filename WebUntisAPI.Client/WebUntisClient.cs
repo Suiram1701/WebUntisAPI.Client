@@ -60,16 +60,6 @@ namespace WebUntisAPI.Client
         private string _sessonId;
 
         /// <summary>
-        /// The school name for the sesson
-        /// </summary>
-        private string _schoolName;
-
-        /// <summary>
-        /// The trace id for the sesson
-        /// </summary>
-        private string _traceId;
-
-        /// <summary>
         /// Initialize a new client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
@@ -212,7 +202,7 @@ namespace WebUntisAPI.Client
                 Params = new object()
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeaders(requestContent.Headers);
+            SetRequestHeader(requestContent.Headers);
 
             // Send request
             _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
@@ -273,7 +263,7 @@ namespace WebUntisAPI.Client
                 Params = requestParams
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeaders(requestContent.Headers);
+            SetRequestHeader(requestContent.Headers);
 
             // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
@@ -308,11 +298,9 @@ namespace WebUntisAPI.Client
         /// Add the default headers to a WebUntis API request
         /// </summary>
         /// <param name="headers">The headers object to add</param>
-        private void SetRequestHeaders(HttpHeaders headers)
+        private void SetRequestHeader(HttpHeaders headers)
         {
             headers.Add("JSESSIONID", _sessonId);
-            headers.Add("schoolname", _schoolName);
-            headers.Add("traceId", _traceId);
         }
 
         #region IDisposable
