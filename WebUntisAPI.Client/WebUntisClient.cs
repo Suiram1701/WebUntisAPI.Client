@@ -3,6 +3,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -57,6 +58,16 @@ namespace WebUntisAPI.Client
         /// Sesson id for requests
         /// </summary>
         private string _sessonId;
+
+        /// <summary>
+        /// The school name for the sesson
+        /// </summary>
+        private string _schoolName;
+
+        /// <summary>
+        /// The trace id for the sesson
+        /// </summary>
+        private string _traceId;
 
         /// <summary>
         /// Initialize a new client
@@ -201,7 +212,7 @@ namespace WebUntisAPI.Client
                 Params = new object()
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            requestContent.Headers.Add("jsessionid", _sessonId);
+            SetRequestHeaders(requestContent.Headers);
 
             // Send request
             _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
@@ -262,6 +273,7 @@ namespace WebUntisAPI.Client
                 Params = requestParams
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+            SetRequestHeaders(requestContent.Headers);
 
             // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
@@ -290,6 +302,17 @@ namespace WebUntisAPI.Client
             }
 
             return responseModel.Result;
+        }
+
+        /// <summary>
+        /// Add the default headers to a WebUntis API request
+        /// </summary>
+        /// <param name="headers">The headers object to add</param>
+        private void SetRequestHeaders(HttpHeaders headers)
+        {
+            headers.Add("JSESSIONID", _sessonId);
+            headers.Add("schoolname", _schoolName);
+            headers.Add("traceId", _traceId);
         }
 
         #region IDisposable

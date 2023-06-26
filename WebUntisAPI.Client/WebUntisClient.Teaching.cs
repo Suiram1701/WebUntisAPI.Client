@@ -114,7 +114,15 @@ namespace WebUntisAPI.Client
                 throw new UnauthorizedAccessException("You're not logged in");
 
             date.ToWebUntisTimeFormat(out string dateString, out _);
-            HttpResponseMessage response = await _client.GetAsync(ServerUrl + "/WebUntis/api/public/news/newsWidgetData?date=" + dateString, ct);
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(ServerUrl + "/WebUntis/api/public/news/newsWidgetData?date=" + dateString)
+            };
+            SetRequestHeaders(request.Headers);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
