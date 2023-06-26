@@ -31,11 +31,6 @@ namespace WebUntisAPI.Client.Exceptions
             MethodNotFound = -32601,
 
             /// <summary>
-            /// Access denied for the requested timetable
-            /// </summary>
-            NoRightForTimetable = -8509,
-
-            /// <summary>
             /// The element that you requested was not found
             /// </summary>
             NoSuchElementFound = -7002,
@@ -43,7 +38,12 @@ namespace WebUntisAPI.Client.Exceptions
             /// <summary>
             /// Access dinied for the method
             /// </summary>
-            NoRightForMethod = -8509
+            NoRightForMethod = -8509,
+
+            /// <summary>
+            /// You're not authticated
+            /// </summary>
+            NotAuthticated = -8520
         }
 
         /// <summary>

@@ -182,9 +182,8 @@ namespace WebUntisAPI.Client
         /// <param name="id">Identifier for the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>Task for the proccess</returns>
-        /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task LogoutAsync(string id = "getStudents", CancellationToken ct = default)
+        public async Task LogoutAsync(string id = "Logout", CancellationToken ct = default)
         {
             // Check for disposing
             if (_disposedValue)
@@ -205,17 +204,13 @@ namespace WebUntisAPI.Client
             requestContent.Headers.Add("jsessionid", _sessonId);
 
             // Send request
-            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
+            _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
 
             // Clear data
             _serverUrl = null;
             _loginName = null;
             _sessonId = null;
             _loggedIn = false;
-
-            // Verify response
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
         }
 
         /// <summary>
@@ -287,7 +282,12 @@ namespace WebUntisAPI.Client
 
             // Check for WebUntis error
             if (responseModel.Error != null)
+            {
+                if (responseModel.Error.Code == (int)WebUntisException.Codes.NotAuthticated)     // Logout when not authenticated
+                    _ = LogoutAsync();
+
                 throw responseModel.Error;
+            }
 
             return responseModel.Result;
         }
