@@ -3,7 +3,7 @@
 This .NET library allows you to connect you with a WebUntis account and load all of the data you need from there.<br>
 
 ## Download sources:
-- [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)<br>
+- [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)
 - [![NuGet](https://img.shields.io/badge/NuGet-Package-blue)](https://www.nuget.org/packages/Suiram1.WebUntisAPI.Client)
 
 ## Documentation:
@@ -22,10 +22,10 @@ using (WebUntisClient client = new WebUntisClient("App name"))
     // Here can you send your requests
 }
 ```
-Overloads:<br>
-The `LoginAsync()` method has an overload where you can use instead of the `serverName` and the `loginName` an instance of `School` that returned from the school search.
+Overloads:
+- The `LoginAsync()` method has an overload where you can use instead of the `serverName` and the `loginName` an instance of `School` that returned from the school search.
 
-Remarks:<br>
+Remarks:
 - When you use the client in a using statement you would automatically logged out when it disposed
 - Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis could permanently blocked by the WebUntis API.
 
@@ -37,7 +37,6 @@ The methods an what they do shoud be self-explained.<br>
 When you had an error that you don't understand or you don't understand how you can use the library you can create an issue so that I can help you by your problem.
 [![GitHub](https://img.shields.io/badge/GitHub-Issues-red)](https://github.com/Suiram1701/WebUntisAPI.Client/issues)
 
-<hr>
-
-This is an unofficial library that I created from the WebUntis API [documentation](https://untis-sr.ch/wp-content/uploads/2019/11/2018-09-20-WebUntis_JSON_RPC_API.pdf).
-
+---
+This is an unofficial library that I created from the WebUntis API [documentation](https://untis-sr.ch/wp-content/uploads/2019/11/2018-09-20-WebUntis_JSON_RPC_API.pdf) by my-self.
+I stand in no association with the Units GmbH
