@@ -1,6 +1,6 @@
 # WebUntisAPI.Client
 
-This .NET library allows you to connect you with a WebUntis account and load all of the data you need from there.<br>
+This .NET library allows you to connect you with a WebUntis account and load all of the data you need from there.
 
 ## Download sources:
 - [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)
