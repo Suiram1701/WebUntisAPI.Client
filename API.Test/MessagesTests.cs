@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Models;
 using static API.Test.AuthentificationTests;
 
 namespace API.Test;
@@ -17,6 +18,19 @@ internal class MessagesTests
         Task<int> messages = Client.GetUnreadMessagesCountAsync();
         messages.Wait();
         if (messages.Result == 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetMessagePermissions()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePermissions> permissions = Client.GetMessagePermissionsAsync();
+        permissions.Wait();
+        if (permissions.Result != null)
             Assert.Pass();
         else
             Assert.Fail();
