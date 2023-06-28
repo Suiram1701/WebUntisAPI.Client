@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Net;
@@ -55,9 +56,14 @@ namespace WebUntisAPI.Client
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Sesson id for requests
+        /// Sesson id for json rpc requests
         /// </summary>
         private string _sessonId;
+
+        /// <summary>
+        /// Auth token for api requests
+        /// </summary>
+        private string _bearerToken;
 
         /// <summary>
         /// Initialize a new client
@@ -163,16 +169,37 @@ namespace WebUntisAPI.Client
                 throw responseModel.Error;
             }
 
-            // Set data
             _serverUrl = serverUrl;
             _loginName = loginName;
             _sessonId = responseModel.Result.SessionId;
             _loggedIn = true;
 
-            // Get logged in user data
+            // Get the api auth token and the logged in user
+            Task<string> bearerTokenTask = GetBearerTokenAsync(ct);
+            IUser[] users;
+            if ((UserType)responseModel.Result.PersonType == Client.UserType.Student)     // For student and teacher separate tasks
+            {
+                Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
+                await Task.WhenAll(bearerTokenTask, studentTask);
+                users = studentTask.Result;
+            }
+            else
+            {
+                Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
+                await Task.WhenAll(bearerTokenTask, teacherTask);
+                users = teacherTask.Result;
+            }
+
+            if (ct.IsCancellationRequested)     // Check for cancellation
+            {
+                _ = LogoutAsync();
+                return false;
+            }
+
+            _bearerToken = bearerTokenTask.Result;
+
             _userType = (UserType)responseModel.Result.PersonType;
-            IUser[] users = _userType == Client.UserType.Student ? (IUser[])await GetStudentsAsync(ct: ct) : await GetTeachersAsync(ct: ct);
-            _user = users.FirstOrDefault(u => u.Id == responseModel.Result.PersonId);
+            _user = users.FirstOrDefault(user => user.Id == responseModel.Result.PersonId);
 
             return true;
         }
@@ -211,6 +238,7 @@ namespace WebUntisAPI.Client
             _serverUrl = null;
             _loginName = null;
             _sessonId = null;
+            _bearerToken = null;
             _loggedIn = false;
         }
 
@@ -295,12 +323,44 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
+        /// Get the bearer auth token for the api authentication
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The bearer token</returns>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        private async Task<string> GetBearerTokenAsync(CancellationToken ct)
+        {
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
+            };
+            SetRequestHeader(request.Headers);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            System.Diagnostics.Debug.WriteLine("Bearer");
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
         /// Add the default headers to a WebUntis API request
         /// </summary>
         /// <param name="headers">The headers object to add</param>
-        private void SetRequestHeader(HttpHeaders headers)
+        /// <param name="setBearer"><see langword="true"/> if the auth header should be set</param>
+        private void SetRequestHeader(HttpHeaders headers, bool setBearer = false)
         {
             headers.Add("JSESSIONID", _sessonId);
+            if (setBearer)
+                (headers as HttpRequestHeaders).Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
         }
 
         #region IDisposable
