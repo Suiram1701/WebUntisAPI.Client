@@ -105,34 +105,10 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         public async Task<News> GetNewsFeedAsync(DateTime date, CancellationToken ct = default)
         {
-            // Check for disposing
-            if (_disposedValue)
-                throw new ObjectDisposedException(GetType().FullName);
-
-            // Check if you logged in
-            if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
-
             date.ToWebUntisTimeFormat(out string dateString, out _);
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/public/news/newsWidgetData?date=" + dateString, ct);
 
-            HttpRequestMessage request = new HttpRequestMessage()
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/public/news/newsWidgetData?date=" + dateString)
-            };
-            SetRequestHeader(request.Headers);
-
-            HttpResponseMessage response = await _client.SendAsync(request, ct);
-
-            // Check cancellation token
-            if (ct.IsCancellationRequested)
-                return default;
-
-            // Verify response
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
-            JToken data = JObject.Parse(await response.Content.ReadAsStringAsync()).GetValue("data");
+            JToken data = JObject.Parse(responseString).GetValue("data");
             return data.ToObject<News>();
         }
     }

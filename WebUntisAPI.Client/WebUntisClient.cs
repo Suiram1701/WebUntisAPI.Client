@@ -229,7 +229,7 @@ namespace WebUntisAPI.Client
                 Params = new object()
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeader(requestContent.Headers);
+            requestContent.Headers.Add("JSESSIONID", _sessonId);
 
             // Send request
             _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
@@ -291,7 +291,7 @@ namespace WebUntisAPI.Client
                 Params = requestParams
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeader(requestContent.Headers);
+            requestContent.Headers.Add("JSESSIONID", _sessonId);
 
             // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
@@ -323,6 +323,46 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
+        /// Make a GET request to the API
+        /// </summary>
+        /// <param name="requestUrl">Url to request</param>
+        /// <param name="ct">Cnacellation  token</param>
+        /// <returns>The returned content</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        private async Task<string> MakeAPIGetRequestAsync(string requestUrl, CancellationToken ct)
+        {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(ServerUrl + requestUrl)
+            };
+            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
         /// Get the bearer auth token for the api authentication
         /// </summary>
         /// <param name="ct">Cancellation token</param>
@@ -335,7 +375,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
             };
-            SetRequestHeader(request.Headers);
+            request.Headers.Add("JSESSIONID", _sessonId);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
@@ -349,18 +389,6 @@ namespace WebUntisAPI.Client
 
             System.Diagnostics.Debug.WriteLine("Bearer");
             return await response.Content.ReadAsStringAsync();
-        }
-
-        /// <summary>
-        /// Add the default headers to a WebUntis API request
-        /// </summary>
-        /// <param name="headers">The headers object to add</param>
-        /// <param name="setBearer"><see langword="true"/> if the auth header should be set</param>
-        private void SetRequestHeader(HttpHeaders headers, bool setBearer = false)
-        {
-            headers.Add("JSESSIONID", _sessonId);
-            if (setBearer)
-                (headers as HttpRequestHeaders).Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
         }
 
         #region IDisposable
