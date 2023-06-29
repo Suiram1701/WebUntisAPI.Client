@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -59,6 +60,11 @@ namespace WebUntisAPI.Client
         /// Sesson id for json rpc requests
         /// </summary>
         private string _sessonId;
+
+        /// <summary>
+        /// The school name for the sesson
+        /// </summary>
+        private string _schoolName;
 
         /// <summary>
         /// Auth token for api requests
@@ -169,6 +175,9 @@ namespace WebUntisAPI.Client
                 throw responseModel.Error;
             }
 
+            string headerValue = response.Headers.First(header => header.Key == "Set-Cookie").Value.ToArray()[1];     // Read additional school name header
+            _schoolName = Regex.Match(headerValue, "schoolname=\"(.+)\";").Groups[1].Value;
+
             _serverUrl = serverUrl;
             _loginName = loginName;
             _sessonId = responseModel.Result.SessionId;
@@ -230,6 +239,7 @@ namespace WebUntisAPI.Client
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
             requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
             _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
@@ -238,6 +248,7 @@ namespace WebUntisAPI.Client
             _serverUrl = null;
             _loginName = null;
             _sessonId = null;
+            _schoolName = null;
             _bearerToken = null;
             _loggedIn = false;
         }
@@ -292,6 +303,7 @@ namespace WebUntisAPI.Client
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
             requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
@@ -347,6 +359,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + requestUrl)
             };
             request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
@@ -376,6 +389,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
             };
             request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("schoolname", _schoolName);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
