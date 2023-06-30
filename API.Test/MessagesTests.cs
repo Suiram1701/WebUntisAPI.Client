@@ -15,7 +15,7 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<int> messages = Client.GetUnreadMessagesCountAsync();
+        Task<int> messages = Client.MessageClient.GetUnreadMessagesCountAsync();
         messages.Wait();
         if (messages.Result == 0)
             Assert.Pass();
@@ -28,11 +28,37 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePermissions> permissions = Client.GetMessagePermissionsAsync();
+        Task<MessagePermissions> permissions = Client.MessageClient.GetMessagePermissionsAsync();
         permissions.Wait();
         if (permissions.Result != null)
             Assert.Pass();
         else
             Assert.Fail();
+    }
+
+    [Test]
+    public void GetMessageInbox()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePreview[]> messages = Client.MessageClient.GetMessageInboxAsync();
+        messages.Wait();
+        if (messages.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetFullMessage()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePreview[]> messages = Client.MessageClient.GetMessageInboxAsync();
+        messages.Wait();
+        Task<Message> msg = messages.Result.First(msg => msg.Subject == "Test").GetFullMessageAsync(Client);
+        msg.Wait();
+        _ = msg.Result;
+        return;
     }
 }

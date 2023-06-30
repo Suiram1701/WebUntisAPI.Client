@@ -52,6 +52,11 @@ namespace WebUntisAPI.Client
         private string _loginName;
 
         /// <summary>
+        /// The message client for this client
+        /// </summary>
+        public MessageClient MessageClient { get; }
+
+        /// <summary>
         /// Current client
         /// </summary>
         private readonly HttpClient _client;
@@ -84,6 +89,7 @@ namespace WebUntisAPI.Client
             {
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
+            MessageClient = new MessageClient(this);
         }
 
         /// <summary>
@@ -284,7 +290,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        private async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
+        internal async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
         {
             // Check for disposing
             if (_disposedValue)
@@ -343,7 +349,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        private async Task<string> MakeAPIGetRequestAsync(string requestUrl, CancellationToken ct)
+        internal async Task<string> MakeAPIGetRequestAsync(string requestUrl, CancellationToken ct)
         {
             // Check for disposing
             if (_disposedValue)
@@ -369,6 +375,12 @@ namespace WebUntisAPI.Client
                 return default;
 
             // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
+            }
+
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
@@ -401,7 +413,6 @@ namespace WebUntisAPI.Client
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            System.Diagnostics.Debug.WriteLine("Bearer");
             return await response.Content.ReadAsStringAsync();
         }
 
