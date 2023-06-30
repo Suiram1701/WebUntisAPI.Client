@@ -12,13 +12,19 @@ namespace WebUntisAPI.Client.Models
     /// The user profile at untis messenges
     /// </summary>
     [DebuggerDisplay("{DisplayName, nq}")]
-    public class MessageProfile
+    public class MessagePerson
     {
         /// <summary>
         /// The name of the class from the user
         /// </summary>
         [JsonProperty("className")]
         public string ClassName { get; set; } = null;
+
+        /// <summary>
+        /// Tags of the person
+        /// </summary>
+        [JsonProperty("tags")]
+        public List<string> Tags { get; set; } = new List<string>();
 
         /// <summary>
         /// The displayed name of the user

@@ -36,7 +36,7 @@ namespace WebUntisAPI.Client.Models
         /// The sender of the message
         /// </summary>
         [JsonProperty("sender")]
-        public MessageProfile Sender { get; set; }
+        public MessagePerson Sender { get; set; }
 
         /// <summary>
         /// All the recipients for a message
@@ -45,7 +45,7 @@ namespace WebUntisAPI.Client.Models
         /// When its <see langword="null"/> is the recipient the current user
         /// </remarks>
         [JsonProperty("recipients")]
-        public List<MessageProfile> Recipients { get; set; } = null;
+        public List<MessagePerson> Recipients { get; set; } = null;
 
         /// <summary>
         /// The send time of the message

@@ -42,7 +42,7 @@ namespace WebUntisAPI.Client.Models
         /// The sender of the message
         /// </summary>
         [JsonProperty("sender")]
-        public MessageProfile Sender { get; set; }
+        public MessagePerson Sender { get; set; }
 
         /// <summary>
         /// The send time of the message

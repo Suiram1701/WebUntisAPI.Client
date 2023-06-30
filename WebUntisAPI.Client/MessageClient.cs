@@ -35,8 +35,8 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The count of unread messages</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the client instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<int> GetUnreadMessagesCountAsync(CancellationToken ct = default)
         {
@@ -49,8 +49,8 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="ct">Cancllation token</param>
         /// <returns></returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the client instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MessagePermissions> GetMessagePermissionsAsync(CancellationToken ct = default)
         {
@@ -63,8 +63,8 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The message previews</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the client instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MessagePreview[]> GetMessageInboxAsync(CancellationToken ct = default)
         {
@@ -72,6 +72,26 @@ namespace WebUntisAPI.Client
 
             JArray jsonMsg = JObject.Parse(responseString).Value<JArray>("incomingMessages");
             return new JsonSerializer().Deserialize<List<MessagePreview>>(jsonMsg.CreateReader()).ToArray();
+        }
+
+        /// <summary>
+        /// Get all available reception people
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The people (<see cref="KeyValuePair{TKey, TValue}.Key"/> is the type of people that are contained in <see cref="KeyValuePair{TKey, TValue}.Value"/>)</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the client instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<KeyValuePair<string, MessagePerson[]>[]> GetMessagePeopleAsync(CancellationToken ct = default)
+        {
+            string responseString = await _client.MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
+
+            List<KeyValuePair<string, MessagePerson[]>> personTypes = new List<KeyValuePair<string, MessagePerson[]>>();
+            JArray types = JArray.Parse(responseString);
+            foreach (JObject personType in types.Cast<JObject>())
+                personTypes.Add(new KeyValuePair<string, MessagePerson[]>(personType.Value<string>("type"),
+                    new JsonSerializer().Deserialize<List<MessagePerson>>(personType.Value<JArray>("persons").CreateReader()).ToArray()));
+            return personTypes.ToArray();
         }
     }
 }

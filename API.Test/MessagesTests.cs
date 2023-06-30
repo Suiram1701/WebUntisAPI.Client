@@ -61,4 +61,17 @@ internal class MessagesTests
         _ = msg.Result;
         return;
     }
+
+    [Test]
+    public void GetReceptionPeople()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<KeyValuePair<string, MessagePerson[]>[]> people = Client.MessageClient.GetMessagePeopleAsync();
+        people.Wait();
+        if (people.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }
