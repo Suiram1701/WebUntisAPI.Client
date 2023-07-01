@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models.Messages
 {
     /// <summary>
     /// Information about the permissions you have for messages
@@ -13,16 +13,8 @@ namespace WebUntisAPI.Client.Models
     public class MessagePermissions
     {
         /// <summary>
-        /// To wich persons you could send the message
+        /// To wich person types you could send the message
         /// </summary>
-        /// <remarks>
-        /// Possible values are:
-        ///     <list type="bullet">
-        ///         <item>TEACHER</item>
-        ///         <item>STUDENT</item>
-        ///         <item>CLASS</item>
-        ///     </list>
-        /// </remarks>
         [JsonProperty("recipientOptions")]
         public string[] RecipientOptions { get; set; }
 

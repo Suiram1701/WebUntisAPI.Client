@@ -9,16 +9,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models.Messages
 {
     /// <summary>
-    /// A message in Untis
+    /// The preview for a draft
     /// </summary>
     /// <remarks>
     /// That are only previews! You can get the full message with <see cref="GetFullMessageAsync(WebUntisClient, CancellationToken)"/> (It must be the same account with them you got the preview)
     ///</remarks>
     [DebuggerDisplay("Subject: {Subject, nq}, Sender: {Sender, nq}, Send time: {SentTime, nq}")]
-    public class MessagePreview
+    public class DraftPreview
     {
         /// <summary>
         /// The id of the message
@@ -33,23 +33,17 @@ namespace WebUntisAPI.Client.Models
         public string Subject { get; set; }
 
         /// <summary>
-        /// The content preview of the message
-        /// </summary>
-        [JsonProperty("contentPreview")]
-        public string ContentPreview { get; set; }
-
-        /// <summary>
-        /// The sender of the message
+        /// The sender of the message (only for messages in the inbox)
         /// </summary>
         [JsonProperty("sender")]
-        public MessagePerson Sender { get; set; }
+        public MessagePerson Sender { get; set; } = null;
 
         /// <summary>
         /// The send time of the message
         /// </summary>
         [JsonProperty("sentDateTime")]
         [JsonConverter(typeof(APIDateTimeJsonConverter))]
-        public DateTime SentTime { get; set; }
+        DateTime SentTime { get; set; }
 
         /// <summary>
         /// Is allowed to delete the message
@@ -58,42 +52,51 @@ namespace WebUntisAPI.Client.Models
         public bool AllowMessageDeletion { get; set; }
 
         /// <summary>
+        /// Idk
+        /// </summary>
+        [JsonProperty("recipientGroups")]
+        public List<object> RecipientGroups { get; set; }
+
+        /// <summary>
+        /// All the recipients for a message (only for self-sends messages)
+        /// </summary>
+        /// <remarks>
+        /// When its <see langword="null"/> is the recipient the current user
+        /// </remarks>
+        [JsonProperty("recipientPersons")]
+        public List<MessagePerson> Recipients { get; set; } = null;
+
+        /// <summary>
+        /// The content preview of the message
+        /// </summary>
+        [JsonProperty("contentPreview")]
+        public string ContentPreview { get; set; }
+
+        /// <summary>
         /// Has the message attachments
         /// </summary>
         [JsonProperty("hasAttachments")]
         public bool HasAttachments { get; set; }
 
         /// <summary>
-        /// Is the message readed
+        /// The option for the recipient
         /// </summary>
-        [JsonProperty("isMessageRead")]
-        public bool IsMessageRead { get; set; }
+        [JsonProperty("recipientOption")]
+        public string RecipientOption { get; set; }
 
         /// <summary>
-        /// Is the message a reply
-        /// </summary>
-        [JsonProperty("isReply")]
-        public bool IsReply { get; set; }
-
-        /// <summary>
-        /// Can you reply the message
-        /// </summary>
-        [JsonProperty("isReplyAllowed")]
-        public bool IsReplyAllowed { get; set; }
-
-        /// <summary>
-        /// Get the full messag of this instance
+        /// Get the full draft of this instance
         /// </summary>
         /// <param name="client">The client with them you got this instane (It doesn't have to be the same client but the same account)</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the client instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client aren't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<Message> GetFullMessageAsync(WebUntisClient client, CancellationToken ct = default)
+        public async Task<Draft> GetFullMessageAsync(WebUntisClient client, CancellationToken ct = default)
         {
-            string responseString = await client.MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/" + Id, ct);
-            return JsonConvert.DeserializeObject<Message>(responseString);
+            string responseString = await client.MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts/" + Id, ct);
+            return JsonConvert.DeserializeObject<Draft>(responseString);
         }
     }
 }

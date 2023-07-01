@@ -52,11 +52,6 @@ namespace WebUntisAPI.Client
         private string _loginName;
 
         /// <summary>
-        /// The message client for this client
-        /// </summary>
-        public MessageClient MessageClient { get; }
-
-        /// <summary>
         /// Current client
         /// </summary>
         private readonly HttpClient _client;
@@ -89,7 +84,6 @@ namespace WebUntisAPI.Client
             {
                 Timeout = TimeSpan.FromMilliseconds(Timeout)
             };
-            MessageClient = new MessageClient(this);
         }
 
         /// <summary>
@@ -290,7 +284,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        internal async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
+        private async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
         {
             // Check for disposing
             if (_disposedValue)

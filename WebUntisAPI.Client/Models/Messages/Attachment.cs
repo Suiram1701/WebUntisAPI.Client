@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models.Messages
 {
     /// <summary>
     /// An attachment from a message
@@ -31,7 +31,7 @@ namespace WebUntisAPI.Client.Models
         /// The attachment id
         /// </summary>
         [JsonProperty("id")]
-        private readonly string _id;
+        public string Id { get; set; }
 
         /// <summary>
         /// Get the content of the attachment as stream
@@ -45,11 +45,11 @@ namespace WebUntisAPI.Client.Models
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MemoryStream> DownloadContentAsStreamAsync(WebUntisClient client, int timeout = 2000, CancellationToken ct = default)
         {
-            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{_id}/attachmentstorageurl", ct);
+            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
 
             JObject data = JObject.Parse(storageResponseString);
             JArray headerArray = data.Value<JArray>("additionalHeaders");
-            
+
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Get,
@@ -80,7 +80,6 @@ namespace WebUntisAPI.Client.Models
 
                 if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
                 {
-
                     string detail = Regex.Match(await response.Content.ReadAsStringAsync(), @"<Message>([a-zA-z0-9\s]+)</Message>").Groups[1].Value;     // Get the error message
                     throw new UnauthorizedAccessException($"Invalid authentication. Detail: {detail}");
                 }

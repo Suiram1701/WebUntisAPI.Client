@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Messages;
 using static API.Test.AuthentificationTests;
 
 namespace API.Test;
@@ -15,7 +15,7 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<int> messages = Client.MessageClient.GetUnreadMessagesCountAsync();
+        Task<int> messages = Client.GetUnreadMessagesCountAsync();
         messages.Wait();
         if (messages.Result == 0)
             Assert.Pass();
@@ -28,7 +28,7 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePermissions> permissions = Client.MessageClient.GetMessagePermissionsAsync();
+        Task<MessagePermissions> permissions = Client.GetMessagePermissionsAsync();
         permissions.Wait();
         if (permissions.Result != null)
             Assert.Pass();
@@ -41,7 +41,7 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePreview[]> messages = Client.MessageClient.GetMessageInboxAsync();
+        Task<MessagePreview[]> messages = Client.GetMessageInboxAsync();
         messages.Wait();
         if (messages.Result.Length > 0)
             Assert.Pass();
@@ -54,7 +54,7 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePreview[]> messages = Client.MessageClient.GetMessageInboxAsync();
+        Task<MessagePreview[]> messages = Client.GetMessageInboxAsync();
         messages.Wait();
         Task<Message> msg = messages.Result.First(msg => msg.Subject == "Test").GetFullMessageAsync(Client);
         msg.Wait();
@@ -67,9 +67,22 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<KeyValuePair<string, MessagePerson[]>[]> people = Client.MessageClient.GetMessagePeopleAsync();
+        Task<KeyValuePair<string, MessagePerson[]>[]> people = Client.GetMessagePeopleAsync();
         people.Wait();
         if (people.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetDrafts()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<DraftPreview[]> drafts = Client.GetSavedDraftsAsync();
+        drafts.Wait();
+        if (drafts.Result != null)
             Assert.Pass();
         else
             Assert.Fail();

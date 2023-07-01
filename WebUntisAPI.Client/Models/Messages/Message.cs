@@ -1,17 +1,19 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models.Messages
 {
     /// <summary>
     /// The full message
     /// </summary>
+    [DebuggerDisplay("Subject: {Subject, nq}, Send time: {SentTime, nq}")]
     public class Message
     {
         /// <summary>
@@ -27,38 +29,56 @@ namespace WebUntisAPI.Client.Models
         public string Subject { get; set; }
 
         /// <summary>
-        /// The full content of the message
-        /// </summary>
-        [JsonProperty("content")]
-        public string Content { get; set; }
-
-        /// <summary>
-        /// The sender of the message
+        /// The sender of the message (only for messages in the inbox)
         /// </summary>
         [JsonProperty("sender")]
-        public MessagePerson Sender { get; set; }
+        public MessagePerson Sender { get; set; } = null;
 
         /// <summary>
-        /// All the recipients for a message
+        /// Is the message a reply
         /// </summary>
-        /// <remarks>
-        /// When its <see langword="null"/> is the recipient the current user
-        /// </remarks>
-        [JsonProperty("recipients")]
-        public List<MessagePerson> Recipients { get; set; } = null;
+        [JsonProperty("isReply")]
+        public bool IsReply { get; set; }
+
+        /// <summary>
+        /// Can you reply the message
+        /// </summary>
+        [JsonProperty("isReplyAllowed")]
+        public bool IsReplyAllowed { get; set; }
 
         /// <summary>
         /// The send time of the message
         /// </summary>
         [JsonProperty("sentDateTime")]
         [JsonConverter(typeof(APIDateTimeJsonConverter))]
-        public DateTime SentTime { get; set; }
+        DateTime SentTime { get; set; }
 
         /// <summary>
         /// Is allowed to delete the message
         /// </summary>
         [JsonProperty("allowMessageDeletion")]
         public bool AllowMessageDeletion { get; set; }
+
+        /// <summary>
+        /// Idk
+        /// </summary>
+        [JsonProperty("recipientGroups")]
+        public List<object> RecipientGroups { get; set; }
+
+        /// <summary>
+        /// All the recipients for a message (only for self-sends messages)
+        /// </summary>
+        /// <remarks>
+        /// When its <see langword="null"/> is the recipient the current user
+        /// </remarks>
+        [JsonProperty("recipientPersons")]
+        public List<MessagePerson> Recipients { get; set; } = null;
+
+        /// <summary>
+        /// The full content of the message
+        /// </summary>
+        [JsonProperty("content")]
+        public string Content { get; set; }
 
         /// <summary>
         /// Is the message revoked
@@ -72,18 +92,6 @@ namespace WebUntisAPI.Client.Models
         [JsonProperty("storageAttachments")]
         public List<Attachment> Attachments { get; set; }
 
-        /// <summary>
-        /// Is the message a reply
-        /// </summary>
-        [JsonProperty("isReply")]
-        public bool IsReply { get; set; } = false;
-
-        /// <summary>
-        /// Can you reply the message
-        /// </summary>
-        [JsonProperty("isReplyAllowed")]
-        public bool IsReplyAllowed { get; set; } = true;
-        
         /// <summary>
         /// Is this a report message
         /// </summary>

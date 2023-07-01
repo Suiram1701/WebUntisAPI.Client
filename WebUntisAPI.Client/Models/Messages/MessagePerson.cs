@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models.Messages
 {
     /// <summary>
     /// The user profile at untis messenges
