@@ -31,7 +31,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// The attachment id
         /// </summary>
         [JsonProperty("id")]
-        public string Id { get; set; }
+        internal readonly string _id;
 
         /// <summary>
         /// Get the content of the attachment as stream
@@ -45,7 +45,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MemoryStream> DownloadContentAsStreamAsync(WebUntisClient client, int timeout = 2000, CancellationToken ct = default)
         {
-            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
+            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{_id}/attachmentstorageurl", ct);
 
             JObject data = JObject.Parse(storageResponseString);
             JArray headerArray = data.Value<JArray>("additionalHeaders");

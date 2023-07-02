@@ -83,7 +83,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// The file attachments of the draft
         /// </summary>
         [JsonProperty("storageAttachments")]
-        public List<Attachment> Attachments { get; set; }
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
 
         /// <summary>
         /// The option for the recipient
@@ -92,7 +92,7 @@ namespace WebUntisAPI.Client.Models.Messages
         public string RecipientOption { get; set; }
 
         /// <summary>
-        /// Forbid the reply (you need the permission)
+        /// Forbid the reply (you need the permission to do that)
         /// </summary>
         [JsonProperty("forbidReply")]
         public bool ForbidReply { get; set; }

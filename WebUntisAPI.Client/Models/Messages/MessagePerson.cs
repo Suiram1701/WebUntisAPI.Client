@@ -42,8 +42,9 @@ namespace WebUntisAPI.Client.Models.Messages
         public Uri ImageUrl { get; set; } = null;
 
         /// <summary>
-        /// The user id of the user
+        /// The id of the user
         /// </summary>
-        public int UserId { get; set; }
+        [JsonProperty("userId")]
+        public int Id { get; set; }
     }
 }

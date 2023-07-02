@@ -90,7 +90,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// The file attachments of the message
         /// </summary>
         [JsonProperty("storageAttachments")]
-        public List<Attachment> Attachments { get; set; }
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
 
         /// <summary>
         /// Is this a report message
