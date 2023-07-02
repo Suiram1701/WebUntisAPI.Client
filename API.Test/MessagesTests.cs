@@ -67,9 +67,9 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<KeyValuePair<string, MessagePerson[]>[]> people = Client.GetMessagePeopleAsync();
+        Task<Dictionary<string, MessagePerson[]>> people = Client.GetMessagePeopleAsync();
         people.Wait();
-        if (people.Result.Length > 0)
+        if (people.Result.Count > 0)
             Assert.Pass();
         else
             Assert.Fail();

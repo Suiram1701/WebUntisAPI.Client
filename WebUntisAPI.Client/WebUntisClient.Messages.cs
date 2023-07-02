@@ -52,16 +52,16 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<KeyValuePair<string, MessagePerson[]>[]> GetMessagePeopleAsync(CancellationToken ct = default)
+        public async Task<Dictionary<string, MessagePerson[]>> GetMessagePeopleAsync(CancellationToken ct = default)
         {
             string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
 
-            List<KeyValuePair<string, MessagePerson[]>> personTypes = new List<KeyValuePair<string, MessagePerson[]>>();
+            Dictionary<string, MessagePerson[]> personTypes = new Dictionary<string, MessagePerson[]>();
             JArray types = JArray.Parse(responseString);
             foreach (JObject personType in types.Cast<JObject>())
-                personTypes.Add(new KeyValuePair<string, MessagePerson[]>(personType.Value<string>("type"),
-                    new JsonSerializer().Deserialize<List<MessagePerson>>(personType.Value<JArray>("persons").CreateReader()).ToArray()));
-            return personTypes.ToArray();
+                personTypes.Add(personType.Value<string>("type"),
+                    new JsonSerializer().Deserialize<List<MessagePerson>>(personType.Value<JArray>("persons").CreateReader()).ToArray());
+            return personTypes;
         }
 
         /// <summary>
