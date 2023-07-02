@@ -55,9 +55,19 @@ namespace WebUntisAPI.Client
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Sesson id for requests
+        /// Sesson id for json rpc requests
         /// </summary>
         private string _sessonId;
+
+        /// <summary>
+        /// The school name for the sesson
+        /// </summary>
+        private string _schoolName;
+
+        /// <summary>
+        /// Auth token for api requests
+        /// </summary>
+        private string _bearerToken;
 
         /// <summary>
         /// Initialize a new client
@@ -163,16 +173,40 @@ namespace WebUntisAPI.Client
                 throw responseModel.Error;
             }
 
-            // Set data
+            string headerValue = response.Headers.First(header => header.Key == "Set-Cookie").Value.ToArray()[1];     // Read additional school name header
+            _schoolName = Regex.Match(headerValue, "schoolname=\"(.+)\";").Groups[1].Value;
+
             _serverUrl = serverUrl;
             _loginName = loginName;
             _sessonId = responseModel.Result.SessionId;
             _loggedIn = true;
 
-            // Get logged in user data
+            // Get the api auth token and the logged in user
+            Task<string> bearerTokenTask = GetBearerTokenAsync(ct);
+            IUser[] users;
+            if ((UserType)responseModel.Result.PersonType == Client.UserType.Student)     // For student and teacher separate tasks
+            {
+                Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
+                await Task.WhenAll(bearerTokenTask, studentTask);
+                users = studentTask.Result;
+            }
+            else
+            {
+                Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
+                await Task.WhenAll(bearerTokenTask, teacherTask);
+                users = teacherTask.Result;
+            }
+
+            if (ct.IsCancellationRequested)     // Check for cancellation
+            {
+                _ = LogoutAsync();
+                return false;
+            }
+
+            _bearerToken = bearerTokenTask.Result;
+
             _userType = (UserType)responseModel.Result.PersonType;
-            IUser[] users = _userType == Client.UserType.Student ? (IUser[])await GetStudentsAsync(ct: ct) : await GetTeachersAsync(ct: ct);
-            _user = users.FirstOrDefault(u => u.Id == responseModel.Result.PersonId);
+            _user = users.FirstOrDefault(user => user.Id == responseModel.Result.PersonId);
 
             return true;
         }
@@ -202,7 +236,8 @@ namespace WebUntisAPI.Client
                 Params = new object()
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeader(requestContent.Headers);
+            requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
             _ = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
@@ -211,6 +246,8 @@ namespace WebUntisAPI.Client
             _serverUrl = null;
             _loginName = null;
             _sessonId = null;
+            _schoolName = null;
+            _bearerToken = null;
             _loggedIn = false;
         }
 
@@ -263,7 +300,8 @@ namespace WebUntisAPI.Client
                 Params = requestParams
             };
             StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
-            SetRequestHeader(requestContent.Headers);
+            requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
@@ -295,12 +333,79 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Add the default headers to a WebUntis API request
+        /// Make a GET request to the API
         /// </summary>
-        /// <param name="headers">The headers object to add</param>
-        private void SetRequestHeader(HttpHeaders headers)
+        /// <param name="requestUrl">Url to request</param>
+        /// <param name="ct">Cnacellation  token</param>
+        /// <returns>The returned content</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        internal async Task<string> MakeAPIGetRequestAsync(string requestUrl, CancellationToken ct)
         {
-            headers.Add("JSESSIONID", _sessonId);
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(ServerUrl + requestUrl)
+            };
+            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        /// <summary>
+        /// Get the bearer auth token for the api authentication
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The bearer token</returns>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        private async Task<string> GetBearerTokenAsync(CancellationToken ct)
+        {
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Get,
+                RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
+            };
+            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("schoolname", _schoolName);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            return await response.Content.ReadAsStringAsync();
         }
 
         #region IDisposable

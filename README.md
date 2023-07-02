@@ -1,6 +1,6 @@
 # WebUntisAPI.Client
 
-This .NET library allows you to connect you with a WebUntis account and load all of the data you need from there.<br>
+This .NET library allows you to connect you with a WebUntis account and load all of the data you need from there.
 
 ## Download sources:
 - [![GitHub](https://img.shields.io/badge/GitHub-Releases-black)](https://github.com/Suiram1701/WebUntisAPI.Client/releases)
@@ -30,8 +30,8 @@ Remarks:
 - Under no circumstances should 10 req. per sec., more than 1800req. per hr (but in no case more than 3600 req. per hr). If the specifications are exceeded, access to WebUntis could permanently blocked by the WebUntis API.
 
 ### 3. Send requests
-After your login you can send requests to get informations about your timetable and all about.<br>
-The methods an what they do shoud be self-explained.<br>
+After your login you can send requests to get informations about your timetable and all about.
+The methods an what they do shoud be self-explained.
 
 ## Issues
 When you had an error that you don't understand or you don't understand how you can use the library you can create an issue so that I can help you by your problem.

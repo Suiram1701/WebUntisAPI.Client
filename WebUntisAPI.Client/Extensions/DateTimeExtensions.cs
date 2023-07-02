@@ -39,32 +39,25 @@ namespace WebUntisAPI.Client.Extensions
         ///     The time format is HHMM (Hour Minute).
         ///     </para>
         /// </remarks>
-        /// <param name="dateTime">Instance</param>
+        /// <param name="_">Instance</param>
         /// <param name="dateString">Date string</param>
         /// <param name="timeString">Time string</param>
         /// <returns>The new instance that contains the given time. When not to throw on exception and an exception happened is the return value <see langword="null"/></returns>
         /// <exception cref="FormatException">Thrown when one of the given strings isn't in the right format</exception>
-        public static DateTime FromWebUntisTimeFormat(this DateTime dateTime, string dateString, string timeString)
+        public static DateTime FromWebUntisTimeFormat(this DateTime _, string dateString, string timeString)
         {
-            Regex dateRegex = new Regex(@"^\d{4}(?:0\d|1[0-2])(?:0[1-9]|[1-2]\d|3[0-1])$");     // Regex for the WebUntis date format
-            Regex timeRegex = new Regex(@"^(?:\d|1\d|2[0-3])[0-5]\d$");     // Regex for the WebUntis time format
+            Match dateMatch = Regex.Match(dateString, @"^(\d{4})(0\d|1[0-2])(0[1-9]|[1-2]\d|3[0-1])$");
+            Match timeMatch = Regex.Match(timeString, @"^(\d|1\d|2[0-3])([0-5]\d)$");
 
-            // Check if the date- and time strings are valid
-            bool isDateValid = dateRegex.IsMatch(dateString);
-            bool isTimeValid = timeRegex.IsMatch(timeString);
+            if (!dateMatch.Success || !timeMatch.Success)
+                throw new FormatException("A valid format was expected");
 
-            if (!isDateValid || !isTimeValid)
-                throw new FormatException($"The string {(isDateValid ? timeString : dateString)} isn't in the valid format!");
+            int year = int.Parse(dateMatch.Groups[1].Value);
+            int month = int.Parse(dateMatch.Groups[2].Value);
+            int day = int.Parse(dateMatch.Groups[3].Value);
 
-
-            // Parse the numbers in the string to value
-            int year = int.Parse(dateString.Substring(0, 4));
-            int month = int.Parse(dateString.Substring(4, 2));
-            int day = int.Parse(dateString.Substring(6, 2));
-
-            bool is4Letters = timeString.Length == 4;
-            int hour = int.Parse(is4Letters ? timeString.Substring(0, 2) : timeString[0].ToString());
-            int minute = int.Parse(is4Letters ? timeString.Substring(2, 2) : timeString.Substring(1, 2));
+            int hour = int.Parse(timeMatch.Groups[1].Value);
+            int minute = int.Parse(timeMatch.Groups[2].Value);
 
             // date and time string to DateTime instance
             return new DateTime(year, month, day, hour, minute, 0);
