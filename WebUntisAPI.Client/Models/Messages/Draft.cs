@@ -2,9 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models.Messages
