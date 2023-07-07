@@ -91,7 +91,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MessagePreview> SendMessageAsync(Draft draft, MessagePerson[] recipients, int timeout = 2000, CancellationToken ct = default)
+        public async Task<MessagePreview> SendMessageAsync(Draft draft, MessagePerson[] recipients, TimeSpan timeout, CancellationToken ct = default)
         {
             Tuple<string, Stream>[] attachments = new Tuple<string, Stream>[0];
             if (draft.Attachments.Count > 0)
@@ -99,7 +99,7 @@ namespace WebUntisAPI.Client
                 Dictionary<string, Task<Stream>> attachmentTasks = new Dictionary<string, Task<Stream>>();
 
                 foreach (Attachment attachment in draft.Attachments)
-                    attachmentTasks.Add(attachment.Name, attachment.DownloadContentAsStreamAsync(this, timeout, ct));
+                    attachmentTasks.Add(attachment.Name, attachment.DownloadContentAsStreamAsync(this, timeout, ct: ct));
 
                 await Task.WhenAll(attachmentTasks.Values);
                 attachments = attachmentTasks.Select(attachment => new Tuple<string, Stream>(attachment.Key, attachment.Value.Result)).ToArray();
