@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
@@ -40,7 +43,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Student[]> GetStudentsAsync(string id = "getStudents", CancellationToken ct = default)
         {
-            List<Student> students = await MakeJSONRPCRequestAsync<object, List<Student>>(id, "getStudents", new object(), ct);
+            List<Student> students = (await MakeJSONRPCRequestAsync(id, "getStudents", null, ct)).ToObject<List<Student>>();
             return students.ToArray();
         }
 
@@ -56,7 +59,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<Teacher[]> GetTeachersAsync(string id = "getTeachers", CancellationToken ct = default)
         {
-            List<Teacher> teachers = await MakeJSONRPCRequestAsync<object, List<Teacher>>(id, "getTeachers", new object(), ct);
+            List<Teacher> teachers = (await MakeJSONRPCRequestAsync(id, "getTeachers", null, ct)).ToObject<List<Teacher>>();
             return teachers.ToArray();
         }
 
@@ -75,13 +78,25 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<int> GetPersonIdAsync(string forename, string surname, UserType type, string id = "getPersonId", CancellationToken ct = default)
         {
-            GetPersonIdRequestModel model = new GetPersonIdRequestModel()
+            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
             {
-                Forename = forename,
-                Surname = surname,
-                UserType = (int)type
-            };
-            return await MakeJSONRPCRequestAsync<GetPersonIdRequestModel, int>(id, "getPersonId", model, ct);
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("fn");
+                writer.WriteValue(forename);
+
+                writer.WritePropertyName("sn");
+                writer.WriteValue(surname);
+
+                writer.WritePropertyName("type");
+                writer.WriteValue((int)type);
+
+                writer.WritePropertyName("dob");
+                writer.WriteValue(0);
+
+                writer.WriteEndObject();
+            });
+            return (await MakeJSONRPCRequestAsync(id, "getPersonId", paramsAction, ct)).ToObject<int>();
         }
     }
 }
