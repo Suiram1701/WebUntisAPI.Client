@@ -27,11 +27,6 @@ namespace WebUntisAPI.Client
         public string ClientName { get; }
 
         /// <summary>
-        /// The time in milliseconds until requests will be timeouted
-        /// </summary>
-        public int Timeout { get; }
-
-        /// <summary>
         /// <see langword="true"/> when the client is currently logged in
         /// </summary>
         public bool LoggedIn => _loggedIn;
@@ -74,13 +69,12 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
         /// <param name="timeout">The time in milliseconds until requests will be timeouted</param>
-        public WebUntisClient(string clientName, int timeout = 1000)
+        public WebUntisClient(string clientName, TimeSpan timeout)
         {
             ClientName = clientName;
-            Timeout = timeout;
             _client = new HttpClient()
             {
-                Timeout = TimeSpan.FromMilliseconds(Timeout)
+                Timeout = timeout
             };
         }
 
