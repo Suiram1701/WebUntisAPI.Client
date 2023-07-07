@@ -104,6 +104,21 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
+        /// Get the count of unread news
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The unread news count</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
+            return JObject.Parse(responseString).Value<int>("unreadCardsCount");
+        }
+
+        /// <summary>
         /// Get all the news for the school as string
         /// </summary>
         /// <param name="date">Date to get the news</param>
