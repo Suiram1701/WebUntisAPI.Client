@@ -40,7 +40,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MemoryStream> DownloadContentAsStreamAsync(WebUntisClient client, int timeout = 2000, CancellationToken ct = default)
+        public async Task<Stream> DownloadContentAsStreamAsync(WebUntisClient client, int timeout = 2000, CancellationToken ct = default)
         {
             string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{_id}/attachmentstorageurl", ct);
 
@@ -81,7 +81,7 @@ namespace WebUntisAPI.Client.Models.Messages
                     throw new UnauthorizedAccessException($"Invalid authentication. Detail: {detail}");
                 }
 
-                return (MemoryStream)await response.Content.ReadAsStreamAsync();
+                return await response.Content.ReadAsStreamAsync();
             }
         }
     }

@@ -93,16 +93,16 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MessagePreview> SendMessageAsync(Draft draft, MessagePerson[] recipients, int timeout = 2000, CancellationToken ct = default)
         {
-            Tuple<string, MemoryStream>[] attachments = new Tuple<string, MemoryStream>[0];
+            Tuple<string, Stream>[] attachments = new Tuple<string, Stream>[0];
             if (draft.Attachments.Count > 0)
             {
-                Dictionary<string, Task<MemoryStream>> attachmentTasks = new Dictionary<string, Task<MemoryStream>>();
+                Dictionary<string, Task<Stream>> attachmentTasks = new Dictionary<string, Task<Stream>>();
 
                 foreach (Attachment attachment in draft.Attachments)
                     attachmentTasks.Add(attachment.Name, attachment.DownloadContentAsStreamAsync(this, timeout, ct));
 
                 await Task.WhenAll(attachmentTasks.Values);
-                attachments = attachmentTasks.Select(attachment => new Tuple<string, MemoryStream>(attachment.Key, attachment.Value.Result)).ToArray();
+                attachments = attachmentTasks.Select(attachment => new Tuple<string, Stream>(attachment.Key, attachment.Value.Result)).ToArray();
             }
 
             return await SendMessageAsync(draft.Subject, draft.Content, recipients, draft.ForbidReply, attachments, ct);
@@ -121,7 +121,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MessagePreview> SendMessageAsync(string subject, string content, MessagePerson[] recipients, bool forbidReply, Tuple<string, MemoryStream>[] attachments = null, CancellationToken ct = default)
+        public async Task<MessagePreview> SendMessageAsync(string subject, string content, MessagePerson[] recipients, bool forbidReply, Tuple<string, Stream>[] attachments = null, CancellationToken ct = default)
         {
             // Check for disposing
             if (_disposedValue)
@@ -168,9 +168,12 @@ namespace WebUntisAPI.Client
             }
 
             // Attachment part
-            foreach (Tuple<string, MemoryStream> attachment in attachments)
+            foreach (Tuple<string, Stream> attachment in attachments)
             {
-                ByteArrayContent fileContent = new ByteArrayContent(attachment.Item2.ToArray());
+                byte[] buffer = new byte[attachment.Item2.Length];
+                int bytesRead = await attachment.Item2.ReadAsync(buffer, 0, buffer.Length);
+                ByteArrayContent fileContent = new ByteArrayContent(buffer, 0, bytesRead);
+
                 fileContent.Headers.Add("Content-Type", "application/x-msdownload");
                 requestContent.Add(fileContent, "attachments", attachment.Item1);
             }
@@ -309,7 +312,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<DraftPreview> CreateDraftAsync(string subject, string content, string recipientOption, bool forbidReply, bool copyToStudent, Tuple<string, MemoryStream>[] attachments = null, CancellationToken ct = default)
+        public async Task<DraftPreview> CreateDraftAsync(string subject, string content, string recipientOption, bool forbidReply, bool copyToStudent, Tuple<string, Stream>[] attachments = null, CancellationToken ct = default)
         {
             // Check for disposing
             if (_disposedValue)
@@ -357,9 +360,12 @@ namespace WebUntisAPI.Client
             }
 
             // Attachment part
-            foreach (Tuple<string, MemoryStream> attachment in attachments)
+            foreach (Tuple<string, Stream> attachment in attachments)
             {
-                ByteArrayContent fileContent = new ByteArrayContent(attachment.Item2.ToArray());
+                byte[] buffer = new byte[attachment.Item2.Length];
+                int bytesRead = await attachment.Item2.ReadAsync(buffer, 0, buffer.Length);
+                ByteArrayContent fileContent = new ByteArrayContent(buffer, 0, bytesRead);
+
                 fileContent.Headers.Add("Content-Type", "application/x-msdownload");
                 requestContent.Add(fileContent, "attachments", attachment.Item1);
             }
@@ -401,7 +407,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<DraftPreview> UpdateDraftAsync(Draft draft, Tuple<string, MemoryStream>[] newAttachments = null, Attachment[] attachmentToDelete = null, CancellationToken ct = default)
+        public async Task<DraftPreview> UpdateDraftAsync(Draft draft, Tuple<string, Stream>[] newAttachments = null, Attachment[] attachmentToDelete = null, CancellationToken ct = default)
         {
             // Check for disposing
             if (_disposedValue)
@@ -454,9 +460,12 @@ namespace WebUntisAPI.Client
             }
 
             // Attachment part
-            foreach (Tuple<string, MemoryStream> attachment in newAttachments ?? new Tuple<string, MemoryStream>[0])
+            foreach (Tuple<string, Stream> attachment in newAttachments ?? new Tuple<string, Stream>[0])
             {
-                ByteArrayContent fileContent = new ByteArrayContent(attachment.Item2.ToArray());
+                byte[] buffer = new byte[attachment.Item2.Length];
+                int bytesRead = await attachment.Item2.ReadAsync(buffer, 0, buffer.Length);
+                ByteArrayContent fileContent = new ByteArrayContent(buffer, 0, bytesRead);
+
                 fileContent.Headers.Add("Content-Type", "application/x-msdownload");
                 requestContent.Add(fileContent, "attachments", attachment.Item1);
             }
