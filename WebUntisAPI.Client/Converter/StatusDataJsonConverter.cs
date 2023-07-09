@@ -25,6 +25,7 @@ namespace WebUntisAPI.Client.Converter
                 OhColors = lessonTypes.First(obj => obj.ContainsKey("oh"))["oh"].ToObject<ForeBackColors>(),
                 SbColors = lessonTypes.First(obj => obj.ContainsKey("sb"))["sb"].ToObject<ForeBackColors>(),
                 BsColors = lessonTypes.First(obj => obj.ContainsKey("bs"))["bs"].ToObject<ForeBackColors>(),
+                ExColors = lessonTypes.First(obj => obj.ContainsKey("ex"))["ex"].ToObject<ForeBackColors>(),
                 CancelledLessonColors = codes.First(obj => obj.ContainsKey("cancelled"))["cancelled"].ToObject<ForeBackColors>(),
                 IrregularLessonColors = codes.First(obj => obj.ContainsKey("irregular"))["irregular"].ToObject<ForeBackColors>()
             };
@@ -55,6 +56,11 @@ namespace WebUntisAPI.Client.Converter
             writer.WriteStartObject();
             writer.WritePropertyName("bs");
             serializer.Serialize(writer, value.BsColors);
+            writer.WriteEndObject();
+
+            writer.WriteStartObject();
+            writer.WritePropertyName("ex");
+            serializer.Serialize(writer, value.ExColors);
             writer.WriteEndObject();
 
             writer.WriteEndArray();

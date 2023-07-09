@@ -117,7 +117,7 @@ namespace WebUntisAPI.Client
     public enum Code
     {
         /// <summary>
-        /// No code
+        /// No code (normal lesson)
         /// </summary>
         [JsonProperty("")]
         None = 0,
