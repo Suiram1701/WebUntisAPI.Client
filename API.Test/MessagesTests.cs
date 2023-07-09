@@ -100,4 +100,20 @@ internal class MessagesTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetReplyForm()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePreview[]> messages = Client.GetMessageInboxAsync();
+        messages.Wait();
+
+        Task<Message> drafts = Client.GetReplyFormAsync(messages.Result[0]);
+        drafts.Wait();
+        if (drafts.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }
