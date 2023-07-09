@@ -81,6 +81,22 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
+        /// Get the sent messages
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The sent messages</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<MessagePreview[]> GetSentMessagesAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
+
+            JArray jsonMsg = JObject.Parse(responseString).Value<JArray>("sentMessages");
+            return new JsonSerializer().Deserialize<List<MessagePreview>>(jsonMsg.CreateReader()).ToArray();
+        }
+
+        /// <summary>
         /// Send a draft
         /// </summary>
         /// <param name="draft">The draft that you want to send</param>

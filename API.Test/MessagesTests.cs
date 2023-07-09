@@ -50,6 +50,19 @@ internal class MessagesTests
     }
 
     [Test]
+    public void GetSentMessages()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePreview[]> messages = Client.GetSentMessagesAsync();
+        messages.Wait();
+        if (messages.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
     public void GetFullMessage()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
