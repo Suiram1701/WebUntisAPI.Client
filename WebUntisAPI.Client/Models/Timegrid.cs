@@ -10,9 +10,9 @@ namespace WebUntisAPI.Client.Models
     /// <summary>
     /// A timegrid for a school
     /// </summary>
-    [DebuggerDisplay("Days = {SchoolDays}")]
+    [DebuggerDisplay("Days = {SchoolDays, nq}")]
     [JsonConverter(typeof(TimegridJsonConverter))]
-    public class Timegrid : IEnumerable<(Day, SchoolHour[])>
+    public class Timegrid : IEnumerable<KeyValuePair<Day, SchoolHour[]>>
     {
         /// <summary>
         /// All the school days with their school hours
@@ -26,7 +26,7 @@ namespace WebUntisAPI.Client.Models
 
         #region IEnumerable<SchoolHour[]>
         /// <inheritdoc/>
-        public IEnumerator<(Day, SchoolHour[])> GetEnumerator() => SchoolDays.Keys.Zip(SchoolDays.Values, (day, schoolHours) => (day, schoolHours)).GetEnumerator();
+        public IEnumerator<KeyValuePair<Day, SchoolHour[]>> GetEnumerator() => SchoolDays.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         #endregion

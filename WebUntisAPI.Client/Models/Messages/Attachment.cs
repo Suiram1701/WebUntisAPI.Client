@@ -20,16 +20,16 @@ namespace WebUntisAPI.Client.Models.Messages
     public struct Attachment
     {
         /// <summary>
+        /// The attachment id
+        /// </summary>
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        /// <summary>
         /// The file name of the attachment
         /// </summary>
         [JsonProperty("name")]
         public string Name { get; set; }
-
-        /// <summary>
-        /// The attachment id
-        /// </summary>
-        [JsonProperty("id")]
-        internal readonly string _id;
 
         /// <summary>
         /// Get the content of the attachment as stream with a progress report
@@ -44,7 +44,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Stream> DownloadContentAsStreamAsync(WebUntisClient client, TimeSpan timeout, IProgress<double> progress = null, CancellationToken ct = default)
         {
-            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{_id}/attachmentstorageurl", ct);
+            string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
 
             JObject data = JObject.Parse(storageResponseString);
             JArray headerArray = data.Value<JArray>("additionalHeaders");
@@ -85,7 +85,7 @@ namespace WebUntisAPI.Client.Models.Messages
 
                             content.Write(buffer, 0, bytesRead);
                             totalRecievedBytes += bytesRead;
-                            progress.Report((double)totalRecievedBytes / totalBytes * 100d);
+                            progress?.Report((double)totalRecievedBytes / totalBytes * 100d);
                         }
                     }
 
