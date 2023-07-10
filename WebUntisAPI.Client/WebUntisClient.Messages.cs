@@ -575,7 +575,7 @@ namespace WebUntisAPI.Client
                 writer.WritePropertyName("attachmentIdsToDelete");
                 writer.WriteStartArray();
                 foreach (Attachment attachment in attachmentToDelete ?? new Attachment[0])
-                    writer.WriteValue(attachment._id);
+                    writer.WriteValue(attachment.Id);
                 writer.WriteEndArray();
 
                 writer.WritePropertyName("forbidReply");
