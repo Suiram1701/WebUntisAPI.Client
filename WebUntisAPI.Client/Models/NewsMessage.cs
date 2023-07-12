@@ -20,7 +20,7 @@ namespace WebUntisAPI.Client.Models
         public string Subject { get; set; }
 
         /// <summary>
-        /// The normal text of the news (<![CDATA[<br>]]> is used for line breaks)
+        /// The normal text of the news (<![CDATA[<br>]]> or \n is used for line breaks)
         /// </summary>
         [JsonProperty("text")]
         public string Text { get; set; }

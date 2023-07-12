@@ -81,7 +81,7 @@ namespace WebUntisAPI.Client.Models.Messages
         }
 
         /// <summary>
-        /// The full content of the message
+        /// The full content of the message (\n is used for line breaks)
         /// </summary>
         [JsonProperty("content")]
         public string Content { get; set; } = string.Empty;
