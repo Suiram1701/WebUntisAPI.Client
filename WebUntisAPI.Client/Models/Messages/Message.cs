@@ -115,5 +115,14 @@ namespace WebUntisAPI.Client.Models.Messages
         /// </summary>
         [JsonProperty("replyHistory")]
         public List<Message> ReplyHistory { get; set; } = new List<Message>();
+
+        /// <summary>
+        /// Informations about a confirmation of the message
+        /// </summary>
+        /// <remarks>
+        /// When the message won't request a confirmation and was never confirmed the value is <see langword="null"/>
+        /// </remarks>
+        [JsonProperty("requestConfirmation")]
+        public ConfirmationInformations ConfirmationInformations { get; set; } = null;
     }
 }

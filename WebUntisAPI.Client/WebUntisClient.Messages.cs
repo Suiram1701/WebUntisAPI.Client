@@ -65,19 +65,70 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get the you message inbox
+        /// Get the your message inbox
         /// </summary>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>The message previews</returns>
+        /// <returns>The first value (messageInbox) are the normal inbox and the second value (confirmationMessages) are the messages that request a confirmation with <see cref="ConfirmMessageAsync(Message, CancellationToken)"/></returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MessagePreview[]> GetMessageInboxAsync(CancellationToken ct = default)
+        public async Task<(MessagePreview[] messageInbox, MessagePreview[] confirmationMessages)> GetMessageInboxAsync(CancellationToken ct = default)
         {
             string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
 
-            JArray jsonMsg = JObject.Parse(responseString).Value<JArray>("incomingMessages");
-            return new JsonSerializer().Deserialize<List<MessagePreview>>(jsonMsg.CreateReader()).ToArray();
+            JObject responseObject = JObject.Parse(responseString);
+            MessagePreview[] inboxMsg = responseObject["incomingMessages"].ToObject<MessagePreview[]>();
+            MessagePreview[] readConfirmMsg = responseObject["readConfirmationMessages"].ToObject<MessagePreview[]>();
+
+            return (inboxMsg, readConfirmMsg);
+        }
+
+        /// <summary>
+        /// Confirm a recived message
+        /// </summary>
+        /// <remarks>
+        /// You should only use this for confirmation requested messages
+        /// </remarks>
+        /// <param name="message">The message to confirm</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Informations about the confirm</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<ConfirmationInformations> ConfirmMessageAsync(Message message, CancellationToken ct = default)
+        {
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation")
+            };
+            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            return JObject.Parse(await response.Content.ReadAsStringAsync()).ToObject<ConfirmationInformations>();
         }
 
         /// <summary>
@@ -101,13 +152,14 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="draft">The draft that you want to send</param>
         /// <param name="recipients">The recipients for the message</param>
+        /// <param name="requestConfirmation">Is a confirmation requested (You need the permission)</param>
         /// <param name="timeout">The time out for the attachment download (when the draft had attachments they must be downloaded to send them)</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The preview of the sent message</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MessagePreview> SendMessageAsync(Draft draft, MessagePerson[] recipients, TimeSpan timeout, CancellationToken ct = default)
+        public async Task<MessagePreview> SendMessageAsync(Draft draft, MessagePerson[] recipients, bool requestConfirmation, TimeSpan timeout, CancellationToken ct = default)
         {
             Tuple<string, Stream>[] attachments = new Tuple<string, Stream>[0];
             if (draft.Attachments.Count > 0)
@@ -121,7 +173,7 @@ namespace WebUntisAPI.Client
                 attachments = attachmentTasks.Select(attachment => new Tuple<string, Stream>(attachment.Key, attachment.Value.Result)).ToArray();
             }
 
-            return await SendMessageAsync(draft.Subject, draft.Content, recipients, draft.ForbidReply, attachments, ct);
+            return await SendMessageAsync(draft.Subject, draft.Content, recipients, requestConfirmation, draft.ForbidReply, attachments, ct);
         }
 
         /// <summary>
@@ -131,13 +183,14 @@ namespace WebUntisAPI.Client
         /// <param name="content">The content (use <![CDATA[<br>]]> for line breaks</param>
         /// <param name="recipients">The recipients for the message</param>
         /// <param name="forbidReply">Is a reply forbidden (it need a permission to to that)</param>
+        /// <param name="requestConfirmation">Is a confirmation requested (You need the permission)</param>
         /// <param name="attachments">The attachments to send (Item1 is the name and Item2 the content)</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The preview of the sent message</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<MessagePreview> SendMessageAsync(string subject, string content, MessagePerson[] recipients, bool forbidReply, Tuple<string, Stream>[] attachments = null, CancellationToken ct = default)
+        public async Task<MessagePreview> SendMessageAsync(string subject, string content, MessagePerson[] recipients, bool requestConfirmation, bool forbidReply, Tuple<string, Stream>[] attachments = null, CancellationToken ct = default)
         {
             // Check for disposing
             if (_disposedValue)
@@ -162,7 +215,7 @@ namespace WebUntisAPI.Client
                 writer.WriteValue(content);
 
                 writer.WritePropertyName("requestConfirmation");
-                writer.WriteValue(false);
+                writer.WriteValue(requestConfirmation);
 
                 writer.WritePropertyName("recipientUserIds");
                 writer.WriteStartArray();
