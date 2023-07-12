@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using WebUntisAPI.Client.Converter;
 
 namespace WebUntisAPI.Client.Models.Messages
@@ -22,7 +23,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// The subject of the message
         /// </summary>
         [JsonProperty("subject")]
-        public string Subject { get; set; }
+        public string Subject { get; set; } = string.Empty;
 
         /// <summary>
         /// The sender of the message (only for messages in the inbox)
@@ -34,13 +35,13 @@ namespace WebUntisAPI.Client.Models.Messages
         /// Is the message a reply
         /// </summary>
         [JsonProperty("isReply")]
-        public bool IsReply { get; set; }
+        public bool IsReply { get; set; } = false;
 
         /// <summary>
         /// Can you reply the message
         /// </summary>
         [JsonProperty("isReplyAllowed")]
-        public bool IsReplyAllowed { get; set; }
+        public bool IsReplyAllowed { get; set; } = true;
 
         /// <summary>
         /// The send time of the message
@@ -53,7 +54,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// Is allowed to delete the message
         /// </summary>
         [JsonProperty("allowMessageDeletion")]
-        public bool AllowMessageDeletion { get; set; }
+        public bool AllowMessageDeletion { get; set; } = true;
 
         /// <summary>
         /// Idk
@@ -65,22 +66,31 @@ namespace WebUntisAPI.Client.Models.Messages
         /// All the recipients for a message (only for self-sends messages)
         /// </summary>
         /// <remarks>
-        /// When its <see langword="null"/> is the recipient the current user
+        /// When its epmpty is the recipient the current user
         /// </remarks>
         [JsonProperty("recipientPersons")]
-        public List<MessagePerson> Recipients { get; set; } = null;
+        public List<MessagePerson> Recipients { get; set; } = new List<MessagePerson>();
+
+#pragma warning disable IDE0051
+        [JsonProperty("recipient")]
+        private MessagePerson Recipient
+#pragma warning restore IDE0051 // Nicht verwendete private Member entfernen
+        {
+            get => Recipients.FirstOrDefault();
+            set => Recipients.Add(value);
+        }
 
         /// <summary>
-        /// The full content of the message
+        /// The full content of the message (\n is used for line breaks)
         /// </summary>
         [JsonProperty("content")]
-        public string Content { get; set; }
+        public string Content { get; set; } = string.Empty;
 
         /// <summary>
         /// Is the message revoked
         /// </summary>
         [JsonProperty("isRevoked")]
-        public bool IsRevoked { get; set; }
+        public bool IsRevoked { get; set; } = false;
 
         /// <summary>
         /// The file attachments of the message
@@ -105,5 +115,14 @@ namespace WebUntisAPI.Client.Models.Messages
         /// </summary>
         [JsonProperty("replyHistory")]
         public List<Message> ReplyHistory { get; set; } = new List<Message>();
+
+        /// <summary>
+        /// Informations about a confirmation of the message
+        /// </summary>
+        /// <remarks>
+        /// When the message won't request a confirmation and was never confirmed the value is <see langword="null"/>
+        /// </remarks>
+        [JsonProperty("requestConfirmation")]
+        public ConfirmationInformations ConfirmationInformations { get; set; } = null;
     }
 }

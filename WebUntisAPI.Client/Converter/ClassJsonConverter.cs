@@ -6,9 +6,6 @@ using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client.Converter
 {
-    /// <summary>
-    /// Convert the teachers in webuntis get classes response to int array
-    /// </summary>
     internal class ClassJsonConverter : JsonConverter<Class>
     {
         /// <inheritdoc/>

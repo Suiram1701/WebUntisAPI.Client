@@ -71,7 +71,7 @@ namespace WebUntisAPI.Client.Models.Messages
         public List<MessagePerson> Recipients { get; set; } = null;
 
         /// <summary>
-        /// The full content of the draft
+        /// The full content of the draft (\n is used for line breaks)
         /// </summary>
         [JsonProperty("content")]
         public string Content { get; set; }

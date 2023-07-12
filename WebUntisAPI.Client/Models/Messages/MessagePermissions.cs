@@ -38,19 +38,19 @@ namespace WebUntisAPI.Client.Models.Messages
         public bool ShowSentTab { get; set; }
 
         /// <summary>
-        /// Can you forbid replies
+        /// Can you forbid replies of a message
         /// </summary>
         [JsonProperty("canForbidReplies")]
         public bool CanForbidReplies { get; set; }
 
         /// <summary>
-        /// The maximum size of a file you could attach in bytes
+        /// The maximum size of a file you could attach to a message in bytes
         /// </summary>
         [JsonProperty("maxFileSize")]
         public long MaxFileSize { get; set; }
 
         /// <summary>
-        /// The maximum count of files you could attach
+        /// The maximum count of files you could attach to one message
         /// </summary>
         [JsonProperty("maxFileCount")]
         public int MaxFileCount { get; set; }

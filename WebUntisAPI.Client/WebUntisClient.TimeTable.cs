@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
 
 namespace WebUntisAPI.Client
@@ -22,7 +24,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<StatusData> GetStatusDataAsync(string id = "getStatusData", CancellationToken ct = default)
         {
-            StatusData statusData = await MakeJSONRPCRequestAsync<object, StatusData>(id, "getStatusData", new object(), ct);
+            StatusData statusData = (await MakeJSONRPCRequestAsync(id, "getStatusData", null, ct)).ToObject<StatusData>();
             return statusData;
         }
 
@@ -38,7 +40,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Timegrid> GetTimegridAsync(string id = "getTimegrid", CancellationToken ct = default)
         {
-            Timegrid timeGrid = await MakeJSONRPCRequestAsync<object, Timegrid>(id, "getTimegridUnits", new object(), ct);
+            Timegrid timeGrid = (await MakeJSONRPCRequestAsync(id, "getTimegridUnits", null, ct)).ToObject<Timegrid>();
             return timeGrid;
         }
 
@@ -54,7 +56,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<SchoolYear[]> GetSchoolYearsAsync(string id = "getSchoolyears", CancellationToken ct = default)
         {
-            List<SchoolYear> schoolYears = await MakeJSONRPCRequestAsync<object, List<SchoolYear>>(id, "getSchoolyears", new object(), ct);
+            List<SchoolYear> schoolYears = (await MakeJSONRPCRequestAsync(id, "getSchoolyears", null, ct)).ToObject<List<SchoolYear>>();
             return schoolYears.ToArray();
         }
 
@@ -70,7 +72,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<SchoolYear> GetCurrentSchoolYearAsync(string id = "getCurrentSchoolyear", CancellationToken ct = default)
         {
-            SchoolYear schoolYear = await MakeJSONRPCRequestAsync<object, SchoolYear>(id, "getCurrentSchoolyear", new object(), ct);
+            SchoolYear schoolYear = (await MakeJSONRPCRequestAsync(id, "getCurrentSchoolyear", null, ct)).ToObject<SchoolYear>();
             return schoolYear;
         }
 
@@ -86,7 +88,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Holidays[]> GetHolidaysAsync(string id = "getHolidays", CancellationToken ct = default)
         {
-            List<Holidays> holidays = await MakeJSONRPCRequestAsync<object, List<Holidays>>(id, "getHolidays", new object(), ct);
+            List<Holidays> holidays = (await MakeJSONRPCRequestAsync(id, "getHolidays", null, ct)).ToObject<List<Holidays>>();
             return holidays.ToArray();
         }
 
@@ -104,12 +106,21 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
         {
-            GetClassregEventsRequestModel model = new GetClassregEventsRequestModel()
+            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
             {
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<ClassregEvent> classregEvents = await MakeJSONRPCRequestAsync<GetClassregEventsRequestModel, List<ClassregEvent>>(id, "getClassregEvents", model, ct);
+                writer.WriteStartObject();
+
+                startDate.ToWebUntisTimeFormat(out string startDateString, out _);
+                writer.WritePropertyName("startDate");
+                writer.WriteValue(startDateString);
+
+                endDate.ToWebUntisTimeFormat(out string endDateString, out _);
+                writer.WritePropertyName("endDate");
+                writer.WriteValue(endDateString);
+
+                writer.WriteEndObject();
+            });
+            List<ClassregEvent> classregEvents = (await MakeJSONRPCRequestAsync(id, "getClassregEvents", paramsAction, ct)).ToObject<List<ClassregEvent>>();
             return classregEvents.ToArray();
         }
 
@@ -149,22 +160,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Period[]> GetTimetableForClassAsync(Class @class, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForClass", CancellationToken ct = default)
         {
-            // Check for defaul time
-            if (startDate == default)
-                startDate = DateTime.Now;
-
-            if (endDate == default)
-                endDate = DateTime.Now;
-
-            TimetableRequestModel requestModel = new TimetableRequestModel()
-            {
-                Id = @class.Id,
-                Type = 1,
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
-            return timetable.ToArray();
+            return await GetTimetableAsync(@class.Id, 1, startDate, endDate, id, ct);
         }
 
         /// <summary>
@@ -182,22 +178,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Period[]> GetTimetableForTeacherAsync(Teacher teacher, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForTeacher", CancellationToken ct = default)
         {
-            // Check for defaul time
-            if (startDate == default)
-                startDate = DateTime.Now;
-
-            if (endDate == default)
-                endDate = DateTime.Now;
-
-            TimetableRequestModel requestModel = new TimetableRequestModel()
-            {
-                Id = teacher.Id,
-                Type = 2,
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
-            return timetable.ToArray();
+            return await GetTimetableAsync(teacher.Id, 2, startDate, endDate, id, ct);
         }
 
         /// <summary>
@@ -215,22 +196,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Period[]> GetTimetableForSubjectAsync(Subject subject, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForSubject", CancellationToken ct = default)
         {
-            // Check for defaul time
-            if (startDate == default)
-                startDate = DateTime.Now;
-
-            if (endDate == default)
-                endDate = DateTime.Now;
-
-            TimetableRequestModel requestModel = new TimetableRequestModel()
-            {
-                Id = subject.Id,
-                Type = 3,
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
-            return timetable.ToArray();
+            return await GetTimetableAsync(subject.Id, 3, startDate, endDate, id, ct);
         }
 
         /// <summary>
@@ -248,22 +214,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Period[]> GetTimetableForRoomAsync(Room room, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForRoom", CancellationToken ct = default)
         {
-            // Check for defaul time
-            if (startDate == default)
-                startDate = DateTime.Now;
-
-            if (endDate == default)
-                endDate = DateTime.Now;
-
-            TimetableRequestModel requestModel = new TimetableRequestModel()
-            {
-                Id = room.Id,
-                Type = 4,
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
-            return timetable.ToArray();
+            return await GetTimetableAsync(room.Id, 4, startDate, endDate, id, ct);
         }
 
         /// <summary>
@@ -281,6 +232,11 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Period[]> GetTimetableForStudentAsync(Student student, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForStudent", CancellationToken ct = default)
         {
+            return await GetTimetableAsync(student.Id, 5, startDate, endDate, id, ct);
+        }
+
+        private async Task<Period[]> GetTimetableAsync(int objId, int typeId, DateTime startDate, DateTime endDate, string id, CancellationToken ct)
+        {
             // Check for defaul time
             if (startDate == default)
                 startDate = DateTime.Now;
@@ -288,14 +244,53 @@ namespace WebUntisAPI.Client
             if (endDate == default)
                 endDate = DateTime.Now;
 
-            TimetableRequestModel requestModel = new TimetableRequestModel()
+            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
             {
-                Id = student.Id,
-                Type = 5,
-                StartDate = startDate,
-                EndDate = endDate
-            };
-            List<Period> timetable = await MakeJSONRPCRequestAsync<TimetableRequestModel, List<Period>>(id, "getTimetable", requestModel, ct);
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("options");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("element");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("id");
+                writer.WriteValue(objId);
+
+                writer.WritePropertyName("type");
+                writer.WriteValue(typeId);
+                writer.WriteEndObject();
+
+                startDate.ToWebUntisTimeFormat(out string startDateString, out _);
+                writer.WritePropertyName("startDate");
+                writer.WriteValue(startDateString);
+
+                endDate.ToWebUntisTimeFormat(out string endDateString, out _);
+                writer.WritePropertyName("endDate");
+                writer.WriteValue(endDateString);
+
+                writer.WritePropertyName("showBooking");
+                writer.WriteValue(true);
+
+                writer.WritePropertyName("showInfo");
+                writer.WriteValue(true);
+
+                writer.WritePropertyName("showSubstText");
+                writer.WriteValue(true);
+
+                writer.WritePropertyName("showLsText");
+                writer.WriteValue(true);
+
+                writer.WritePropertyName("showLsNumber");
+                writer.WriteValue(true);
+
+                writer.WritePropertyName("showStudentgroup");
+                writer.WriteValue(true);
+
+                writer.WriteEndObject();
+                writer.WriteEndObject();
+            });
+            List<Period> timetable = (await MakeJSONRPCRequestAsync(id, "getTimetable", paramsAction, ct)).ToObject<List<Period>>();
             return timetable.ToArray();
         }
         #endregion

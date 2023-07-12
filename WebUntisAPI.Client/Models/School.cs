@@ -19,7 +19,7 @@ namespace WebUntisAPI.Client.Models
         /// Id of the school
         /// </summary>
         [JsonProperty("schoolId")]
-        public long SchoolId { get; set; }
+        public int SchoolId { get; set; }
 
         /// <summary>
         /// Login name of the school

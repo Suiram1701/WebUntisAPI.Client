@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -24,7 +25,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Subject[]> GetSubjectsAsync(string id = "getSubjects", CancellationToken ct = default)
         {
-            List<Subject> subjects = await MakeJSONRPCRequestAsync<object, List<Subject>>(id, "getSubjects", new object(), ct);
+            List<Subject> subjects = (await MakeJSONRPCRequestAsync(id, "getSubjects", null, ct)).ToObject<List<Subject>>();
             return subjects.ToArray();
         }
 
@@ -40,7 +41,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Class[]> GetClassesAsync(string id = "getClasses", CancellationToken ct = default)
         {
-            List<Class> classes = await MakeJSONRPCRequestAsync<object, List<Class>>(id, "getKlassen", new object(), ct);
+            List<Class> classes = (await MakeJSONRPCRequestAsync(id, "getKlassen", null, ct)).ToObject<List<Class>>();
             return classes.ToArray();
         }
 
@@ -57,7 +58,16 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Class[]> GetClassesAsync(SchoolYear schoolYear, string id = "getClassesBySchoolYear", CancellationToken ct = default)
         {
-            List<Class> classes = await MakeJSONRPCRequestAsync<SchoolYearModel, List<Class>>(id, "getKlassen", new SchoolYearModel() { Id = schoolYear.Id }, ct);
+            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("schoolyearId");
+                writer.WriteValue(schoolYear.Id);
+
+                writer.WriteEndObject();
+            });
+            List<Class> classes = (await MakeJSONRPCRequestAsync(id, "getKlassen", paramsAction, ct)).ToObject<List<Class>>();
             return classes.ToArray();
         }
 
@@ -73,7 +83,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Room[]> GetRoomsAsync(string id = "getRooms", CancellationToken ct = default)
         {
-            List<Room> rooms = await MakeJSONRPCRequestAsync<object, List<Room>>(id, "getRooms", new object(), ct);
+            List<Room> rooms = (await MakeJSONRPCRequestAsync(id, "getRooms", null, ct)).ToObject<List<Room>>();
             return rooms.ToArray();
         }
 
@@ -89,8 +99,23 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<Department[]> GetDepartmentsAsync(string id = "getDepartments", CancellationToken ct = default)
         {
-            List<Department> departments = await MakeJSONRPCRequestAsync<object, List<Department>>(id, "getDepartments", new object(), ct);
+            List<Department> departments = (await MakeJSONRPCRequestAsync(id, "getDepartments", null, ct)).ToObject<List<Department>>();
             return departments.ToArray();
+        }
+
+        /// <summary>
+        /// Get the count of unread news
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The unread news count</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
+        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+        public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
+            return JObject.Parse(responseString).Value<int>("unreadCardsCount");
         }
 
         /// <summary>

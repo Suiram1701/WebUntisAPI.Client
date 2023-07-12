@@ -41,9 +41,22 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePreview[]> messages = Client.GetMessageInboxAsync();
+        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
         messages.Wait();
-        if (messages.Result.Length > 0)
+        if (messages.Result.Item1.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetSentMessages()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePreview[]> messages = Client.GetSentMessagesAsync();
+        messages.Wait();
+        if (messages.Result != null)
             Assert.Pass();
         else
             Assert.Fail();
@@ -54,9 +67,9 @@ internal class MessagesTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<MessagePreview[]> messages = Client.GetMessageInboxAsync();
+        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
         messages.Wait();
-        Task<Message> msg = messages.Result.First(msg => msg.Subject == "Test").GetFullMessageAsync(Client);
+        Task<Message> msg = messages.Result.Item1.First(msg => msg.Subject == "Test").GetFullMessageAsync(Client);
         msg.Wait();
         _ = msg.Result;
         return;
@@ -81,6 +94,22 @@ internal class MessagesTests
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
         Task<DraftPreview[]> drafts = Client.GetSavedDraftsAsync();
+        drafts.Wait();
+        if (drafts.Result != null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetReplyForm()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
+        messages.Wait();
+
+        Task<Message> drafts = Client.GetReplyFormAsync(messages.Result.Item1[0]);
         drafts.Wait();
         if (drafts.Result != null)
             Assert.Pass();

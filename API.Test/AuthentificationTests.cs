@@ -11,7 +11,7 @@ namespace API.Test;
 [TestFixture]
 internal class AuthentificationTests
 {
-    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST", 1000);
+    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
 
     static AuthentificationTests()
     {
@@ -34,7 +34,7 @@ internal class AuthentificationTests
     {
         try
         {
-            using WebUntisClient client = new("WebUntisAPI_TEST");
+            using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
             client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
             client.LogoutAsync().Wait();
         }

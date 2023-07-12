@@ -30,16 +30,16 @@ namespace WebUntisAPI.Client.Converter
         public override void WriteJson(JsonWriter writer, Timegrid value, JsonSerializer serializer)
         {
             writer.WriteStartArray();     // Write the diferent days
-            foreach ((Day day, SchoolHour[] schoolHours) in value)
+            foreach (KeyValuePair<Day, SchoolHour[]> day in value)
             {
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("day");
-                writer.WriteValue((int)day);
+                writer.WriteValue((int)day.Key);
 
                 writer.WritePropertyName("timeUnits");
                 writer.WriteStartArray();     // Write all school hours
-                foreach (SchoolHour hour in schoolHours)
+                foreach (SchoolHour hour in day.Value)
                     serializer.Serialize(writer, hour);
 
                 writer.WriteEndArray();

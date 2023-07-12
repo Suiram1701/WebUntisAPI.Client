@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -25,11 +27,6 @@ namespace WebUntisAPI.Client
         /// Unique identifier for the client app
         /// </summary>
         public string ClientName { get; }
-
-        /// <summary>
-        /// The time in milliseconds until requests will be timeouted
-        /// </summary>
-        public int Timeout { get; }
 
         /// <summary>
         /// <see langword="true"/> when the client is currently logged in
@@ -74,13 +71,12 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
         /// <param name="timeout">The time in milliseconds until requests will be timeouted</param>
-        public WebUntisClient(string clientName, int timeout = 1000)
+        public WebUntisClient(string clientName, TimeSpan timeout)
         {
             ClientName = clientName;
-            Timeout = timeout;
             _client = new HttpClient()
             {
-                Timeout = TimeSpan.FromMilliseconds(Timeout)
+                Timeout = timeout
             };
         }
 
@@ -122,11 +118,9 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "getStudents", CancellationToken ct = default)
         {
-            // Check for disposing
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
 
-            // Check if you already logged in
             if (LoggedIn)
                 return false;
 
@@ -137,21 +131,40 @@ namespace WebUntisAPI.Client
             string serverUrl = "https://" + serverName.Value;
 
             // Make request for login
-            JSONRPCRequestModel<LoginRequestModel> requestModel = new JSONRPCRequestModel<LoginRequestModel>()
+            StringWriter sw = new StringWriter();
+            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                Id = id,
-                Method = "authenticate",
-                Params = new LoginRequestModel()
-                {
-                    User = username,
-                    Password = password,
-                    Client = ClientName,
-                }
-            };
-            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("id");
+                writer.WriteValue(id);
+
+                writer.WritePropertyName("method");
+                writer.WriteValue("authenticate");
+
+                writer.WritePropertyName("params");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("user");
+                writer.WriteValue(username);
+
+                writer.WritePropertyName("password");
+                writer.WriteValue(password);
+
+                writer.WritePropertyName("client");
+                writer.WriteValue(ClientName);
+                writer.WriteEndObject();
+
+                writer.WritePropertyName("jsonrpc");
+                writer.WriteValue("2.0");
+
+                writer.WriteEndObject();
+            }
+
+            StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
 
             // Send request
-            string schoolName = loginName.ToLower().Replace(' ', '+');
+            string schoolName = loginName.Replace(' ', '+');
             HttpResponseMessage response = await _client.PostAsync(serverUrl + "/WebUntis/jsonrpc.do?school=" + schoolName, requestContent, ct);
 
             // Check cancellation token
@@ -162,15 +175,15 @@ namespace WebUntisAPI.Client
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            JSONRPCResponeModel<LoginResultModel> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<LoginResultModel>>(await response.Content.ReadAsStringAsync());
+            JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
-            if (responseModel.Error != null)
+            if (responseObject["error"]?.ToObject(typeof(WebUntisException)) is WebUntisException error)
             {
-                if (responseModel.Error.Code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
+                if (error.Code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
                     return false;
 
-                throw responseModel.Error;
+                throw error;
             }
 
             string headerValue = response.Headers.First(header => header.Key == "Set-Cookie").Value.ToArray()[1];     // Read additional school name header
@@ -178,13 +191,13 @@ namespace WebUntisAPI.Client
 
             _serverUrl = serverUrl;
             _loginName = loginName;
-            _sessonId = responseModel.Result.SessionId;
+            _sessonId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Sesson id was expected");
             _loggedIn = true;
 
             // Get the api auth token and the logged in user
             Task<string> bearerTokenTask = GetBearerTokenAsync(ct);
             IUser[] users;
-            if ((UserType)responseModel.Result.PersonType == Client.UserType.Student)     // For student and teacher separate tasks
+            if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
             {
                 Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
                 await Task.WhenAll(bearerTokenTask, studentTask);
@@ -205,8 +218,8 @@ namespace WebUntisAPI.Client
 
             _bearerToken = bearerTokenTask.Result;
 
-            _userType = (UserType)responseModel.Result.PersonType;
-            _user = users.FirstOrDefault(user => user.Id == responseModel.Result.PersonId);
+            _userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
+            _user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
 
             return true;
         }
@@ -220,22 +233,35 @@ namespace WebUntisAPI.Client
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task LogoutAsync(string id = "Logout", CancellationToken ct = default)
         {
-            // Check for disposing
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
 
-            // Check if you logged in
             if (!LoggedIn)
                 return;
 
             // Make request for logout
-            JSONRPCRequestModel<object> requestModel = new JSONRPCRequestModel<object>()
+            StringWriter sw = new StringWriter();
+            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                Id = id,
-                Method = "logout",
-                Params = new object()
-            };
-            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("id");
+                writer.WriteValue(id);
+
+                writer.WritePropertyName("method");
+                writer.WriteValue("logout");
+
+                writer.WritePropertyName("params");
+                writer.WriteStartObject();
+                writer.WriteEndObject();
+
+                writer.WritePropertyName("jsonrpc");
+                writer.WriteValue("2.0");
+
+                writer.WriteEndObject();
+            }
+
+            StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
             requestContent.Headers.Add("JSESSIONID", _sessonId);
             requestContent.Headers.Add("schoolname", _schoolName);
 
@@ -263,48 +289,63 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<DateTime> GetLatestImportTimeAsync(string id = "getLatestImportTime", CancellationToken ct = default)
         {
-            long timestamp = await MakeJSONRPCRequestAsync<object, long>(id, "getLatestImportTime", new object(), ct);
+            long timestamp = (await MakeJSONRPCRequestAsync(id, "getLatestImportTime", null, ct)).ToObject<long>();
             return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddTicks(timestamp * 10000);
         }
 
         /// <summary>
         /// Make an internal basic request to the WebUntis server
         /// </summary>
-        /// <typeparam name="TRequest">Type of the request parameter</typeparam>
-        /// <typeparam name="TResult">Type of the returned result</typeparam>
-        /// <param name="requestUrl">Path to the API on the server</param>
         /// <param name="id">Identifier of the request</param>
         /// <param name="methodName">Name of the request method</param>
-        /// <param name="requestParams">Parameter of the request</param>
+        /// <param name="paramsWriter">the action to write the params</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The result</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        private async Task<TResult> MakeJSONRPCRequestAsync<TRequest, TResult>(string id, string methodName, TRequest requestParams, CancellationToken ct, string requestUrl = "/WebUntis/jsonrpc.do")
+        private async Task<JToken> MakeJSONRPCRequestAsync(string id, string methodName, Action<JsonWriter> paramsWriter, CancellationToken ct)
         {
-            // Check for disposing
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
 
-            // Check if you logged in
             if (!LoggedIn)
                 throw new UnauthorizedAccessException("You're not logged in");
 
             // Make request
-            JSONRPCRequestModel<TRequest> requestModel = new JSONRPCRequestModel<TRequest>()
+            StringWriter sw = new StringWriter();
+            using (JsonWriter writer = new JsonTextWriter(sw))
             {
-                Id = id,
-                Method = methodName,
-                Params = requestParams
-            };
-            StringContent requestContent = new StringContent(JsonConvert.SerializeObject(requestModel), Encoding.UTF8, "application/json");
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("id");
+                writer.WriteValue(id);
+
+                writer.WritePropertyName("method");
+                writer.WriteValue(methodName);
+
+                writer.WritePropertyName("params");
+                if (paramsWriter != null)
+                    paramsWriter.Invoke(writer);
+                else
+                {
+                    writer.WriteStartObject();
+                    writer.WriteEndObject();
+                }
+
+                writer.WritePropertyName("jsonrpc");
+                writer.WriteValue("2.0");
+
+                writer.WriteEndObject();
+            }
+
+            StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
             requestContent.Headers.Add("JSESSIONID", _sessonId);
             requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
-            HttpResponseMessage response = await _client.PostAsync(ServerUrl + requestUrl, requestContent, ct);
+            HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
@@ -314,22 +355,18 @@ namespace WebUntisAPI.Client
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            JSONRPCResponeModel<TResult> responseModel = JsonConvert.DeserializeObject<JSONRPCResponeModel<TResult>>(await response.Content.ReadAsStringAsync());
-
-            // Check JSON RPC version and request id
-            if (requestModel.JSONRPC != responseModel.JSONRPC || requestModel.Id != responseModel.Id)
-                throw new HttpRequestException("The WebUntis API returned a wrong result");
+            JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
-            if (responseModel.Error != null)
+            if (responseObject["error"]?.ToObject<WebUntisException>() is WebUntisException error)
             {
-                if (responseModel.Error.Code == (int)WebUntisException.Codes.NotAuthticated)     // Logout when not authenticated
+                if (error.Code == (int)WebUntisException.Codes.NotAuthticated)     // Logout when not authenticated
                     _ = LogoutAsync();
 
-                throw responseModel.Error;
+                throw error;
             }
 
-            return responseModel.Result;
+            return responseObject["result"];
         }
 
         /// <summary>

@@ -78,11 +78,24 @@ internal class TeachingTests
     }
 
     [Test]
+    public void GetUnreadNews()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<int> unread = Client.GetUnreadNewsCountAsync();
+        unread.Wait();
+        if (unread.Result == 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
     public void GetNewsFeed()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<News> news = Client.GetNewsFeedAsync(new DateTime(2023, 06, 23));
+        Task<News> news = Client.GetNewsFeedAsync(new DateTime(2023, 07, 10));
         news.Wait();
         if (news.Result != null)
             Assert.Pass();
