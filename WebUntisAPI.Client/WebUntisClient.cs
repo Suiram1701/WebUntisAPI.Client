@@ -10,7 +10,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models;
 

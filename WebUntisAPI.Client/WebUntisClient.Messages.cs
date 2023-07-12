@@ -271,7 +271,7 @@ namespace WebUntisAPI.Client
 
             return JsonConvert.DeserializeObject<MessagePreview>(await response.Content.ReadAsStringAsync());
         }
-        
+
         /// <summary>
         /// Get a message instance as template for the reply
         /// </summary>

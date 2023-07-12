@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Runtime.InteropServices.ComTypes;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
