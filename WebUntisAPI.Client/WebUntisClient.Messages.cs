@@ -167,7 +167,14 @@ namespace WebUntisAPI.Client
                 Dictionary<string, Task<Stream>> attachmentTasks = new Dictionary<string, Task<Stream>>();
 
                 foreach (Attachment attachment in draft.Attachments)
-                    attachmentTasks.Add(attachment.Name, attachment.DownloadContentAsStreamAsync(this, timeout, ct: ct));
+                {
+                    attachmentTasks.Add(attachment.Name, Task.Run(async () =>
+                    {
+                        Stream stream = new MemoryStream();
+                        await attachment.DownloadContentAsStreamAsync(this, stream, timeout, ct: ct);
+                        return stream;
+                    }));
+                }
 
                 await Task.WhenAll(attachmentTasks.Values);
                 attachments = attachmentTasks.Select(attachment => new Tuple<string, Stream>(attachment.Key, attachment.Value.Result)).ToArray();
