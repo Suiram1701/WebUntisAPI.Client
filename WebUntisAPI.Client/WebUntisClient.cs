@@ -482,7 +482,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            
+
             _bearerToken = await response.Content.ReadAsStringAsync();
         }
 
