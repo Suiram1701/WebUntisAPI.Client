@@ -34,15 +34,16 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <summary>
         /// Get the content of the attachment as stream with a progress report
         /// </summary>
-        /// <param name="client">The client with them you got this instane (It doesn't have to be the same client but the same account)</param>
-        /// <param name="timeout">The time after that the download of the content will cancelled (In miliseconds)</param>
+        /// <param name="client">The client with them you got this instance (It doesn't have to be the same client but the same account)</param>
+        /// <param name="targetStream">The stream to write the download to</param>
+        /// <param name="timeout">The time after that the download of the content will cancelled (In milliseconds)</param>
         /// <param name="progress">The progress of the download in percent</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The attachment as stream</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<Stream> DownloadContentAsStreamAsync(WebUntisClient client, TimeSpan timeout, IProgress<double> progress = null, CancellationToken ct = default)
+        public async Task DownloadContentAsStreamAsync(WebUntisClient client, Stream targetStream, TimeSpan timeout, IProgress<double> progress = null, CancellationToken ct = default)
         {
             string storageResponseString = await client.MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
 
@@ -69,41 +70,33 @@ namespace WebUntisAPI.Client.Models.Messages
                 downloadClient.Timeout = timeout;
                 HttpResponseMessage response = await downloadClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
 
-                using (MemoryStream content = new MemoryStream())
+                using (Stream contentStream = await response.Content.ReadAsStreamAsync())
                 {
-                    using (Stream contentStream = await response.Content.ReadAsStreamAsync())
+                    int totalBytes = (int?)response.Content.Headers.ContentLength ?? -1;
+                    int totalReceivedBytes = 0;
+
+                    int bytesRead = 0;
+                    byte[] buffer = new byte[4096];
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
                     {
-                        int totalBytes = (int?)response.Content.Headers.ContentLength ?? -1;
-                        int totalRecievedBytes = 0;
+                        if (ct.IsCancellationRequested)
+                            return;
 
-                        int bytesRead = 0;
-                        byte[] buffer = new byte[8192];
-                        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length, ct)) > 0)
-                        {
-                            if (ct.IsCancellationRequested)
-                                return default;
-
-                            content.Write(buffer, 0, bytesRead);
-                            totalRecievedBytes += bytesRead;
-                            progress?.Report((double)totalRecievedBytes / totalBytes * 100d);
-                        }
+                        targetStream.Write(buffer, 0, bytesRead);
+                        totalReceivedBytes += bytesRead;
+                        progress?.Report((double)totalReceivedBytes / totalBytes * 100d);
                     }
-
-                    if (ct.IsCancellationRequested)
-                        return default;
-
-                    // Verify response
-                    if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-                        string detail = Regex.Match(Encoding.UTF8.GetString(content.ToArray()), @"<Message>([a-zA-z0-9\s]+)</Message>").Groups[1].Value;     // Get the error message
-                        throw new UnauthorizedAccessException($"Invalid authentication. Detail: {detail}");
-                    }
-
-                    if (response.StatusCode != HttpStatusCode.OK)
-                        throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
-                    return content;
                 }
+
+                if (ct.IsCancellationRequested)
+                    return;
+
+                // Verify response
+                if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+                    throw new UnauthorizedAccessException($"Invalid authentication.");
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                    throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
             }
         }
     }

@@ -53,7 +53,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// </summary>
         [JsonProperty("sentDateTime")]
         [JsonConverter(typeof(APIDateTimeJsonConverter))]
-        DateTime SentTime { get; set; }
+        public DateTime SentTime { get; set; }
 
         /// <summary>
         /// Is allowed to delete the message
