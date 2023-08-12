@@ -29,6 +29,49 @@ namespace WebUntisAPI.Client
         public string ClientName { get; }
 
         /// <summary>
+        /// The dateTime where the current session expires
+        /// </summary>
+        /// <remarks>
+        /// You can refresh the session with <see cref="ReloadSessionAsync(CancellationToken)"/>
+        /// </remarks>
+        public DateTime SessionExpires
+        {
+            get
+            {
+                if (_disposedValue)
+                    throw new ObjectDisposedException(GetType().FullName);
+
+                if (!LoggedIn)
+                    throw new UnauthorizedAccessException("You're not logged in!");
+
+                string tokenString = _bearerToken.Split('.')[1];     // Get the JWT part
+
+                JObject token = JObject.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(tokenString)));
+                return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddSeconds(token["exp"].Value<long>());
+            }
+        }
+
+        /// <summary>
+        /// The date Time off beginning of the current session
+        /// </summary>
+        public DateTime SessionBegin
+        {
+            get
+            {
+                if (_disposedValue)
+                    throw new ObjectDisposedException(GetType().FullName);
+
+                if (!LoggedIn)
+                    throw new UnauthorizedAccessException("You're not logged in!");
+
+                string tokenString = _bearerToken.Split('.')[1];     // Get the JWT part
+
+                JObject token = JObject.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(tokenString)));
+                return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddSeconds(token["iat"].Value<long>());
+            }
+        }
+
+        /// <summary>
         /// <see langword="true"/> when the client is currently logged in
         /// </summary>
         public bool LoggedIn => _loggedIn;
@@ -195,7 +238,7 @@ namespace WebUntisAPI.Client
             _loggedIn = true;
 
             // Get the api auth token and the logged in user
-            Task<string> bearerTokenTask = GetBearerTokenAsync(ct);
+            Task bearerTokenTask = ReloadSessionAsync(ct);
             IUser[] users;
             if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
             {
@@ -215,8 +258,6 @@ namespace WebUntisAPI.Client
                 _ = LogoutAsync();
                 return false;
             }
-
-            _bearerToken = bearerTokenTask.Result;
 
             _userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
             _user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
@@ -373,7 +414,7 @@ namespace WebUntisAPI.Client
         /// Make a GET request to the API
         /// </summary>
         /// <param name="requestUrl">Url to request</param>
-        /// <param name="ct">Cnacellation  token</param>
+        /// <param name="ct">Cancelation token</param>
         /// <returns>The returned content</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
@@ -417,12 +458,11 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get the bearer auth token for the api authentication
+        /// Refresh the session
         /// </summary>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>The bearer token</returns>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        private async Task<string> GetBearerTokenAsync(CancellationToken ct)
+        public async Task ReloadSessionAsync(CancellationToken ct = default)
         {
             HttpRequestMessage request = new HttpRequestMessage()
             {
@@ -436,13 +476,14 @@ namespace WebUntisAPI.Client
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
-                return default;
+                return;
 
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
-            return await response.Content.ReadAsStringAsync();
+            
+            _bearerToken = await response.Content.ReadAsStringAsync();
         }
 
         #region IDisposable

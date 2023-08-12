@@ -45,4 +45,13 @@ internal class AuthentificationTests
         }
         Assert.Pass();
     }
+
+    [Test]
+    public void GetSessionExpiresDateTime()
+    {
+        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(5));
+        client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        _ = client.SessionExpires;
+        _ = client.SessionBegin;
+    }
 }
