@@ -95,12 +95,12 @@ namespace WebUntisAPI.Client
         private readonly HttpClient _client;
 
         /// <summary>
-        /// Sesson id for json rpc requests
+        /// Session id for json rpc requests
         /// </summary>
-        private string _sessonId;
+        private string _sessionId;
 
         /// <summary>
-        /// The school name for the sesson
+        /// The school name for the session
         /// </summary>
         private string _schoolName;
 
@@ -132,9 +132,9 @@ namespace WebUntisAPI.Client
         /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, string, CancellationToken)"/>)</param>
         /// <param name="username">Name of the user to login</param>
         /// <param name="password">Password of the user to login</param>
-        /// <param name="ct">Cancelationtoken</param>
+        /// <param name="ct">Cancelation Token</param>
         /// <param name="id">Identifier for the request</param>
-        /// <returns><see langword="true"/> when the login was successfull. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
+        /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
@@ -152,14 +152,14 @@ namespace WebUntisAPI.Client
         /// <param name="loginName">School to login (Not the normal school name but the WebUntis internal one)</param>
         /// <param name="username">Name of the user to login</param>
         /// <param name="password">Password of the user to login</param>
-        /// <param name="ct">Cancelationtoken</param>
+        /// <param name="ct">Cancelation Token</param>
         /// <param name="id">Identifier for the request</param>
-        /// <returns><see langword="true"/> when the login was successfull. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
+        /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
         /// <exception cref="ArgumentException">The server name is invalid</exception>
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "getStudents", CancellationToken ct = default)
+        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "Login", CancellationToken ct = default)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -234,7 +234,7 @@ namespace WebUntisAPI.Client
 
             _serverUrl = serverUrl;
             _loginName = loginName;
-            _sessonId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Sesson id was expected");
+            _sessionId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Sesson id was expected");
             _loggedIn = true;
 
             // Get the api auth token and the logged in user
@@ -303,7 +303,7 @@ namespace WebUntisAPI.Client
             }
 
             StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
-            requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("JSESSIONID", _sessionId);
             requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
@@ -312,7 +312,7 @@ namespace WebUntisAPI.Client
             // Clear data
             _serverUrl = null;
             _loginName = null;
-            _sessonId = null;
+            _sessionId = null;
             _schoolName = null;
             _bearerToken = null;
             _loggedIn = false;
@@ -382,7 +382,7 @@ namespace WebUntisAPI.Client
             }
 
             StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
-            requestContent.Headers.Add("JSESSIONID", _sessonId);
+            requestContent.Headers.Add("JSESSIONID", _sessionId);
             requestContent.Headers.Add("schoolname", _schoolName);
 
             // Send request
@@ -434,7 +434,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + requestUrl)
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -460,6 +460,9 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Refresh the session
         /// </summary>
+        /// <remarks>
+        /// Until this action was successfully ended no request should made
+        /// </remarks>
         /// <param name="ct">Cancellation token</param>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         public async Task ReloadSessionAsync(CancellationToken ct = default)
@@ -469,7 +472,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);

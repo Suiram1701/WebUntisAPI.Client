@@ -33,7 +33,7 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Get the permissions you have to send messages
         /// </summary>
-        /// <param name="ct">Cancllation token</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
@@ -84,7 +84,7 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Confirm a recived message
+        /// Confirm a received message
         /// </summary>
         /// <remarks>
         /// You should only use this for confirmation requested messages
@@ -108,7 +108,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation")
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -260,7 +260,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/users"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -374,7 +374,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v2/messages/{replyMessage.Id}/reply"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -427,7 +427,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/revoke"),
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -564,7 +564,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/drafts"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -664,7 +664,7 @@ namespace WebUntisAPI.Client
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/drafts/" + draft.Id),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
@@ -721,7 +721,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Delete,
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v1/messages/" + draft.Id)
             };
-            request.Headers.Add("JSESSIONID", _sessonId);
+            request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
