@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static API.Test.AuthentificationTests;
 using SixLabors.ImageSharp;
+using WebUntisAPI.Client.Models;
 
 namespace API.Test;
 
@@ -24,5 +25,47 @@ internal class ProfileTests
         Task<Image> imgDownload = Client.GetMessagePersonProfileImageAsync(new() { ImageUrl = new("https://foundations.projectpythia.org/_images/GitHub-logo.png") });     // A Random non square GitHub image i found
         imgDownload.Wait();
         imgDownload.Result.SaveAsPng("DownloadImg.png");
+    }
+
+    [Test]
+    public void GetSupportedLanguages()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Dictionary<string, string>> languages = Client.GetAvailableLanguagesAsync();
+        languages.Wait();
+
+        if (languages.Result.Count > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetAccountConfiguration()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<AccountConfig> accountConfig = Client.GetAccountConfigAsync();
+        accountConfig.Wait();
+
+        if (accountConfig.Result is not null)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
+    public void GetGenerallyInformation()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<GeneralAccount> account = Client.GetGenerallyAccountInformationAsync();
+        account.Wait();
+
+        if (account.Result is not null)
+            Assert.Pass();
+        else
+            Assert.Fail();
     }
 }

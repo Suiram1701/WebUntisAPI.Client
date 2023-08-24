@@ -9,10 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models.Messages;
 using System.Drawing.Imaging;
+using Newtonsoft.Json.Linq;
+using WebUntisAPI.Client.Models;
+using Newtonsoft.Json;
+using System.IO;
 #if NET47 || NET481
 using System.Drawing.Drawing2D;
 using System.Drawing;
-using System.IO;
 #elif NET6_0_OR_GREATER
 using SixLabors.Fonts;
 using SixLabors.ImageSharp;
@@ -173,6 +176,136 @@ namespace WebUntisAPI.Client
 #endif
         }
 
+        /// <summary>
+        /// Get all by WebUntis supported languages
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The languages (<see cref="KeyValuePair{TKey, TValue}.Key"/> is the WebUntis internal name of the language and <see cref="KeyValuePair{TKey, TValue}.Value"/> is the full name)</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<Dictionary<string, string>> GetAvailableLanguagesAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/languages", ct);
+            JArray languageObjects = JObject.Parse(responseString)["data"]["languages"].Value<JArray>();
 
+            Dictionary<string, string> languages = new Dictionary<string, string>();
+            foreach (JObject language in languageObjects.Cast<JObject>())
+                languages.Add(language.Value<string>("key"), language.Value<string>("name"));
+
+            return languages;
+        }
+
+        /// <summary>
+        /// Get the account configuration
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The account configuration</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/config", ct);
+            return JObject.Parse(responseString)["data"].ToObject<AccountConfig>();
+        }
+
+        /// <summary>
+        /// Get the general information about the current account
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The information</returns>
+        public async Task<GeneralAccount> GetGenerallyAccountInformationAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/general", ct);
+            return GeneralAccount.ReadFromJson(JObject.Parse(responseString)["data"].CreateReader());
+        }
+
+        /// <summary>
+        /// Update the general account information
+        /// </summary>
+        /// <remarks>
+        /// When a value shouldn't change then must you set the current value
+        /// </remarks>
+        /// <param name="email"><see cref="GeneralAccount.Email"/></param>
+        /// <param name="forwardMessageToEmail"><see cref="GeneralAccount.ForwardMessageToMail"/></param>
+        /// <param name="itemsOnStartPage"><see cref="GeneralAccount.ItemsOnStartPage"/></param>
+        /// <param name="languageCode"><see cref="GeneralAccount.LanguageCode"/></param>
+        /// <param name="showLessonOfDay"><see cref="GeneralAccount.ShowLessonsOfDay"/></param>
+        /// <param name="showNextDayPeriods"><see cref="GeneralAccount.ShowNextDayPeriods"/></param>
+        /// <param name="userTaskNotifications"><see cref="GeneralAccount.UserTaskNotifications"/></param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Was the update successful</returns>
+        public async Task<bool> UpdateGenerallyAccountInformationAsync(string email, bool forwardMessageToEmail, int itemsOnStartPage, string languageCode, bool showLessonOfDay, bool showNextDayPeriods, bool userTaskNotifications, CancellationToken ct = default)
+        {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            // Write request
+            StringWriter sw = new StringWriter();
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("email");
+                writer.WriteValue(email);
+
+                writer.WritePropertyName("forwardMessageToEmail");
+                writer.WriteValue(forwardMessageToEmail);
+
+                writer.WritePropertyName("itemOnStartPage");
+                writer.WriteValue(itemsOnStartPage);
+
+                writer.WritePropertyName("languageCode");
+                writer.WriteValue(languageCode);
+
+                writer.WritePropertyName("showLessonsOfDay");
+                writer.WriteValue(showLessonOfDay);
+
+                writer.WritePropertyName("showNextDayPeriods");
+                writer.WriteValue(showNextDayPeriods);
+
+                writer.WritePropertyName("userTaskNotifications");
+                writer.WriteValue(userTaskNotifications);
+
+                writer.WriteEndObject();
+            }
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(ServerUrl + "/WebUntis/api/profile/general"),
+                Content = new StringContent(sw.ToString())
+            };
+
+            request.Headers.Add("JSESSIONID", _sessionId);
+            request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return false;
+
+            // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            string responseString = await response.Content.ReadAsStringAsync();
+            JObject responseObject = JObject.Parse(responseString);
+            return responseObject["data"]["success"].Value<bool>();
+        }
     }
 }
