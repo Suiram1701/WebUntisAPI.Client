@@ -36,13 +36,13 @@ namespace WebUntisAPI.Client
         ///     The rendered image will be rendered to 300px * 300px and a font size of 124
         ///     </para>
         /// </remarks>
-        /// <param name="person"></param>
-        /// <param name="fontName"></param>
-        /// <param name="ct"></param>
+        /// <param name="person">The person for the image</param>
+        /// <param name="fontName">The font size to render</param>
+        /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
-        /// <exception cref="ObjectDisposedException"></exception>
-        /// <exception cref="UnauthorizedAccessException"></exception>
-        /// <exception cref="HttpRequestException"></exception>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
 #if NET47 || NET481
         public async Task<Image> GetMessagePersonProfileImageAsync(MessagePerson person, string fontName = "Segoe UI", CancellationToken ct = default)
 #elif NET6_0_OR_GREATER
@@ -172,5 +172,7 @@ namespace WebUntisAPI.Client
             return image;
 #endif
         }
+
+
     }
 }

@@ -45,8 +45,11 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get all available reception people
+        /// Get all available reception teachers people
         /// </summary>
+        /// <remarks>
+        /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> contains "TEACHER"
+        /// </remarks>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The people (<see cref="KeyValuePair{TKey, TValue}.Key"/> is the type of people that are contained in <see cref="KeyValuePair{TKey, TValue}.Value"/>)</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
@@ -62,6 +65,111 @@ namespace WebUntisAPI.Client
                 personTypes.Add(personType.Value<string>("type"),
                     new JsonSerializer().Deserialize<List<MessagePerson>>(personType.Value<JArray>("persons").CreateReader()).ToArray());
             return personTypes;
+        }
+
+        /// <summary>
+        /// Get all possible filters for the staff
+        /// </summary>
+        /// <remarks>
+        /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> contains "STAFF"
+        /// </remarks>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The filters (the <see cref="KeyValuePair{TKey, TValue}.Key"/> is the type of the filter and <see cref="KeyValuePair{TKey, TValue}.Value"/> are the available filters for that type)</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<Dictionary<string, FilterItem[]>> GetStaffSearchFiltersAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
+
+            JObject obj = JObject.Parse(responseString);
+            JArray types = obj["filters"].Value<JArray>();
+
+            Dictionary<string, FilterItem[]> filters = new Dictionary<string, FilterItem[]>();
+            foreach (JObject filter in types.Cast<JObject>())
+                filters.Add(filter["type"].ToObject<string>(), filter["items"].ToObject<List<FilterItem>>().ToArray());
+
+            return filters;
+        }
+
+        /// <summary>
+        /// Get all staff recipients for the applied filters
+        /// </summary>
+        /// <remarks>
+        /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> contains "STAFF"
+        /// </remarks>
+        /// <param name="searchText">The search text</param>
+        /// <param name="filters">The applied filters (use the data from <see cref="GetStaffSearchFiltersAsync(CancellationToken)"/>)</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The recipients</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<MessagePerson[]> GetStaffFilterSearchResultAsync(string searchText, Dictionary<string, FilterItem[]> filters, CancellationToken ct = default)
+        {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
+            // Write request
+            StringWriter sw = new StringWriter();
+            using (JsonWriter writer = new JsonTextWriter(sw))
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("filters");
+                writer.WriteStartArray();
+                foreach (KeyValuePair<string, FilterItem[]> filter in filters)
+                {
+                    writer.WriteStartObject();
+
+                    writer.WritePropertyName("type");
+                    writer.WriteValue(filter.Key);
+
+                    writer.WritePropertyName("items");
+                    writer.WriteRawValue(JsonConvert.SerializeObject(filter.Value));
+
+                    writer.WriteEndObject();
+                }
+
+                writer.WriteEndArray();
+
+                writer.WritePropertyName("searchText");
+                writer.WriteValue(searchText);
+
+                writer.WriteEndObject();
+            }
+
+            HttpRequestMessage request = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter"),
+                Content = new StringContent(sw.ToString())
+            };
+            request.Headers.Add("JSESSIONID", _sessionId);
+            request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+            string responseString = await response.Content.ReadAsStringAsync();
+            
+            JObject obj = JObject.Parse(responseString);
+            return obj["users"].Value<List<MessagePerson>>().ToArray();
         }
 
         /// <summary>
