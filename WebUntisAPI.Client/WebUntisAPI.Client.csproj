@@ -16,9 +16,9 @@
     <Copyright>Copyright © Suiram1 2023</Copyright>
     <Description>A library in .NET to interact with the WebUntis API.</Description>
     <Company>Suiram1</Company>
-    <AssemblyVersion>1.1.1</AssemblyVersion>
-    <FileVersion>1.1.1</FileVersion>
-    <Version>1.1.1</Version>
+    <AssemblyVersion>1.2.0</AssemblyVersion>
+    <FileVersion>1.2.0</FileVersion>
+    <Version>1.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
