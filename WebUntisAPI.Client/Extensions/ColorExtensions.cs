@@ -10,7 +10,7 @@ namespace WebUntisAPI.Client.Extensions
     public static class ColorExtensions
     {
         /// <summary>
-        /// Convert a color instance to the Hexadeciaml format: RRGGBB
+        /// Convert a color instance to the Hexadecimal format: RRGGBB
         /// </summary>
         /// <param name="color"></param>
         /// <returns>The color string</returns>
@@ -22,11 +22,11 @@ namespace WebUntisAPI.Client.Extensions
         /// <summary>
         /// Convert a color string to the Hexadecimal format: RRGGBB
         /// </summary>
-        /// <param name="color"></param>
+        /// <param name="_"></param>
         /// <param name="colorString">The string to convert</param>
         /// <returns>The created color</returns>
         /// <exception cref="ArgumentException">Thrown when the <paramref name="colorString"/> isn't in the correct format</exception>
-        public static Color FromHexColorFormat(this Color color, string colorString)
+        public static Color FromHexColorFormat(this Color _, string colorString)
         {
             if (!Regex.IsMatch(colorString, @"[\da-fA-F]{6}"))
                 throw new ArgumentException("The color string isn't in a correct format", nameof(colorString));
@@ -39,5 +39,4 @@ namespace WebUntisAPI.Client.Extensions
             return Color.FromArgb(red, green, blue);
         }
     }
-
 }

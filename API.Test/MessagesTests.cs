@@ -89,6 +89,20 @@ internal class MessagesTests
     }
 
     [Test]
+    public void GetStaffFilters()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<Dictionary<string, FilterItem[]>> filters = Client.GetStaffSearchFiltersAsync();
+        filters.Wait();
+
+        if (filters.Result.Count > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
     public void GetDrafts()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();

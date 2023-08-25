@@ -20,4 +20,3 @@ namespace WebUntisAPI.Client.Converter
         }
     }
 }
-

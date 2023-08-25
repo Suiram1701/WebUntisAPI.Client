@@ -71,10 +71,8 @@ namespace WebUntisAPI.Client.Models.Messages
         [JsonProperty("recipientPersons")]
         public List<MessagePerson> Recipients { get; set; } = new List<MessagePerson>();
 
-#pragma warning disable IDE0051
         [JsonProperty("recipient")]
         private MessagePerson Recipient
-#pragma warning restore IDE0051 // Nicht verwendete private Member entfernen
         {
             get => Recipients.FirstOrDefault();
             set => Recipients.Add(value);
@@ -117,7 +115,7 @@ namespace WebUntisAPI.Client.Models.Messages
         public List<Message> ReplyHistory { get; set; } = new List<Message>();
 
         /// <summary>
-        /// Informations about a confirmation of the message
+        /// Information about a confirmation of the message
         /// </summary>
         /// <remarks>
         /// When the message won't request a confirmation and was never confirmed the value is <see langword="null"/>

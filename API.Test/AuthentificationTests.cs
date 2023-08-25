@@ -17,10 +17,10 @@ internal class AuthentificationTests
     {
         // Load a file where i saved login data
         using StreamReader str = new("LoginData.txt");
-        s_Server = str.ReadLine();
-        s_LoginName = str.ReadLine();
-        s_UserName = str.ReadLine();
-        s_Password = str.ReadLine();
+        s_Server = str.ReadLine()!;
+        s_LoginName = str.ReadLine()!;
+        s_UserName = str.ReadLine()!;
+        s_Password = str.ReadLine()!;
     }
 
     // Login data to test
