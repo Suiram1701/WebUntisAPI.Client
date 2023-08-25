@@ -228,22 +228,76 @@ namespace WebUntisAPI.Client
         /// Get the contact details for this account
         /// </summary>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>When read is false the contact <see langword="null"/></returns>
+        /// <returns>If canRead is false, the contact is <see langword="null"/></returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-        public async Task<(ContactDetails contact, bool read, bool write)> GetContactDetailsAsync(CancellationToken ct = default)
+        public async Task<(ContactDetails contact, bool canRead, bool canWrite)> GetContactDetailsAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/contactdetails?personId=3299&isRequestForStudent=false", ct);
+            string responseString = await MakeAPIGetRequestAsync($"/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent={UserType is Client.UserType.Student}", ct);
             JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
 
-            if (data["read"].Value<bool>())
+            if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
+                return (null, false, data["write"].Value<bool>());
+
+            ContactDetails contact = data["address"].ToObject<ContactDetails>();
+            return (contact, true, data["write"].Value<bool>());
+        }
+
+        /// <summary>
+        /// Get your own profile image
+        /// </summary>
+        /// <remarks>
+        /// If you have not specified a profile picture, the image would be null
+        /// </remarks>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>If canRead is false, the image is <see langword="null"/></returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+#if NET47 || NET481
+        public async Task<(Image image, bool canRead, bool canWrite)> GetOwnProfileImageAsync(CancellationToken ct = default)
+#elif NET6_0_OR_GREATER
+        public async Task<(Image image, bool canRead, bool canWrite)> GetOwnProfileImageAsync(CancellationToken ct = default)
+#endif
+        {
+            string responseString = await MakeAPIGetRequestAsync($"/WebUntis/api/profile/image?type={(int)UserType}&id={User.Id}", ct);
+            JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
+
+            if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
+                return (null, false, data["write"].Value<bool>());
+
+            HttpRequestMessage request = new HttpRequestMessage { Method = HttpMethod.Get };
+            request.Headers.Add("JSESSIONID", _sessionId);
+            request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+
+            if (data["imageId"].Value<int>() < 0)     // Return the default image when the image isn't set
+                return (null, true, data["write"].Value<bool>());
+
+            request.RequestUri = new Uri(ServerUrl + $"/WebUntis/image.do?cat={data["categoryId"].Value<int>()}&id={data["imageId"].Value<int>()}");
+            HttpResponseMessage response = await _client.SendAsync(request, ct);
+
+            // Check cancellation token
+            if (ct.IsCancellationRequested)
+                return default;
+
+            // Verify response
+            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                ContactDetails contact = data["address"].ToObject<ContactDetails>();
-                return (contact, true, data["write"].Value<bool>());
+                _ = LogoutAsync();
+                throw new UnauthorizedAccessException("You're not logged in");
             }
 
-            return (null, false, data["write"].Value<bool>());
+            if (response.StatusCode != HttpStatusCode.OK)
+                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+
+#if NET47 || NET481
+                Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
+#elif NET6_0_OR_GREATER
+            Image image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync(ct), ct);
+#endif
+            return (image, true, data["write"].Value<bool>());
         }
     }
 }

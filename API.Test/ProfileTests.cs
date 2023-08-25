@@ -82,4 +82,15 @@ internal class ProfileTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetOwnProfileImage()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<(Image? image, bool read, bool write)> image = Client.GetOwnProfileImageAsync();
+        image.Wait();
+
+        image.Result.image.SaveAsPngAsync("ProfileImg.png");       
+    }
 }
