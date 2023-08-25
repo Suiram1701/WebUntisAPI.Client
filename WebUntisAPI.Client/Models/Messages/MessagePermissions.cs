@@ -56,4 +56,3 @@ namespace WebUntisAPI.Client.Models.Messages
         public int MaxFileCount { get; set; }
     }
 }
-

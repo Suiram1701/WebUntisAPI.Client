@@ -199,7 +199,7 @@ namespace WebUntisAPI.Client
         /// </remarks>
         /// <param name="message">The message to confirm</param>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>Informations about the confirm</returns>
+        /// <returns>Information about the confirm</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
@@ -644,7 +644,6 @@ namespace WebUntisAPI.Client
                 writer.WritePropertyName("oneDriveAttachments");
                 writer.WriteStartArray();
                 writer.WriteEndArray();
-
 
                 writer.WritePropertyName("forbidReply");
                 writer.WriteValue(forbidReply);

@@ -113,7 +113,7 @@ namespace WebUntisAPI.Client
         /// Initialize a new client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
-        /// <param name="timeout">The time in milliseconds until requests will be timeouted</param>
+        /// <param name="timeout">The time in milliseconds until requests will be timeout</param>
         public WebUntisClient(string clientName, TimeSpan timeout)
         {
             ClientName = clientName;
@@ -234,7 +234,7 @@ namespace WebUntisAPI.Client
 
             _serverUrl = serverUrl;
             _loginName = loginName;
-            _sessionId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Sesson id was expected");
+            _sessionId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Session id was expected");
             _loggedIn = true;
 
             // Get the api auth token and the logged in user
@@ -270,7 +270,7 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="id">Identifier for the request</param>
         /// <param name="ct">Cancellation token</param>
-        /// <returns>Task for the proccess</returns>
+        /// <returns>Task for the process</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
         public async Task LogoutAsync(string id = "Logout", CancellationToken ct = default)
         {
@@ -484,7 +484,6 @@ namespace WebUntisAPI.Client
             // Verify response
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
 
             _bearerToken = await response.Content.ReadAsStringAsync();
         }

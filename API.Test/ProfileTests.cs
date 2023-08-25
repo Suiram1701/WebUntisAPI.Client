@@ -21,7 +21,6 @@ internal class ProfileTests
         imgRender.Wait();
         imgRender.Result.SaveAsPng("RenderImg.png");
 
-
         Task<Image> imgDownload = Client.GetMessagePersonProfileImageAsync(new() { ImageUrl = new("https://foundations.projectpythia.org/_images/GitHub-logo.png") });     // A Random non square GitHub image i found
         imgDownload.Wait();
         imgDownload.Result.SaveAsPng("DownloadImg.png");
