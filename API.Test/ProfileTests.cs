@@ -68,4 +68,18 @@ internal class ProfileTests
         else
             Assert.Fail();
     }
+
+    [Test]
+    public void GetContactDetails()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<(ContactDetails? contact, bool read, bool write)> contact = Client.GetContactDetailsAsync();
+        contact.Wait();
+
+        if (contact.Result.read)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
 }

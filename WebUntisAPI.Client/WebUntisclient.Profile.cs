@@ -215,10 +215,35 @@ namespace WebUntisAPI.Client
         /// </summary>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The information</returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<GeneralAccount> GetGenerallyAccountInformationAsync(CancellationToken ct = default)
         {
             string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/general", ct);
             return GeneralAccount.ReadFromJson(JObject.Parse(responseString)["data"].CreateReader());
+        }
+
+        /// <summary>
+        /// Get the contact details for this account
+        /// </summary>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>When read is false the contact <see langword="null"/></returns>
+        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
+        /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
+        /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+        public async Task<(ContactDetails contact, bool read, bool write)> GetContactDetailsAsync(CancellationToken ct = default)
+        {
+            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/profile/contactdetails?personId=3299&isRequestForStudent=false", ct);
+            JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
+
+            if (data["read"].Value<bool>())
+            {
+                ContactDetails contact = data["address"].ToObject<ContactDetails>();
+                return (contact, true, data["write"].Value<bool>());
+            }
+
+            return (null, false, data["write"].Value<bool>());
         }
     }
 }
