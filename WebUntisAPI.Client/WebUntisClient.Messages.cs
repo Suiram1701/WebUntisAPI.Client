@@ -167,7 +167,7 @@ namespace WebUntisAPI.Client
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
             string responseString = await response.Content.ReadAsStringAsync();
-            
+
             JObject obj = JObject.Parse(responseString);
             return obj["users"].Value<List<MessagePerson>>().ToArray();
         }

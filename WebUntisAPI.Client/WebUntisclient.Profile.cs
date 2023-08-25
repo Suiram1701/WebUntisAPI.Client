@@ -4,15 +4,11 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models.Messages;
-using System.Drawing.Imaging;
 using Newtonsoft.Json.Linq;
 using WebUntisAPI.Client.Models;
-using Newtonsoft.Json;
-using System.IO;
 #if NET47 || NET481
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -171,7 +167,7 @@ namespace WebUntisAPI.Client
                 Rectangle cropRectangle = new(xOffSet, yOffSet, shorterSide, shorterSide);
                 op.Crop(cropRectangle);
             });
-            
+
             return image;
 #endif
         }
