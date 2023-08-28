@@ -131,7 +131,7 @@ namespace WebUntisAPI.Client
 
 #if NET47 || NET481
             Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
-            
+
             if (image.Height == image.Width)
                 return image;
 
@@ -289,7 +289,7 @@ namespace WebUntisAPI.Client
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
 #if NET47 || NET481
-                Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
+            Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
 #elif NET6_0_OR_GREATER
             Image image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync(ct), ct);
 #endif
