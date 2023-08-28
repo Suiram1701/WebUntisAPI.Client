@@ -131,7 +131,7 @@ namespace WebUntisAPI.Client
 
 #if NET47 || NET481
             Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
-            
+
             if (image.Height == image.Width)
                 return image;
 
@@ -230,14 +230,14 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<(ContactDetails contact, bool canRead, bool canWrite)> GetContactDetailsAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync($"/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent={UserType is Client.UserType.Student}", ct);
+            string responseString = await MakeAPIGetRequestAsync($"/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent=false", ct);
             JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
 
             if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
                 return (null, false, data["write"].Value<bool>());
 
             ContactDetails contact = data["address"].ToObject<ContactDetails>();
-            return (contact, true, data["write"].Value<bool>());
+            return (contact, data["read"].Value<bool>(), data["write"].Value<bool>());
         }
 
         /// <summary>
@@ -289,7 +289,7 @@ namespace WebUntisAPI.Client
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
 #if NET47 || NET481
-                Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
+            Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
 #elif NET6_0_OR_GREATER
             Image image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync(ct), ct);
 #endif
