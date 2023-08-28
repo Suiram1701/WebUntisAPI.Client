@@ -103,6 +103,20 @@ internal class MessagesTests
     }
 
     [Test]
+    public void GetSearchedStaffPeople()
+    {
+        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+
+        Task<MessagePerson[]> filters = Client.GetStaffFilterSearchResultAsync("", new());
+        filters.Wait();
+
+        if (filters.Result.Length > 0)
+            Assert.Pass();
+        else
+            Assert.Fail();
+    }
+
+    [Test]
     public void GetDrafts()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
