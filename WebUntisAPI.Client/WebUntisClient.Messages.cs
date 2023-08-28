@@ -148,7 +148,7 @@ namespace WebUntisAPI.Client
             {
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter"),
-                Content = new StringContent(sw.ToString())
+                Content = new StringContent(sw.ToString(), Encoding.UTF8, "application/json")
             };
             request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
@@ -169,7 +169,7 @@ namespace WebUntisAPI.Client
             string responseString = await response.Content.ReadAsStringAsync();
 
             JObject obj = JObject.Parse(responseString);
-            return obj["users"].Value<List<MessagePerson>>().ToArray();
+            return obj["users"].ToObject<List<MessagePerson>>().ToArray();
         }
 
         /// <summary>
