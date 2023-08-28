@@ -24,6 +24,12 @@ namespace WebUntisAPI.Client.Models.Messages
         public List<string> Tags { get; set; } = new List<string>();
 
         /// <summary>
+        /// The role of the person
+        /// </summary>
+        [JsonProperty("role")]
+        public string Role { get; set; }
+
+        /// <summary>
         /// The displayed name of the user
         /// </summary>
         [JsonProperty("displayName")]
