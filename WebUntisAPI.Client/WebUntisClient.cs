@@ -474,6 +474,7 @@ namespace WebUntisAPI.Client
             };
             request.Headers.Add("JSESSIONID", _sessionId);
             request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
