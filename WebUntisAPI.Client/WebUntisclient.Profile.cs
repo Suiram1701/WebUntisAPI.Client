@@ -36,7 +36,7 @@ namespace WebUntisAPI.Client
         ///     </para>
         /// </remarks>
         /// <param name="person">The person for the image</param>
-        /// <param name="fontName">The font size to render</param>
+        /// <param name="fontName">The font name to render</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns></returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
@@ -108,26 +108,14 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = person.ImageUrl
             };
-
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
+            response.EnsureSuccessStatusCode();
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return default;
-
-            // Verify response
-            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
-            }
-
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
 
 #if NET47 || NET481
             Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
@@ -151,7 +139,7 @@ namespace WebUntisAPI.Client
             }
 
             return croppedImage;
-#elif NET6_0 || NET7_0
+#elif NET6_0_OR_GREATER
             Image image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync(ct), ct);
 
             if (image.Height == image.Width)
@@ -264,8 +252,6 @@ namespace WebUntisAPI.Client
                 return (null, false, data["write"].Value<bool>());
 
             HttpRequestMessage request = new HttpRequestMessage { Method = HttpMethod.Get };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             if (data["imageId"].Value<int>() < 0)     // Return the default image when the image isn't set
@@ -273,21 +259,11 @@ namespace WebUntisAPI.Client
 
             request.RequestUri = new Uri(ServerUrl + $"/WebUntis/image.do?cat={data["categoryId"].Value<int>()}&id={data["imageId"].Value<int>()}");
             HttpResponseMessage response = await _client.SendAsync(request, ct);
+            response.EnsureSuccessStatusCode();
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return default;
-
-            // Verify response
-            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
-            }
-
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
 #if NET47 || NET481
             Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
 #elif NET6_0_OR_GREATER

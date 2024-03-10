@@ -30,13 +30,13 @@ internal class AuthentificationTests
     public static string s_Password;
 
     [Test]
-    public void Authentification()
+    public async Task Authentification()
     {
         try
         {
             using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
-            client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-            client.LogoutAsync().Wait();
+            await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
+            await client.LogoutAsync();
         }
         catch
         {
@@ -47,20 +47,21 @@ internal class AuthentificationTests
     }
 
     [Test]
-    public void GetSessionExpiresDateTime()
+    public async Task GetSessionExpiresDateTime()
     {
-        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(5));
-        client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
+        await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
         _ = client.SessionExpires;
         _ = client.SessionBegin;
     }
 
     [Test]
-    public void ReloadSessionTokenTest()
+    public async Task ReloadSessionTokenTest()
     {
-        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(5));
-        client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
+        await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
 
-        client.ReloadSessionAsync().Wait();
+        await client.ReloadSessionAsync();
+        int a = 0;
     }
 }

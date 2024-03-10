@@ -64,7 +64,7 @@ namespace WebUntisAPI.Client
                 if (!LoggedIn)
                     throw new UnauthorizedAccessException("You're not logged in!");
 
-                string tokenString = _bearerToken.Split('.')[1];     // Get the JWT part
+                string tokenString = _bearerToken.Split('.')[1];     // Get the json part of the JWT
 
                 JObject token = JObject.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(tokenString)));
                 return new DateTime(1970, 01, 01, 0, 0, 0, DateTimeKind.Utc).AddSeconds(token["iat"].Value<long>());
@@ -113,7 +113,7 @@ namespace WebUntisAPI.Client
         /// Initialize a new client
         /// </summary>
         /// <param name="clientName">Unique identifier for the client app</param>
-        /// <param name="timeout">The time in milliseconds until requests will be timeout</param>
+        /// <param name="timeout">The time in milliseconds untila requests will be timeout</param>
         public WebUntisClient(string clientName, TimeSpan timeout)
         {
             ClientName = clientName;
@@ -139,7 +139,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<bool> LoginAsync(School school, string username, string password, string id = "getStudents", CancellationToken ct = default) =>
+        public async Task<bool> LoginAsync(School school, string username, string password, string id = "login", CancellationToken ct = default) =>
             await LoginAsync(school.Server, school.LoginName, username, password, id, ct);
 
         /// <summary>
@@ -382,28 +382,18 @@ namespace WebUntisAPI.Client
             }
 
             StringContent requestContent = new StringContent(sw.ToString(), Encoding.UTF8, "application/json");
-            requestContent.Headers.Add("JSESSIONID", _sessionId);
-            requestContent.Headers.Add("schoolname", _schoolName);
-
-            // Send request
             HttpResponseMessage response = await _client.PostAsync(ServerUrl + "/WebUntis/jsonrpc.do", requestContent, ct);
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return default;
-
-            // Verify response
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+            response.EnsureSuccessStatusCode();
 
             JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
             if (responseObject["error"]?.ToObject<WebUntisException>() is WebUntisException error)
             {
-                if (error.Code == (int)WebUntisException.Codes.NotAuthticated)     // Logout when not authenticated
-                    _ = LogoutAsync();
-
                 throw error;
             }
 
@@ -434,22 +424,14 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + requestUrl)
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
+            response.EnsureSuccessStatusCode();
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return default;
-
-            // Verify response
-            if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
-            {
-                _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
-            }
 
             if (response.StatusCode != HttpStatusCode.OK)
                 throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
@@ -467,25 +449,27 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         public async Task ReloadSessionAsync(CancellationToken ct = default)
         {
+            // Check for disposing
+            if (_disposedValue)
+                throw new ObjectDisposedException(GetType().FullName);
+
+            // Check if you logged in
+            if (!LoggedIn)
+                throw new UnauthorizedAccessException("You're not logged in");
+
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
+            response.EnsureSuccessStatusCode();
 
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return;
-
-            // Verify response
-            if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
-
             _bearerToken = await response.Content.ReadAsStringAsync();
         }
 
@@ -507,9 +491,11 @@ namespace WebUntisAPI.Client
         {
             if (!_disposedValue)
             {
+                _client.CancelPendingRequests();
+
                 // When not manually logged out then logout
                 if (LoggedIn)
-                    _ = LogoutAsync();
+                    LogoutAsync().Wait();
 
                 if (disposing)
                 {
