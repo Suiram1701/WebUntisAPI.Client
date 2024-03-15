@@ -15,7 +15,7 @@ using WebUntisAPI.Client.Models;
 namespace WebUntisAPI.Client;
 
 /// <summary>
-/// A help class to search for schools by the name
+/// A helper class for school search
 /// </summary>
 public class SchoolSearcher : IDisposable
 {

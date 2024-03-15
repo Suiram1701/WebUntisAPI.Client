@@ -134,4 +134,22 @@ namespace WebUntisAPI.Client
         [JsonProperty("irregular")]
         Irregular = 2,
     }
+
+    /// <summary>
+    /// The state of a lesson in the timegrid
+    /// </summary>
+    public enum LessonState
+    {
+        /// <summary>
+        /// A normal lesson
+        /// </summary>
+        [JsonProperty("LESSON")]
+        Lesson,
+
+        /// <summary>
+        /// The lesson is vacant
+        /// </summary>
+        [JsonProperty("VACANT")]
+        Vacant
+    }
 }

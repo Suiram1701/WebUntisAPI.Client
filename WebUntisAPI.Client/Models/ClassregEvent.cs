@@ -33,7 +33,7 @@ namespace WebUntisAPI.Client.Models
         /// The date where the event happens
         /// </summary>
         [JsonProperty("date")]
-        [JsonConverter(typeof(DateJsonConverter))]
+        [JsonConverter(typeof(DateOnlyJsonConverter))]
         public DateTime Date { get; set; }
 
         /// <summary>

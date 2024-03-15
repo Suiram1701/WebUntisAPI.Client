@@ -33,14 +33,14 @@ namespace WebUntisAPI.Client.Models
         /// The start date of the holiday
         /// </summary>
         [JsonProperty("startDate")]
-        [JsonConverter(typeof(DateJsonConverter))]
+        [JsonConverter(typeof(DateOnlyJsonConverter))]
         public DateTime StartDate { get; set; }
 
         /// <summary>
         /// The end date of the holiday
         /// </summary>
         [JsonProperty("endDate")]
-        [JsonConverter(typeof(DateJsonConverter))]
+        [JsonConverter(typeof(DateOnlyJsonConverter))]
         public DateTime EndDate { get; set; }
     }
 }

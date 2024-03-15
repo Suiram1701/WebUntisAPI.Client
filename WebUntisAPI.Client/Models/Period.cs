@@ -21,7 +21,7 @@ namespace WebUntisAPI.Client.Models
         /// The date where the period is
         /// </summary>
         [JsonProperty("date")]
-        [JsonConverter(typeof(DateJsonConverter))]
+        [JsonConverter(typeof(DateOnlyJsonConverter))]
         public DateTime Date { get; set; }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace WebUntisAPI.Client.Models
         /// Date is default set on the 1.1.2020 and only the time is set
         /// </remarks>
         [JsonProperty("startTime")]
-        [JsonConverter(typeof(TimeJsonConverter))]
+        [JsonConverter(typeof(TimeOnlyJsonConverter))]
         public DateTime StartTime { get; set; }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace WebUntisAPI.Client.Models
         /// Date is default set on the 1.1.2020 and only the time is set
         /// </remarks>
         [JsonProperty("endTime")]
-        [JsonConverter(typeof(TimeJsonConverter))]
+        [JsonConverter(typeof(TimeOnlyJsonConverter))]
         public DateTime EndTime { get; set; }
 
         /// <summary>

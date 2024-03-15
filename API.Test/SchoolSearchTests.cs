@@ -13,39 +13,52 @@ namespace API.Test;
 [TestFixture]
 internal class SchoolSearchTests
 {
-    [Order(1)]
-    [Test]
-    public void NormalSearch()
+    private SchoolSearcher _searcher;
+
+    [OneTimeSetUp]
+    public void Setup()
     {
-        Task<School[]> schools = SchoolSearch.SearchAsync("Marie-Curie");
-        schools.Wait();
-        if (schools.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        _searcher = new();
     }
 
-    [Order(2)]
-    [Test]
-    public void ToManySchoolsFound()
+    [OneTimeTearDown]
+    public void Cleanup()
     {
-        Task<School[]> schools = SchoolSearch.SearchAsync("M");
-        schools.Wait();
-        if (schools.Result == null)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        _searcher.Dispose();
     }
 
-    [Order(3)]
     [Test]
-    public void NoSchoolsFound()
+    public async Task NormalSearchAsync()
     {
-        Task<School[]> schools = SchoolSearch.SearchAsync("MMMMMMMMMMMMMMMMMMMMMMMMMMM");
-        schools.Wait();
-        if (schools.Result.Length == 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        IEnumerable<School>? schools = await _searcher.SearchAsync("Marie-Curie");
+        Assert.That(schools?.Count(), Is.GreaterThan(0));
+    }
+
+    [Test]
+    public async Task ToManySchoolsFoundAsync()
+    {
+        IEnumerable<School>? schools = await _searcher.SearchAsync("M");
+        Assert.That(schools, Is.Null);
+    }
+
+    [Test]
+    public async Task NoSchoolsFoundAsync()
+    {
+        IEnumerable<School>? schools = await _searcher.SearchAsync("MMMMMMMMMMMMMMMMMMMMMMMMMMM");
+        Assert.That(schools, Is.Empty);
+    }
+
+    [Test]
+    public async Task SearchSchoolByNameAsync()
+    {
+        School? school = await _searcher.GetSchoolByNameAsync("Marie-Curie Gym");
+        Assert.That(school, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task GetSchoolByIdAsync()
+    {
+        School? school = await _searcher.GetSchoolByIdAsync(2382100);
+        Assert.That(school, Is.Not.Null);
     }
 }

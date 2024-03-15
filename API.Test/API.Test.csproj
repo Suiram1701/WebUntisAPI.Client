@@ -28,4 +28,8 @@
     <ProjectReference Include="..\WebUntisAPI.Client\WebUntisAPI.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ExtensionsTests\" />
+  </ItemGroup>
+
 </Project>

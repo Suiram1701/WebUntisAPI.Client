@@ -80,8 +80,8 @@ namespace WebUntisAPI.Client
         /// <summary>
         /// Url of the WebUntis server
         /// </summary>
-        public string ServerUrl => _serverUrl;
-        private string _serverUrl;
+        public Uri ServerUrl => _serverUrl;
+        private Uri _serverUrl;
 
         /// <summary>
         /// The Untis name of the school
@@ -129,7 +129,7 @@ namespace WebUntisAPI.Client
         /// <remarks>
         /// Information about the user you logged in with is automatically requested
         /// </remarks>
-        /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearch.SearchAsync(string, string, CancellationToken)"/>)</param>
+        /// <param name="school">The school to login (Use only returned instances from <see cref="SchoolSearcher.SearchAsync(string, string, CancellationToken)"/>)</param>
         /// <param name="username">Name of the user to login</param>
         /// <param name="password">Password of the user to login</param>
         /// <param name="ct">Cancelation Token</param>
@@ -159,7 +159,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">There was an error while the request</exception>
         /// <exception cref="WebUntisException">The WebUntis server returned an error</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "Login", CancellationToken ct = default)
+        public async Task<bool> LoginAsync(string server, string loginName, string username, string password, string id = "login", CancellationToken ct = default)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -221,18 +221,18 @@ namespace WebUntisAPI.Client
             JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
-            if (responseObject["error"]?.ToObject(typeof(WebUntisException)) is WebUntisException error)
-            {
-                if (error.Code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
-                    return false;
+            //if (responseObject["error"]?.ToObject(typeof(WebUntisException)) is WebUntisException error)
+            //{
+            //    if (error.Code == (int)WebUntisException.Codes.BadCredentials)     // Wrong login data
+            //        return false;
 
-                throw error;
-            }
+            //    throw error;
+            //}
 
             string headerValue = response.Headers.First(header => header.Key == "Set-Cookie").Value.ToArray()[1];     // Read additional school name header
             _schoolName = Regex.Match(headerValue, "schoolname=\"(.+)\";").Groups[1].Value;
 
-            _serverUrl = serverUrl;
+            //_serverUrl = serverUrl;
             _loginName = loginName;
             _sessionId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Session id was expected");
             _loggedIn = true;
@@ -272,7 +272,7 @@ namespace WebUntisAPI.Client
         /// <param name="ct">Cancellation token</param>
         /// <returns>Task for the process</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task LogoutAsync(string id = "Logout", CancellationToken ct = default)
+        public async Task LogoutAsync(string id = "logout", CancellationToken ct = default)
         {
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
@@ -352,7 +352,7 @@ namespace WebUntisAPI.Client
                 throw new ObjectDisposedException(GetType().FullName);
 
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             // Make request
             StringWriter sw = new StringWriter();
@@ -400,43 +400,50 @@ namespace WebUntisAPI.Client
             return responseObject["result"];
         }
 
+        internal Task<string> DoAPIRequestAsync(string path, CancellationToken ct)
+        {
+            UriBuilder uriBuilder = new(ServerUrl)
+            {
+                Path = path
+            };
+            HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.ToString());
+
+            return InternalAPIRequestAsync(request, ct);
+        }
+
         /// <summary>
-        /// Make a GET request to the API
+        /// Do a HTTP request to the API
         /// </summary>
-        /// <param name="requestUrl">Url to request</param>
+        /// <param name="request">The request</param>
         /// <param name="ct">Cancelation token</param>
         /// <returns>The returned content</returns>
         /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        internal async Task<string> MakeAPIGetRequestAsync(string requestUrl, CancellationToken ct)
+        internal async Task<string> InternalAPIRequestAsync(HttpRequestMessage request, CancellationToken ct)
         {
             // Check for disposing
+#if NET8_0_OR_GREATER
+            ObjectDisposedException.ThrowIf(_disposedValue, this);
+#else
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
-
-            // Check if you logged in
+#endif
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
-            HttpRequestMessage request = new HttpRequestMessage()
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(ServerUrl + requestUrl)
-            };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
-
-            // Check cancellation token
-            if (ct.IsCancellationRequested)
-                return default;
+            string responseString = await response.Content.ReadAsStringAsync(ct);
 
             if (response.StatusCode != HttpStatusCode.OK)
-                throw new HttpRequestException($"There was an error while the http request (Code: {response.StatusCode}).");
+            {
+                JArray errorArray = (JArray)JObject.Parse(responseString)!["errors"]!;
+                throw new WebUntisException(errorArray);
+            }
 
-            return await response.Content.ReadAsStringAsync();
+            return responseString;
         }
 
         /// <summary>
@@ -455,7 +462,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             HttpRequestMessage request = new HttpRequestMessage()
             {

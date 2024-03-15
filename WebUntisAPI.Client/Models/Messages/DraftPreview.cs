@@ -93,7 +93,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Draft> GetFullMessageAsync(WebUntisClient client, CancellationToken ct = default)
         {
-            string responseString = await client.MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts/" + Id, ct);
+            string responseString = await client.DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts/" + Id, ct);
             return JsonConvert.DeserializeObject<Draft>(responseString);
         }
     }

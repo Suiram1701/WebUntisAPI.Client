@@ -26,7 +26,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<int> GetUnreadMessagesCountAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/status", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/status", ct);
             return JObject.Parse(responseString).Value<int>("unreadMessagesCount");
         }
 
@@ -40,7 +40,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MessagePermissions> GetMessagePermissionsAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/permissions", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/permissions", ct);
             return JsonConvert.DeserializeObject<MessagePermissions>(responseString);
         }
 
@@ -57,7 +57,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Dictionary<string, MessagePerson[]>> GetMessagePeopleAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
 
             Dictionary<string, MessagePerson[]> personTypes = new Dictionary<string, MessagePerson[]>();
             JArray types = JArray.Parse(responseString);
@@ -80,7 +80,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Dictionary<string, FilterItem[]>> GetStaffSearchFiltersAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
 
             JObject obj = JObject.Parse(responseString);
             JArray types = obj["filters"].Value<JArray>();
@@ -113,7 +113,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             // Write request
             StringWriter sw = new StringWriter();
@@ -160,7 +160,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -182,7 +182,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<(MessagePreview[] messageInbox, MessagePreview[] confirmationMessages)> GetMessageInboxAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
 
             JObject responseObject = JObject.Parse(responseString);
             MessagePreview[] inboxMsg = responseObject["incomingMessages"].ToObject<MessagePreview[]>();
@@ -209,7 +209,7 @@ namespace WebUntisAPI.Client
                 throw new ObjectDisposedException(GetType().FullName);
 
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             HttpRequestMessage request = new HttpRequestMessage()
             {
@@ -230,7 +230,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -249,7 +249,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<MessagePreview[]> GetSentMessagesAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
 
             JArray jsonMsg = JObject.Parse(responseString).Value<JArray>("sentMessages");
             return new JsonSerializer().Deserialize<List<MessagePreview>>(jsonMsg.CreateReader()).ToArray();
@@ -313,7 +313,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             MultipartFormDataContent requestContent = new MultipartFormDataContent();
 
@@ -378,7 +378,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -412,7 +412,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Message> GetReplyFormAsync(Message replyMessage, CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync($"/WebUntis/api/rest/view/v1/messages/{replyMessage.Id}/reply-form", ct);
+            string responseString = await DoAPIRequestAsync($"/WebUntis/api/rest/view/v1/messages/{replyMessage.Id}/reply-form", ct);
             return JObject.Parse(responseString).ToObject<Message>();
         }
 
@@ -439,7 +439,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             MultipartFormDataContent requestContent = new MultipartFormDataContent();
 
@@ -492,7 +492,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -528,7 +528,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             HttpRequestMessage request = new HttpRequestMessage()
             {
@@ -545,7 +545,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -588,7 +588,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<DraftPreview[]> GetSavedDraftsAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts", ct);
 
             JArray drafts = JObject.Parse(responseString).Value<JArray>("draftMessages");
             return new JsonSerializer().Deserialize<List<DraftPreview>>(drafts.CreateReader()).ToArray();
@@ -616,7 +616,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             MultipartFormDataContent requestContent = new MultipartFormDataContent();
 
@@ -681,7 +681,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -710,7 +710,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             MultipartFormDataContent requestContent = new MultipartFormDataContent();
 
@@ -781,7 +781,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)
@@ -821,7 +821,7 @@ namespace WebUntisAPI.Client
 
             // Check if you logged in
             if (!LoggedIn)
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
 
             HttpRequestMessage request = new HttpRequestMessage()
             {
@@ -838,7 +838,7 @@ namespace WebUntisAPI.Client
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
                 _ = LogoutAsync();
-                throw new UnauthorizedAccessException("You're not logged in");
+                throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
             if (response.StatusCode != HttpStatusCode.OK)

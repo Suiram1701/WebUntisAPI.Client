@@ -114,7 +114,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
         {
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
+            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
             return JObject.Parse(responseString).Value<int>("unreadCardsCount");
         }
 
@@ -129,11 +129,12 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         public async Task<News> GetNewsFeedAsync(DateTime date, CancellationToken ct = default)
         {
-            date.ToWebUntisTimeFormat(out string dateString, out _);
-            string responseString = await MakeAPIGetRequestAsync("/WebUntis/api/public/news/newsWidgetData?date=" + dateString, ct);
+            //date.ToWebUntisTimeFormat(out string dateString, out _);
+            //string responseString = await DoAPIRequestAsync("/WebUntis/api/public/news/newsWidgetData?date=" + dateString, ct);
 
-            JToken data = JObject.Parse(responseString).GetValue("data");
-            return data.ToObject<News>();
+            //JToken data = JObject.Parse(responseString).GetValue("data");
+            //return data.ToObject<News>();
+            throw new NotImplementedException();
         }
     }
 }

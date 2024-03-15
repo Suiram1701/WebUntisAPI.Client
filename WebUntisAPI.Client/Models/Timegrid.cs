@@ -4,30 +4,29 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using WebUntisAPI.Client.Converter;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models;
+
+/// <summary>
+/// A timegrid for a school week
+/// </summary>
+[JsonConverter(typeof(TimegridJsonConverter))]
+public class Timegrid
 {
     /// <summary>
-    /// A timegrid for a school
+    /// The layout for every school day
     /// </summary>
-    [DebuggerDisplay("Days = {SchoolDays, nq}")]
-    [JsonConverter(typeof(TimegridJsonConverter))]
-    public class Timegrid : IEnumerable<KeyValuePair<Day, SchoolHour[]>>
-    {
-        /// <summary>
-        /// All the school days with their school hours
-        /// </summary>
-        public Dictionary<Day, SchoolHour[]> SchoolDays { get; set; } = new Dictionary<Day, SchoolHour[]>();
+    public IEnumerable<SchoolHour> Hours { get; init; }
 
-        /// <summary>
-        /// The count of school days (mostly 5)
-        /// </summary>
-        public int SchoolDayCount => SchoolDays.Count;
+    /// <summary>
+    /// The state of a lesson whether the it is a normal lesson or vacant.
+    /// </summary>
+    /// <remarks>
+    /// This contains always 7 items, for every day one. Every item represent a day (starts with monday). The collection inside of every element has the same count of items than <see cref="Hours"/> and contains the <see cref="LessonState"/> specificly for this hour at the day
+    /// </remarks>
+    public IEnumerable<LessonState>[] LessonStates { get; init; }
 
-        #region IEnumerable<SchoolHour[]>
-        /// <inheritdoc/>
-        public IEnumerator<KeyValuePair<Day, SchoolHour[]>> GetEnumerator() => SchoolDays.GetEnumerator();
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        #endregion
-    }
+    /// <summary>
+    /// Is the timegrid persisted
+    /// </summary>
+    public bool Persisted { get; init; }
 }

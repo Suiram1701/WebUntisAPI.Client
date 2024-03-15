@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -29,19 +30,46 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get the timegrid for the school
+        /// Get the timegrid for the school for the current school year
         /// </summary>
-        /// <param name="id">Identier for the request</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>The timegrid</returns>
+        /// <exception cref="ObjectDisposedException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="HttpRequestException"></exception>
+        /// <exception cref="WebUntisException"></exception>
+        public async Task<Timegrid> GetTimegridAsync(CancellationToken ct = default)
+        {
+            HttpRequestMessage request = new(HttpMethod.Get, new Uri(ServerUrl, "/WebUntis/api/public/timegrid"));
+            string response = await InternalAPIRequestAsync(request, ct);
+
+            JObject obj = JObject.Parse(response);
+            return obj["data"]!.ToObject<Timegrid>();
+        }
+
+        /// <summary>
+        /// Get the timegrid for the school for the specified school year
+        /// </summary>
+        /// <param name="year">The school year</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The timegrid for all days</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Timegrid> GetTimegridAsync(string id = "getTimegrid", CancellationToken ct = default)
+        /// <exception cref="ObjectDisposedException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="HttpRequestException"></exception>
+        /// <exception cref="WebUntisException"></exception>
+        public async Task<Timegrid> GetTimegridAsync(SchoolYear year, CancellationToken ct = default)
         {
-            Timegrid timeGrid = (await MakeJSONRPCRequestAsync(id, "getTimegridUnits", null, ct)).ToObject<Timegrid>();
-            return timeGrid;
+            UriBuilder uriBuilder = new(ServerUrl)
+            {
+                Path = "/WebUntis/api/public/timegrid",
+                Query = "schoolyearId=" + year.Id
+            };
+
+            HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.ToString());
+            string response = await InternalAPIRequestAsync(request, ct);
+            
+            JObject obj = JObject.Parse(response);
+            return obj["data"]!.ToObject<Timegrid>();
         }
 
         /// <summary>
@@ -106,22 +134,23 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
         {
-            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
-            {
-                writer.WriteStartObject();
+            //Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
+            //{
+            //    writer.WriteStartObject();
 
-                startDate.ToWebUntisTimeFormat(out string startDateString, out _);
-                writer.WritePropertyName("startDate");
-                writer.WriteValue(startDateString);
+            //    startDate.ToWebUntisTimeFormat(out string startDateString, out _);
+            //    writer.WritePropertyName("startDate");
+            //    writer.WriteValue(startDateString);
 
-                endDate.ToWebUntisTimeFormat(out string endDateString, out _);
-                writer.WritePropertyName("endDate");
-                writer.WriteValue(endDateString);
+            //    endDate.ToWebUntisTimeFormat(out string endDateString, out _);
+            //    writer.WritePropertyName("endDate");
+            //    writer.WriteValue(endDateString);
 
-                writer.WriteEndObject();
-            });
-            List<ClassregEvent> classregEvents = (await MakeJSONRPCRequestAsync(id, "getClassregEvents", paramsAction, ct)).ToObject<List<ClassregEvent>>();
-            return classregEvents.ToArray();
+            //    writer.WriteEndObject();
+            //});
+            //List<ClassregEvent> classregEvents = (await MakeJSONRPCRequestAsync(id, "getClassregEvents", paramsAction, ct)).ToObject<List<ClassregEvent>>();
+            //return classregEvents.ToArray();
+            return Array.Empty<ClassregEvent>();
         }
 
         #region Timetable
@@ -261,13 +290,13 @@ namespace WebUntisAPI.Client
                 writer.WriteValue(typeId);
                 writer.WriteEndObject();
 
-                startDate.ToWebUntisTimeFormat(out string startDateString, out _);
-                writer.WritePropertyName("startDate");
-                writer.WriteValue(startDateString);
+                //startDate.ToWebUntisTimeFormat(out string startDateString, out _);
+                //writer.WritePropertyName("startDate");
+                //writer.WriteValue(startDateString);
 
-                endDate.ToWebUntisTimeFormat(out string endDateString, out _);
-                writer.WritePropertyName("endDate");
-                writer.WriteValue(endDateString);
+                //endDate.ToWebUntisTimeFormat(out string endDateString, out _);
+                //writer.WritePropertyName("endDate");
+                //writer.WriteValue(endDateString);
 
                 writer.WritePropertyName("showBooking");
                 writer.WriteValue(true);

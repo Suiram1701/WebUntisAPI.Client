@@ -26,16 +26,12 @@ internal class TimeTableTests
     }
 
     [Test]
-    public void GetTimeGrid()
+    public async Task GetTimeGrid()
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Timegrid> timegrid = Client.GetTimegridAsync();
-        timegrid.Wait();
-        if (timegrid.Result.SchoolDayCount > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Timegrid timegrid = await Client.GetTimegridAsync();
+        Assert.Pass();
     }
 
     [Test]

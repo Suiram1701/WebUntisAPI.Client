@@ -1,72 +1,82 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Text;
 
-namespace WebUntisAPI.Client.Exceptions
+namespace WebUntisAPI.Client.Exceptions;
+
+/// <summary>
+/// An error that the WebUntis server returned
+/// </summary>
+public class WebUntisException : Exception
 {
     /// <summary>
-    /// An error that the WebUntis server returned
+    /// The errors returned by the server
     /// </summary>
-    [DebuggerDisplay("Message = {Message, nq}, Code = {Code, nq}")]
-    public class WebUntisException : Exception
+    public IEnumerable<WebUntisError> Errors { get; }
+
+    /// <summary>
+    /// A new <see cref="WebUntisException"/>
+    /// </summary>
+    /// <param name="errors">A collection of the errors</param>
+    public WebUntisException(IEnumerable<WebUntisError> errors) : base(BuildMessageFromErrors(errors))
     {
-        /// <summary>
-        /// Some error codes that the webuntis server can return
-        /// </summary>
-        public enum Codes
+        Errors = errors;
+    }
+
+    internal WebUntisException(JArray errorArray)
+    {
+        Collection<WebUntisError> errors = new();
+        foreach (JToken token in errorArray)
         {
-            /// <summary>
-            /// Too many results in a search
-            /// </summary>
-            TooManyResults = -6003,
+            string code = token["code"].Value<string>();
+            string title = token["title"].Value<string>();
 
-            /// <summary>
-            /// Wrong data
-            /// </summary>
-            BadCredentials = -8504,
+            errors.Add(new(code, title));
+        }
+    }
 
-            /// <summary>
-            /// Json rpc method not found
-            /// </summary>
-            MethodNotFound = -32601,
-
-            /// <summary>
-            /// The element that you requested was not found
-            /// </summary>
-            NoSuchElementFound = -7002,
-
-            /// <summary>
-            /// Access dinied for the method
-            /// </summary>
-            NoRightForMethod = -8509,
-
-            /// <summary>
-            /// You're not authticated
-            /// </summary>
-            NotAuthticated = -8520
+    private static string BuildMessageFromErrors(IEnumerable<WebUntisError> errors)
+    {
+        StringBuilder builder = new();
+        foreach (WebUntisError error in errors)
+        {
+            builder.Append(error.Code);
+            builder.Append(": ");
+            builder.AppendLine(error.Title);
         }
 
-        /// <summary>
-        /// Code of  the error
-        /// </summary>
-        [JsonProperty("code")]
-        public int Code { get; set; }
+        return builder.ToString();
+    }
+}
 
-        /// <summary>
-        /// A message that describes the error
-        /// </summary>
-        [JsonProperty("message")]
-        public override string Message { get; }
+/// <summary>
+/// An webuntis error
+/// </summary>
+public class WebUntisError
+{
+    /// <summary>
+    /// The code of the error
+    /// </summary>
+    public string Code { get; }
 
-        /// <summary>
-        /// A new <see cref="WebUntisException"/>
-        /// </summary>
-        /// <param name="code">Error code</param>
-        /// <param name="message">Message</param>
-        public WebUntisException(int code, string message) : base(message)
-        {
-            Code = code;
-            Message = message;
-        }
+    /// <summary>
+    /// The main title of the error
+    /// </summary>
+    public string Title { get; }
+
+    /// <summary>
+    /// Creates a new instance 
+    /// </summary>
+    /// <param name="code"></param>
+    /// <param name="title"></param>
+    public WebUntisError(string code, string title)
+    {
+        Code = code;
+        Title = title;
     }
 }
