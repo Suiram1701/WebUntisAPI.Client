@@ -5,35 +5,28 @@ using System.Collections.Generic;
 using System.Linq;
 using WebUntisAPI.Client.Models;
 
-namespace WebUntisAPI.Client.Converter
+namespace WebUntisAPI.Client.Converters;
+
+internal class TimegridJsonConverter : JsonConverter<Timegrid>
 {
-    internal class TimegridJsonConverter : JsonConverter<Timegrid>
+    public override Timegrid ReadJson(JsonReader reader, Type objectType, Timegrid? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        /// <inheritdoc/>
-        public override Timegrid ReadJson(JsonReader reader, Type objectType, Timegrid existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            JToken data = JObject.Load(reader);
+        JToken data = JObject.Load(reader);
 
-            bool persisted = data["persisted"].Value<bool>();
+        int schoolyear = data["schoolyearId"]!.Value<int>();
+        bool persisted = data["persisted"]!.Value<bool>();
 
-            IEnumerable<SchoolHour> hours = data["rows"].ToObject<IEnumerable<SchoolHour>>();
-            IEnumerable<LessonState>[] lessonStates = data["units"].Values<JProperty>()
-                .Select(jp => jp.Values().Select(jt => jt["state"].ToObject<LessonState>()))
-                .ToArray();
+        IEnumerable<SchoolHour> hours = data["rows"]!.ToObject<IEnumerable<SchoolHour>>()!;
+        IEnumerable<LessonState>[] lessonStates = data["units"]!.Values<JProperty>()
+            .Select(jp => jp!.Values().Select(jt => jt["state"]!.ToObject<LessonState>()))
+            .ToArray();
 
-            return new()
-            {
-                Hours = hours,
-                LessonStates = lessonStates,
-                Persisted = persisted
-            };
-        }
+        return new(schoolyear, persisted, hours, lessonStates);
+    }
 
-        /// <inheritdoc/>
-        public override void WriteJson(JsonWriter writer, Timegrid value, JsonSerializer serializer)
-        {
-            // will never get called
-            throw new NotImplementedException();
-        }
+    public override void WriteJson(JsonWriter writer, Timegrid? value, JsonSerializer serializer)
+    {
+        // will never get called
+        throw new NotImplementedException();
     }
 }

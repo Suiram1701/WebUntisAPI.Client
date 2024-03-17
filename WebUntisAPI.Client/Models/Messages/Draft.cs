@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using WebUntisAPI.Client.Converter;
+using WebUntisAPI.Client.Converters;
 
 namespace WebUntisAPI.Client.Models.Messages
 {

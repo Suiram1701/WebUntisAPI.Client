@@ -6,29 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
 
 namespace WebUntisAPI.Client
 {
     public partial class WebUntisClient
     {
-        /// <summary>
-        /// The type of the user as that you currently logged in (Student or teacher)
-        /// </summary>
-        /// <remarks>
-        /// <see langword="null"/> when you're not logged in
-        /// </remarks>
-        public UserType? UserType => _userType;
-        private UserType? _userType = null;
-
-        /// <summary>
-        /// The user as that you currently logged in
-        /// </summary>
-        /// <remarks>
-        /// <see langword="null"/> when you're not logged in
-        /// </remarks>
-        public IUser User => _user;
-        private IUser _user = null;
-
         /// <summary>
         /// Get all students on the school
         /// </summary>
@@ -74,7 +57,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when there was an error while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         /// <exception cref="ObjectDisposedException">Thrown when the object is disposed</exception>
-        public async Task<int> GetPersonIdAsync(string forename, string surname, UserType type, string id = "getPersonId", CancellationToken ct = default)
+        public async Task<int> GetPersonIdAsync(string forename, string surname, ElementType type, string id = "getPersonId", CancellationToken ct = default)
         {
             Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
             {

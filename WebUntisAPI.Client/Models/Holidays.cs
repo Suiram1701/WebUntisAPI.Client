@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
-using WebUntisAPI.Client.Converter;
+using WebUntisAPI.Client.Converters;
 
 namespace WebUntisAPI.Client.Models
 {

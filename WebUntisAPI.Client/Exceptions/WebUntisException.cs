@@ -33,11 +33,13 @@ public class WebUntisException : Exception
         Collection<WebUntisError> errors = new();
         foreach (JToken token in errorArray)
         {
-            string code = token["code"].Value<string>();
-            string title = token["title"].Value<string>();
+            string code = token["code"]!.Value<string>()!;
+            string title = token["title"]!.Value<string>()!;
 
             errors.Add(new(code, title));
         }
+
+        Errors = errors;
     }
 
     private static string BuildMessageFromErrors(IEnumerable<WebUntisError> errors)

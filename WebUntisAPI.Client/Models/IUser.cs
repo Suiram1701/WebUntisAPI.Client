@@ -1,34 +1,39 @@
 ﻿using Newtonsoft.Json;
 
-namespace WebUntisAPI.Client.Models
+namespace WebUntisAPI.Client.Models;
+
+/// <summary>
+/// Student or teacher
+/// </summary>
+public interface IUser
 {
     /// <summary>
-    /// Student or teacher
+    /// Id of the user
     /// </summary>
-    public interface IUser
-    {
-        /// <summary>
-        /// Id of the user
-        /// </summary>
-        [JsonProperty("id")]
-        int Id { get; set; }
+    [JsonProperty("id")]
+    public int Id { get; set; }
 
-        /// <summary>
-        /// WebUntis internal name of the user
-        /// </summary>
-        [JsonProperty("name")]
-        string Name { get; set; }
+    /// <summary>
+    /// The name of the user
+    /// </summary>
+    [JsonProperty("name")]
+    public string Name { get; set; }
 
-        /// <summary>
-        /// Fore name of the user
-        /// </summary>
-        [JsonProperty("foreName")]
-        string ForeName { get; set; }
+    /// <summary>
+    /// The long name of the user
+    /// </summary>
+    [JsonProperty("longName")]
+    public string LongName { get; set; }
 
-        /// <summary>
-        /// Last name of the user
-        /// </summary>
-        [JsonProperty("longName")]
-        string LongName { get; set; }
-    }
+    /// <summary>
+    /// The displayed name of the user
+    /// </summary>
+    [JsonProperty("displayname")]
+    public string Displayname { get; set; }
+
+    /// <summary>
+    /// An alternative name of the user
+    /// </summary>
+    [JsonProperty("alternatename")]
+    public string Alternatename { get; set; }
 }

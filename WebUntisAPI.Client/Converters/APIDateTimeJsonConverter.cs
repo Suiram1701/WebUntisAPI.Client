@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 
-namespace WebUntisAPI.Client.Converter
+namespace WebUntisAPI.Client.Converters
 {
     internal class APIDateTimeJsonConverter : JsonConverter<DateTime>
     {
