@@ -378,9 +378,6 @@ namespace WebUntisAPI.Client
                 return default;
             //response.EnsureSuccessStatusCode();
 
-            string content = await response.Content.ReadAsStringAsync();
-            string request = sw.ToString();
-
             JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
             // Check for WebUntis error
