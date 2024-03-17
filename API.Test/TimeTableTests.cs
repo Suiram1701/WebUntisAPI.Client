@@ -11,7 +11,7 @@ using static API.Test.AuthentificationTests;
 namespace API.Test;
 
 [TestFixture]
-internal class TimeTableTests
+internal class TimetableTests
 {
     [Test]
     public async Task GetTimeGridAsync()
@@ -41,16 +41,12 @@ internal class TimeTableTests
     }
 
     [Test]
-    public void GetHolidays()
+    public async Task GetHolidaysAsync()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
 
-        Task<Holidays[]> holidays = Client.GetHolidaysAsync();
-        holidays.Wait();
-        if (holidays.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        IEnumerable<Holiday> holidays = await Client.GetHolidaysAsync();
+        Assert.That(holidays.Count(), Is.GreaterThan(0));
     }
 
     [Test]
