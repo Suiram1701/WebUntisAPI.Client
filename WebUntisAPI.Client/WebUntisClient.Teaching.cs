@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
-using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
 
 namespace WebUntisAPI.Client
 {
@@ -114,7 +114,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
         {
-            string responseString = await DoAPIRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
             return JObject.Parse(responseString).Value<int>("unreadCardsCount");
         }
 

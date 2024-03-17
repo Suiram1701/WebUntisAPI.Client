@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
 using static API.Test.AuthentificationTests;
 
 namespace API.Test;
@@ -30,7 +31,7 @@ internal class TeachingTests
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<Class[]> classes = Client.GetClassesAsync(new SchoolYear() { Id = 5 });
+        Task<Class[]> classes = Client.GetClassesAsync();
         classes.Wait();
         if (classes.Result.Length > 0)
             Assert.Pass();

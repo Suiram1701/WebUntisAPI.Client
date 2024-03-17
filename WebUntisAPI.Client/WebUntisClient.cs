@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -232,35 +235,35 @@ namespace WebUntisAPI.Client
             string headerValue = response.Headers.First(header => header.Key == "Set-Cookie").Value.ToArray()[1];     // Read additional school name header
             _schoolName = Regex.Match(headerValue, "schoolname=\"(.+)\";").Groups[1].Value;
 
-            //_serverUrl = serverUrl;
+            _serverUrl = new(serverUrl);
             _loginName = loginName;
             _sessionId = responseObject["result"]["sessionId"].ToObject<string>() ?? throw new InvalidDataException("Session id was expected");
             _loggedIn = true;
 
             // Get the api auth token and the logged in user
-            Task bearerTokenTask = ReloadSessionAsync(ct);
-            IUser[] users;
-            if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
-            {
-                Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
-                await Task.WhenAll(bearerTokenTask, studentTask);
-                users = studentTask.Result;
-            }
-            else
-            {
-                Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
-                await Task.WhenAll(bearerTokenTask, teacherTask);
-                users = teacherTask.Result;
-            }
+            await ReloadSessionAsync(ct);
+            //IUser[] users;
+            //if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
+            //{
+            //    Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
+            //    await Task.WhenAll(bearerTokenTask, studentTask);
+            //    users = studentTask.Result;
+            //}
+            //else
+            //{
+            //    Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
+            //    await Task.WhenAll(bearerTokenTask, teacherTask);
+            //    users = teacherTask.Result;
+            //}
 
-            if (ct.IsCancellationRequested)     // Check for cancellation
-            {
-                _ = LogoutAsync();
-                return false;
-            }
+            //if (ct.IsCancellationRequested)     // Check for cancellation
+            //{
+            //    _ = LogoutAsync();
+            //    return false;
+            //}
 
-            _userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
-            _user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
+            //_userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
+            //_user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
 
             return true;
         }
@@ -348,6 +351,8 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
         private async Task<JToken> MakeJSONRPCRequestAsync(string id, string methodName, Action<JsonWriter> paramsWriter, CancellationToken ct)
         {
+            throw new NotImplementedException();
+
             if (_disposedValue)
                 throw new ObjectDisposedException(GetType().FullName);
 
@@ -387,7 +392,10 @@ namespace WebUntisAPI.Client
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return default;
-            response.EnsureSuccessStatusCode();
+            //response.EnsureSuccessStatusCode();
+
+            string content = await response.Content.ReadAsStringAsync();
+            string request = sw.ToString();
 
             JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync());
 
@@ -400,26 +408,25 @@ namespace WebUntisAPI.Client
             return responseObject["result"];
         }
 
-        internal Task<string> DoAPIRequestAsync(string path, CancellationToken ct)
+        internal Task<string> InternalAPIRequestAsync(string path, CancellationToken ct)
         {
-            UriBuilder uriBuilder = new(ServerUrl)
+            string url;
+            if (path.StartsWith("http"))
+                url = path;
+            else
             {
-                Path = path
-            };
-            HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.ToString());
+                UriBuilder uriBuilder = new(ServerUrl)
+                {
+                    Path = path
+                };
+                url = uriBuilder.ToString();
+            }
+
+            HttpRequestMessage request = new(HttpMethod.Get, url);
 
             return InternalAPIRequestAsync(request, ct);
         }
 
-        /// <summary>
-        /// Do a HTTP request to the API
-        /// </summary>
-        /// <param name="request">The request</param>
-        /// <param name="ct">Cancelation token</param>
-        /// <returns>The returned content</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         internal async Task<string> InternalAPIRequestAsync(HttpRequestMessage request, CancellationToken ct)
         {
             // Check for disposing
@@ -432,15 +439,24 @@ namespace WebUntisAPI.Client
             if (!LoggedIn)
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-
+            request.Headers.Authorization = new("Bearer", _bearerToken);
             HttpResponseMessage response = await _client.SendAsync(request, ct);
-            string responseString = await response.Content.ReadAsStringAsync(ct);
 
+            string responseString = await response.Content.ReadAsStringAsync(ct);
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                JArray errorArray = (JArray)JObject.Parse(responseString)!["errors"]!;
-                throw new WebUntisException(errorArray);
+                JObject obj = JObject.Parse(responseString);
+                if (obj.ContainsKey("errors"))
+                {
+                    JArray errorArray = (JArray)obj!["errors"]!;
+                    throw new WebUntisException(errorArray);
+                }
+
+                string code = obj["errorCode"]!.Value<string>()!;
+                string message = obj["errorMessage"]!.Value<string>()!;
+
+                IEnumerable<WebUntisError> errors = new[] { new WebUntisError(code, message) };
+                throw new WebUntisException(errors);
             }
 
             return responseString;
@@ -456,28 +472,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         public async Task ReloadSessionAsync(CancellationToken ct = default)
         {
-            // Check for disposing
-            if (_disposedValue)
-                throw new ObjectDisposedException(GetType().FullName);
-
-            // Check if you logged in
-            if (!LoggedIn)
-                throw new UnauthorizedAccessException("The client is currently not logged in!");
-
-            HttpRequestMessage request = new HttpRequestMessage()
-            {
-                Method = HttpMethod.Get,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/token/new")
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
-
-            HttpResponseMessage response = await _client.SendAsync(request, ct);
-            response.EnsureSuccessStatusCode();
-
-            // Check cancellation token
-            if (ct.IsCancellationRequested)
-                return;
-            _bearerToken = await response.Content.ReadAsStringAsync();
+            _bearerToken = await InternalAPIRequestAsync("/WebUntis/api/token/new", ct);
         }
 
         #region IDisposable

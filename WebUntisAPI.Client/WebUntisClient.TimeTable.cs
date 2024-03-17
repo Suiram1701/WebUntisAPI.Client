@@ -6,29 +6,13 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
-using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
 
 namespace WebUntisAPI.Client
 {
     public partial class WebUntisClient
     {
-        /// <summary>
-        /// Get lesson types, periods and their colors
-        /// </summary>
-        /// <param name="id">Identifier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>Get status data</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<StatusData> GetStatusDataAsync(string id = "getStatusData", CancellationToken ct = default)
-        {
-            StatusData statusData = (await MakeJSONRPCRequestAsync(id, "getStatusData", null, ct)).ToObject<StatusData>();
-            return statusData;
-        }
-
         /// <summary>
         /// Get the timegrid for the school for the current school year
         /// </summary>
@@ -40,11 +24,10 @@ namespace WebUntisAPI.Client
         /// <exception cref="WebUntisException"></exception>
         public async Task<Timegrid> GetTimegridAsync(CancellationToken ct = default)
         {
-            HttpRequestMessage request = new(HttpMethod.Get, new Uri(ServerUrl, "/WebUntis/api/public/timegrid"));
-            string response = await InternalAPIRequestAsync(request, ct);
+            string response = await InternalAPIRequestAsync("/WebUntis/api/public/timegrid", ct);
 
             JObject obj = JObject.Parse(response);
-            return obj["data"]!.ToObject<Timegrid>();
+            return obj["data"]!.ToObject<Timegrid>()!;
         }
 
         /// <summary>
@@ -64,44 +47,27 @@ namespace WebUntisAPI.Client
                 Path = "/WebUntis/api/public/timegrid",
                 Query = "schoolyearId=" + year.Id
             };
-
-            HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.ToString());
-            string response = await InternalAPIRequestAsync(request, ct);
+            string response = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
             
             JObject obj = JObject.Parse(response);
-            return obj["data"]!.ToObject<Timegrid>();
+            return obj["data"]!.ToObject<Timegrid>()!;
         }
 
         /// <summary>
         /// Get all available school years
         /// </summary>
-        /// <param name="id">Identifier for the request</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>All school years</returns>
         /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
         /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
         /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
         /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<SchoolYear[]> GetSchoolYearsAsync(string id = "getSchoolyears", CancellationToken ct = default)
+        public async Task<IEnumerable<SchoolYear>> GetSchoolYearsAsync(CancellationToken ct = default)
         {
-            List<SchoolYear> schoolYears = (await MakeJSONRPCRequestAsync(id, "getSchoolyears", null, ct)).ToObject<List<SchoolYear>>();
-            return schoolYears.ToArray();
-        }
+            string response = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/schoolyears", ct);
 
-        /// <summary>
-        /// Get the current school year
-        /// </summary>
-        /// <param name="id">Identifier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The current school year</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<SchoolYear> GetCurrentSchoolYearAsync(string id = "getCurrentSchoolyear", CancellationToken ct = default)
-        {
-            SchoolYear schoolYear = (await MakeJSONRPCRequestAsync(id, "getCurrentSchoolyear", null, ct)).ToObject<SchoolYear>();
-            return schoolYear;
+            JArray obj = JArray.Parse(response);
+            return obj.ToObject<IEnumerable<SchoolYear>>()!;
         }
 
         /// <summary>
@@ -121,207 +87,32 @@ namespace WebUntisAPI.Client
         }
 
         /// <summary>
-        /// Get all classreg events
+        /// Get the timetable for an element
         /// </summary>
-        /// <param name="startDate">Start date for the requested events</param>
-        /// <param name="endDate">End date for the requested events</param>
-        /// <param name="id">Identifier for the request</param>
-        /// <param name="ct">Cancellatio token</param>
-        /// <returns>All classreg events in the given date range</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<ClassregEvent[]> GetClassregEventsAsync(DateTime startDate, DateTime endDate, string id = "getCLassregEvents", CancellationToken ct = default)
-        {
-            //Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
-            //{
-            //    writer.WriteStartObject();
-
-            //    startDate.ToWebUntisTimeFormat(out string startDateString, out _);
-            //    writer.WritePropertyName("startDate");
-            //    writer.WriteValue(startDateString);
-
-            //    endDate.ToWebUntisTimeFormat(out string endDateString, out _);
-            //    writer.WritePropertyName("endDate");
-            //    writer.WriteValue(endDateString);
-
-            //    writer.WriteEndObject();
-            //});
-            //List<ClassregEvent> classregEvents = (await MakeJSONRPCRequestAsync(id, "getClassregEvents", paramsAction, ct)).ToObject<List<ClassregEvent>>();
-            //return classregEvents.ToArray();
-            return Array.Empty<ClassregEvent>();
-        }
-
-        #region Timetable
-        /// <summary>
-        /// Get the timetable the user as their you logged in
-        /// </summary>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The periods for the user</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetOwnTimetableAsync(DateTime startDate = default, DateTime endDate = default, string id = "GetOwnTimtable", CancellationToken ct = default)
-        {
-            if (UserType == Client.UserType.Student)
-                return await GetTimetableForStudentAsync((Student)User, startDate, endDate, id, ct);
-            else
-                return await GetTimetableForTeacherAsync((Teacher)User, startDate, endDate, id, ct);
-        }
-
-        /// <summary>
-        /// Get the timetable for a class
-        /// </summary>
-        /// <param name="class">The class from the timetable</param>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
+        /// <param name="element">The element of the timetable to get</param>
+        /// <param name="week">The first day of the week to get the timetable</param>
         /// <param name="ct">Cancellation token</param>
         /// <returns>The periods for the class</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetTimetableForClassAsync(Class @class, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForClass", CancellationToken ct = default)
+        /// <exception cref="ObjectDisposedException"></exception>
+        /// <exception cref="UnauthorizedAccessException"></exception>
+        /// <exception cref="HttpRequestException"></exception>
+        /// <exception cref="WebUntisException"></exception>
+        public async Task<Timetable> GetTimetableAsync(ElementBase element, DateOnly week, CancellationToken ct = default)
         {
-            return await GetTimetableAsync(@class.Id, 1, startDate, endDate, id, ct);
-        }
+            if (!element.CanViewTimetable)
+                throw new UnauthorizedAccessException($"The current session isn't allowed to view the timetable of {element.Name}");
 
-        /// <summary>
-        /// Get the timetable for a teacher
-        /// </summary>
-        /// <param name="teacher">The teacher from the timetable</param>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The periods for the teacher</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetTimetableForTeacherAsync(Teacher teacher, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForTeacher", CancellationToken ct = default)
-        {
-            return await GetTimetableAsync(teacher.Id, 2, startDate, endDate, id, ct);
-        }
-
-        /// <summary>
-        /// Get the timetable for a subject
-        /// </summary>
-        /// <param name="subject">The subject from the timetable</param>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The periods for the subject</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetTimetableForSubjectAsync(Subject subject, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForSubject", CancellationToken ct = default)
-        {
-            return await GetTimetableAsync(subject.Id, 3, startDate, endDate, id, ct);
-        }
-
-        /// <summary>
-        /// Get the timetable for a room
-        /// </summary>
-        /// <param name="room">The room from the timetable</param>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The periods for the room</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetTimetableForRoomAsync(Room room, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForRoom", CancellationToken ct = default)
-        {
-            return await GetTimetableAsync(room.Id, 4, startDate, endDate, id, ct);
-        }
-
-        /// <summary>
-        /// Get the timetable for a student
-        /// </summary>
-        /// <param name="student">The student from the timetable</param>
-        /// <param name="startDate">Start date of the timetable (default is the current date)</param>
-        /// <param name="endDate">End date of the timetable (default is the current date)</param>
-        /// <param name="id">Identier for the request</param>
-        /// <param name="ct">Cancellation token</param>
-        /// <returns>The periods for the student</returns>
-        /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-        /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-        /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-        /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
-        public async Task<Period[]> GetTimetableForStudentAsync(Student student, DateTime startDate = default, DateTime endDate = default, string id = "GetTimtableForStudent", CancellationToken ct = default)
-        {
-            return await GetTimetableAsync(student.Id, 5, startDate, endDate, id, ct);
-        }
-
-        private async Task<Period[]> GetTimetableAsync(int objId, int typeId, DateTime startDate, DateTime endDate, string id, CancellationToken ct)
-        {
-            // Check for defaul time
-            if (startDate == default)
-                startDate = DateTime.Now;
-
-            if (endDate == default)
-                endDate = DateTime.Now;
-
-            Action<JsonWriter> paramsAction = new Action<JsonWriter>(writer =>
+            ElementType type = element.GetElementType();
+            UriBuilder uriBuilder = new(ServerUrl)
             {
-                writer.WriteStartObject();
+                Path = "/WebUntis/api/public/timetable/weekly/data",
+                Query = $"elementType={(int)type}&elementId={element.Id}&date={week:yyyy-MM-dd}"
+            };
 
-                writer.WritePropertyName("options");
-                writer.WriteStartObject();
+            string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+            JToken responseObj = JObject.Parse(responseString)["data"]!["result"]!;
 
-                writer.WritePropertyName("element");
-                writer.WriteStartObject();
-
-                writer.WritePropertyName("id");
-                writer.WriteValue(objId);
-
-                writer.WritePropertyName("type");
-                writer.WriteValue(typeId);
-                writer.WriteEndObject();
-
-                //startDate.ToWebUntisTimeFormat(out string startDateString, out _);
-                //writer.WritePropertyName("startDate");
-                //writer.WriteValue(startDateString);
-
-                //endDate.ToWebUntisTimeFormat(out string endDateString, out _);
-                //writer.WritePropertyName("endDate");
-                //writer.WriteValue(endDateString);
-
-                writer.WritePropertyName("showBooking");
-                writer.WriteValue(true);
-
-                writer.WritePropertyName("showInfo");
-                writer.WriteValue(true);
-
-                writer.WritePropertyName("showSubstText");
-                writer.WriteValue(true);
-
-                writer.WritePropertyName("showLsText");
-                writer.WriteValue(true);
-
-                writer.WritePropertyName("showLsNumber");
-                writer.WriteValue(true);
-
-                writer.WritePropertyName("showStudentgroup");
-                writer.WriteValue(true);
-
-                writer.WriteEndObject();
-                writer.WriteEndObject();
-            });
-            List<Period> timetable = (await MakeJSONRPCRequestAsync(id, "getTimetable", paramsAction, ct)).ToObject<List<Period>>();
-            return timetable.ToArray();
+            return responseObj.ToObject<Timetable>()!;
         }
-        #endregion
     }
 }

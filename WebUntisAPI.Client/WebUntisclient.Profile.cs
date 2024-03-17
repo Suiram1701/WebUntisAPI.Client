@@ -170,7 +170,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<Dictionary<string, string>> GetAvailableLanguagesAsync(CancellationToken ct = default)
         {
-            string responseString = await DoAPIRequestAsync("/WebUntis/api/profile/languages", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/languages", ct);
             JArray languageObjects = JObject.Parse(responseString)["data"]["languages"].Value<JArray>();
 
             Dictionary<string, string> languages = new Dictionary<string, string>();
@@ -190,7 +190,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
         {
-            string responseString = await DoAPIRequestAsync("/WebUntis/api/profile/config", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/config", ct);
             return JObject.Parse(responseString)["data"].ToObject<AccountConfig>();
         }
 
@@ -204,7 +204,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<GeneralAccount> GetGenerallyAccountInformationAsync(CancellationToken ct = default)
         {
-            string responseString = await DoAPIRequestAsync("/WebUntis/api/profile/general", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/general", ct);
             return GeneralAccount.ReadFromJson(JObject.Parse(responseString)["data"].CreateReader());
         }
 
@@ -218,7 +218,7 @@ namespace WebUntisAPI.Client
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task<(ContactDetails contact, bool canRead, bool canWrite)> GetContactDetailsAsync(CancellationToken ct = default)
         {
-            string responseString = await DoAPIRequestAsync($"/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent=false", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent=false", ct);
             JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
 
             if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
@@ -245,7 +245,7 @@ namespace WebUntisAPI.Client
         public async Task<(Image image, bool canRead, bool canWrite)> GetOwnProfileImageAsync(CancellationToken ct = default)
 #endif
         {
-            string responseString = await DoAPIRequestAsync($"/WebUntis/api/profile/image?type={(int)UserType}&id={User.Id}", ct);
+            string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/image?type={(int)UserType}&id={User.Id}", ct);
             JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
 
             if (!data["read"].Value<bool>())     // Return null when you do not have a read permission

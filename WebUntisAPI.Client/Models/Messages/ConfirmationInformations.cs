@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
-using WebUntisAPI.Client.Converter;
+using WebUntisAPI.Client.Converters;
 
 namespace WebUntisAPI.Client.Models.Messages
 {

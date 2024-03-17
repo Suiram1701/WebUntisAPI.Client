@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
 using static API.Test.AuthentificationTests;
 
 namespace API.Test;
@@ -13,51 +14,21 @@ namespace API.Test;
 internal class TimeTableTests
 {
     [Test]
-    public void GetStatusData()
+    public async Task GetTimeGridAsync()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<StatusData> status = Client.GetStatusDataAsync();
-        status.Wait();
-        if (status.Result != null)
-            Assert.Pass();
-        else
-            Assert.Fail();
-    }
-
-    [Test]
-    public async Task GetTimeGrid()
-    {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
 
         Timegrid timegrid = await Client.GetTimegridAsync();
-        Assert.Pass();
+        Assert.That(timegrid, Is.Not.Null);
     }
 
     [Test]
-    public void GetSchoolYears()
+    public async Task GetSchoolYearsAsync()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
 
-        Task<SchoolYear[]> schoolYears = Client.GetSchoolYearsAsync();
-        schoolYears.Wait();
-        if (schoolYears.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
-    }
-
-    [Test]
-    public void GetCurrentSchoolYear()
-    {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<SchoolYear> schoolYear = Client.GetCurrentSchoolYearAsync();
-        schoolYear.Wait();
-        if (schoolYear.Result != null)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        IEnumerable<SchoolYear> schoolYears = await Client.GetSchoolYearsAsync();
+        Assert.That(schoolYears.Count(), Is.GreaterThan(0));
     }
 
     [Test]
@@ -74,15 +45,16 @@ internal class TimeTableTests
     }
 
     [Test]
-    public void GetTimetable()
+    public async Task GetTimetableAsync()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
+        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
 
-        Task<Period[]> timetable = Client.GetOwnTimetableAsync(new DateTime(2023, 05, 29), new DateTime(2023, 09, 2));
-        timetable.Wait();
-        if (timetable.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Timetable timetable = await Client.GetTimetableAsync(new Student() { Id = 3299, CanViewTimetable = true }, new DateOnly(2024, 3, 18));
+        Assert.Multiple(() =>
+        {
+            Assert.That(timetable.Periods.Count(), Is.GreaterThan(0));
+            Assert.That(timetable.Elements.Count(), Is.GreaterThan(0));
+            Assert.That(timetable.LastImportTimestamp, Is.LessThan(DateTimeOffset.Now));
+        });
     }
 }
