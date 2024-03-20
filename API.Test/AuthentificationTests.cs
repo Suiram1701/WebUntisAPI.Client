@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,61 +8,26 @@ using WebUntisAPI.Client;
 
 namespace API.Test;
 
-[Order(3)]
 [TestFixture]
 internal class AuthentificationTests
 {
-    public static WebUntisClient Client { get; set; } = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
-
-    static AuthentificationTests()
+    [Test]
+    public async Task ReloadSessionTokenTestAsync()
     {
-        // Load a file where i saved login data
-        using StreamReader str = new("LoginData.txt");
-        s_Server = str.ReadLine()!;
-        s_LoginName = str.ReadLine()!;
-        s_UserName = str.ReadLine()!;
-        s_Password = str.ReadLine()!;
+        bool result = await SetUp.Client.ReloadSessionAsync();
+        Assert.That(result, Is.True);
     }
 
-    // Login data to test
-    public static string s_Server;
-    public static string s_LoginName;
-    public static string s_UserName;
-    public static string s_Password;
-
     [Test]
-    public async Task Authentification()
+    public void GetSessionExpiresDateTime()
     {
-        try
+        SetUp.Client.GetIssuedAndExpiresDateTime(out DateTimeOffset iat, out DateTimeOffset exp);
+        DateTimeOffset current = DateTimeOffset.Now;
+
+        Assert.Multiple(() =>
         {
-            using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
-            await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-            await client.LogoutAsync();
-        }
-        catch
-        {
-            Assert.Fail();
-            return;
-        }
-        Assert.Pass();
-    }
-
-    [Test]
-    public async Task GetSessionExpiresDateTime()
-    {
-        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
-        await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-        _ = client.SessionExpires;
-        _ = client.SessionBegin;
-    }
-
-    [Test]
-    public async Task ReloadSessionTokenTest()
-    {
-        using WebUntisClient client = new("WebUntisAPI_TEST", TimeSpan.FromSeconds(2));
-        await client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        await client.ReloadSessionAsync();
-        int a = 0;
+            Assert.That(iat, Is.LessThan(current));
+            Assert.That(exp, Is.GreaterThan(current));
+        });
     }
 }

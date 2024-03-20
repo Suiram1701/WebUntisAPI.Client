@@ -108,7 +108,7 @@ namespace WebUntisAPI.Client
                 Method = HttpMethod.Get,
                 RequestUri = person.ImageUrl
             };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
@@ -252,12 +252,12 @@ namespace WebUntisAPI.Client
                 return (null, false, data["write"].Value<bool>());
 
             HttpRequestMessage request = new HttpRequestMessage { Method = HttpMethod.Get };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             if (data["imageId"].Value<int>() < 0)     // Return the default image when the image isn't set
                 return (null, true, data["write"].Value<bool>());
 
-            request.RequestUri = new Uri(ServerUrl + $"/WebUntis/image.do?cat={data["categoryId"].Value<int>()}&id={data["imageId"].Value<int>()}");
+            request.RequestUri = new Uri(ServerName + $"/WebUntis/image.do?cat={data["categoryId"].Value<int>()}&id={data["imageId"].Value<int>()}");
             HttpResponseMessage response = await _client.SendAsync(request, ct);
             response.EnsureSuccessStatusCode();
 

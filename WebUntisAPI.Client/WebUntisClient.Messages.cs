@@ -147,19 +147,19 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter"),
+                RequestUri = new Uri(ServerName + $"/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter"),
                 Content = new StringContent(sw.ToString(), Encoding.UTF8, "application/json")
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -214,11 +214,11 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation")
+                RequestUri = new Uri(ServerName + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation")
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
@@ -229,7 +229,7 @@ namespace WebUntisAPI.Client
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -365,19 +365,19 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/users"),
+                RequestUri = new Uri(ServerName + "/WebUntis/api/rest/view/v2/messages/users"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -479,19 +479,19 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v2/messages/{replyMessage.Id}/reply"),
+                RequestUri = new Uri(ServerName + $"/WebUntis/api/rest/view/v2/messages/{replyMessage.Id}/reply"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -533,18 +533,18 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/revoke"),
+                RequestUri = new Uri(ServerName + $"/WebUntis/api/rest/view/v1/messages/{message.Id}/revoke"),
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -668,19 +668,19 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/drafts"),
+                RequestUri = new Uri(ServerName + "/WebUntis/api/rest/view/v2/messages/drafts"),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -768,19 +768,19 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Put,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v2/messages/drafts/" + draft.Id),
+                RequestUri = new Uri(ServerName + "/WebUntis/api/rest/view/v2/messages/drafts/" + draft.Id),
                 Content = requestContent
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 
@@ -826,18 +826,18 @@ namespace WebUntisAPI.Client
             HttpRequestMessage request = new HttpRequestMessage()
             {
                 Method = HttpMethod.Delete,
-                RequestUri = new Uri(ServerUrl + "/WebUntis/api/rest/view/v1/messages/" + draft.Id)
+                RequestUri = new Uri(ServerName + "/WebUntis/api/rest/view/v1/messages/" + draft.Id)
             };
-            request.Headers.Add("JSESSIONID", _sessionId);
-            request.Headers.Add("schoolname", _schoolName);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _bearerToken);
+            //request.Headers.Add("JSESSIONID", _sessionId);
+            //request.Headers.Add("schoolname", _schoolName);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
 
             HttpResponseMessage response = await _client.SendAsync(request, ct);
 
             // Verify response
             if (response.StatusCode == HttpStatusCode.Unauthorized || response.StatusCode == HttpStatusCode.Forbidden)
             {
-                _ = LogoutAsync();
+                //_ = LogoutAsync();
                 throw new UnauthorizedAccessException("The client is currently not logged in!");
             }
 

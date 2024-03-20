@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,6 @@ using WebUntisAPI.Client.Models;
 
 namespace API.Test;
 
-[Order(2)]
 [TestFixture]
 internal class SchoolSearchTests
 {

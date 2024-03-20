@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,16 +10,13 @@ using static API.Test.AuthentificationTests;
 
 namespace API.Test;
 
-[Order(5)]
 [TestFixture]
 internal class TeachingTests
 {
     [Test]
     public void GetSubject()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Subject[]> subjects = Client.GetSubjectsAsync();
+        Task<Subject[]> subjects = SetUp.Client.GetSubjectsAsync();
         subjects.Wait();
         if (subjects.Result.Length > 0)
             Assert.Pass();
@@ -29,9 +27,7 @@ internal class TeachingTests
     [Test]
     public void GetClass()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Class[]> classes = Client.GetClassesAsync();
+        Task<Class[]> classes = SetUp.Client.GetClassesAsync();
         classes.Wait();
         if (classes.Result.Length > 0)
             Assert.Pass();
@@ -42,9 +38,7 @@ internal class TeachingTests
     [Test]
     public void GetRoom()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Room[]> rooms = Client.GetRoomsAsync();
+        Task<Room[]> rooms = SetUp.Client.GetRoomsAsync();
         rooms.Wait();
         if (rooms.Result.Length > 0)
             Assert.Pass();
@@ -55,9 +49,7 @@ internal class TeachingTests
     [Test]
     public void GetDepartment()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Department[]> departments = Client.GetDepartmentsAsync();
+        Task<Department[]> departments = SetUp.Client.GetDepartmentsAsync();
         departments.Wait();
         if (departments.Result != null)
             Assert.Pass();
@@ -68,9 +60,7 @@ internal class TeachingTests
     [Test]
     public void GetUnreadNews()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<int> unread = Client.GetUnreadNewsCountAsync();
+        Task<int> unread = SetUp.Client.GetUnreadNewsCountAsync();
         unread.Wait();
         if (unread.Result == 0)
             Assert.Pass();
@@ -81,9 +71,7 @@ internal class TeachingTests
     [Test]
     public void GetNewsFeed()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<News> news = Client.GetNewsFeedAsync(new DateTime(2023, 07, 10));
+        Task<News> news = SetUp.Client.GetNewsFeedAsync(new DateTime(2023, 07, 10));
         news.Wait();
         if (news.Result != null)
             Assert.Pass();

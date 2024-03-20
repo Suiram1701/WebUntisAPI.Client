@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NUnit.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,9 +14,7 @@ internal class MessagesTests
     [Test]
     public void GetUnreadMessages()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<int> messages = Client.GetUnreadMessagesCountAsync();
+        Task<int> messages = SetUp.Client.GetUnreadMessagesCountAsync();
         messages.Wait();
         if (messages.Result == 0)
             Assert.Pass();
@@ -26,9 +25,7 @@ internal class MessagesTests
     [Test]
     public void GetMessagePermissions()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<MessagePermissions> permissions = Client.GetMessagePermissionsAsync();
+        Task<MessagePermissions> permissions = SetUp.Client.GetMessagePermissionsAsync();
         permissions.Wait();
         if (permissions.Result != null)
             Assert.Pass();
@@ -39,9 +36,7 @@ internal class MessagesTests
     [Test]
     public void GetMessageInbox()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
+        Task<(MessagePreview[], MessagePreview[])> messages = SetUp.Client.GetMessageInboxAsync();
         messages.Wait();
         if (messages.Result.Item1.Length > 0)
             Assert.Pass();
@@ -52,9 +47,7 @@ internal class MessagesTests
     [Test]
     public void GetSentMessages()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<MessagePreview[]> messages = Client.GetSentMessagesAsync();
+        Task<MessagePreview[]> messages = SetUp.Client.GetSentMessagesAsync();
         messages.Wait();
         if (messages.Result != null)
             Assert.Pass();
@@ -65,11 +58,9 @@ internal class MessagesTests
     [Test]
     public void GetFullMessage()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
+        Task<(MessagePreview[], MessagePreview[])> messages = SetUp.Client.GetMessageInboxAsync();
         messages.Wait();
-        Task<Message> msg = messages.Result.Item1.First(msg => msg.Subject == "Test").GetFullMessageAsync(Client);
+        Task<Message> msg = messages.Result.Item1.First(msg => msg.Subject == "Test").GetFullMessageAsync(SetUp.Client);
         msg.Wait();
         _ = msg.Result;
         return;
@@ -78,9 +69,7 @@ internal class MessagesTests
     [Test]
     public void GetReceptionPeople()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Dictionary<string, MessagePerson[]>> people = Client.GetMessagePeopleAsync();
+        Task<Dictionary<string, MessagePerson[]>> people = SetUp.Client.GetMessagePeopleAsync();
         people.Wait();
         if (people.Result.Count > 0)
             Assert.Pass();
@@ -91,9 +80,7 @@ internal class MessagesTests
     [Test]
     public void GetStaffFilters()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Dictionary<string, FilterItem[]>> filters = Client.GetStaffSearchFiltersAsync();
+        Task<Dictionary<string, FilterItem[]>> filters = SetUp.Client.GetStaffSearchFiltersAsync();
         filters.Wait();
 
         if (filters.Result.Count > 0)
@@ -105,9 +92,7 @@ internal class MessagesTests
     [Test]
     public void GetSearchedStaffPeople()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<MessagePerson[]> filters = Client.GetStaffFilterSearchResultAsync("", new());
+        Task<MessagePerson[]> filters = SetUp.Client.GetStaffFilterSearchResultAsync("", new());
         filters.Wait();
 
         if (filters.Result.Length > 0)
@@ -119,9 +104,7 @@ internal class MessagesTests
     [Test]
     public void GetDrafts()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<DraftPreview[]> drafts = Client.GetSavedDraftsAsync();
+        Task<DraftPreview[]> drafts = SetUp.Client.GetSavedDraftsAsync();
         drafts.Wait();
         if (drafts.Result != null)
             Assert.Pass();
@@ -132,12 +115,10 @@ internal class MessagesTests
     [Test]
     public void GetReplyForm()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<(MessagePreview[], MessagePreview[])> messages = Client.GetMessageInboxAsync();
+        Task<(MessagePreview[], MessagePreview[])> messages = SetUp.Client.GetMessageInboxAsync();
         messages.Wait();
 
-        Task<Message> drafts = Client.GetReplyFormAsync(messages.Result.Item1[0]);
+        Task<Message> drafts = SetUp.Client.GetReplyFormAsync(messages.Result.Item1[0]);
         drafts.Wait();
         if (drafts.Result != null)
             Assert.Pass();

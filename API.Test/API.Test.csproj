@@ -7,17 +7,19 @@
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <UserSecretsId>40f172d1-13cc-4764-ad12-abaf5bdc1abe</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
     <PackageReference Include="NUnit" Version="4.1.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="NUnit.Analyzers" Version="4.0.1">
+    <PackageReference Include="NUnit.Analyzers" Version="4.1.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="6.0.1">
+    <PackageReference Include="coverlet.collector" Version="6.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -26,10 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\WebUntisAPI.Client\WebUntisAPI.Client.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ExtensionsTests\" />
   </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using static API.Test.AuthentificationTests;
 using SixLabors.ImageSharp;
 using WebUntisAPI.Client.Models;
+using NUnit.Framework;
 
 namespace API.Test;
 
@@ -15,13 +16,11 @@ internal class ProfileTests
     [Test]
     public void GetRecipientProfileImgTest()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Image> imgRender = Client.GetMessagePersonProfileImageAsync(new() { DisplayName = "Test Person" });
+        Task<Image> imgRender = SetUp.Client.GetMessagePersonProfileImageAsync(new() { DisplayName = "Test Person" });
         imgRender.Wait();
         imgRender.Result.SaveAsPng("RenderImg.png");
 
-        Task<Image> imgDownload = Client.GetMessagePersonProfileImageAsync(new() { ImageUrl = new("https://foundations.projectpythia.org/_images/GitHub-logo.png") });     // A Random non square GitHub image i found
+        Task<Image> imgDownload = SetUp.Client.GetMessagePersonProfileImageAsync(new() { ImageUrl = new("https://foundations.projectpythia.org/_images/GitHub-logo.png") });     // A Random non square GitHub image i found
         imgDownload.Wait();
         imgDownload.Result.SaveAsPng("DownloadImg.png");
     }
@@ -29,9 +28,7 @@ internal class ProfileTests
     [Test]
     public void GetSupportedLanguages()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<Dictionary<string, string>> languages = Client.GetAvailableLanguagesAsync();
+        Task<Dictionary<string, string>> languages = SetUp.Client.GetAvailableLanguagesAsync();
         languages.Wait();
 
         if (languages.Result.Count > 0)
@@ -43,9 +40,7 @@ internal class ProfileTests
     [Test]
     public void GetAccountConfiguration()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<AccountConfig> accountConfig = Client.GetAccountConfigAsync();
+        Task<AccountConfig> accountConfig = SetUp.Client.GetAccountConfigAsync();
         accountConfig.Wait();
 
         if (accountConfig.Result is not null)
@@ -57,9 +52,7 @@ internal class ProfileTests
     [Test]
     public void GetGenerallyInformation()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<GeneralAccount> account = Client.GetGenerallyAccountInformationAsync();
+        Task<GeneralAccount> account = SetUp.Client.GetGenerallyAccountInformationAsync();
         account.Wait();
 
         if (account.Result is not null)
@@ -71,9 +64,7 @@ internal class ProfileTests
     [Test]
     public void GetContactDetails()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<(ContactDetails? contact, bool read, bool write)> contact = Client.GetContactDetailsAsync();
+        Task<(ContactDetails? contact, bool read, bool write)> contact = SetUp.Client.GetContactDetailsAsync();
         contact.Wait();
 
         if (contact.Result.read)
@@ -85,9 +76,7 @@ internal class ProfileTests
     [Test]
     public void GetOwnProfileImage()
     {
-        Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
-
-        Task<(Image? image, bool read, bool write)> image = Client.GetOwnProfileImageAsync();
+        Task<(Image? image, bool read, bool write)> image = SetUp.Client.GetOwnProfileImageAsync();
         image.Wait();
 
         image.Result.image.SaveAsPngAsync("ProfileImg.png");       

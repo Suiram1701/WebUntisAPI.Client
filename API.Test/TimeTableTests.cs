@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,45 +17,35 @@ internal class TimetableTests
     [Test]
     public async Task GetTimeGridAsync()
     {
-        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        Timegrid timegrid = await Client.GetTimegridAsync();
+        Timegrid timegrid = await SetUp.Client.GetTimegridAsync();
         Assert.That(timegrid, Is.Not.Null);
     }
 
     [Test]
     public async Task GetSchoolYearsAsync()
     {
-        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        IEnumerable<SchoolYear> schoolYears = await Client.GetSchoolYearsAsync();
+        IEnumerable<SchoolYear> schoolYears = await SetUp.Client.GetSchoolYearsAsync();
         Assert.That(schoolYears.Count(), Is.GreaterThan(0));
     }
 
     [Test]
     public async Task GetCurrentSchoolYearAsync()
     {
-        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        SchoolYear? schoolYear = await Client.GetCurrentSchoolYearAsync();
+        SchoolYear? schoolYear = await SetUp.Client.GetCurrentSchoolYearAsync();
         Assert.That(schoolYear, Is.Not.Null);
     }
 
     [Test]
     public async Task GetHolidaysAsync()
     {
-        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        IEnumerable<Holiday> holidays = await Client.GetHolidaysAsync();
+        IEnumerable<Holiday> holidays = await SetUp.Client.GetHolidaysAsync();
         Assert.That(holidays.Count(), Is.GreaterThan(0));
     }
 
     [Test]
     public async Task GetTimetableAsync()
     {
-        await Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password);
-
-        Timetable timetable = await Client.GetTimetableAsync(new Student() { Id = 3299, CanViewTimetable = true }, new DateOnly(2024, 3, 18));
+        Timetable timetable = await SetUp.Client.GetTimetableAsync(new Student() { Id = 3299, CanViewTimetable = true }, new DateOnly(2024, 3, 18));
         Assert.Multiple(() =>
         {
             Assert.That(timetable.Periods.Count(), Is.GreaterThan(0));

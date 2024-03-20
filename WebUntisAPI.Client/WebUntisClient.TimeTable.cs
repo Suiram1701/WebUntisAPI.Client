@@ -42,7 +42,9 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<Timegrid> GetTimegridAsync(SchoolYear year, CancellationToken ct = default)
     {
-        UriBuilder uriBuilder = new(ServerUrl)
+        ThrowWhenNotAvailable();
+
+        UriBuilder uriBuilder = new(ServerName!)
         {
             Path = "/WebUntis/api/public/timegrid",
             Query = "schoolyearId=" + year.Id
@@ -117,11 +119,13 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<Timetable> GetTimetableAsync(ElementBase element, DateOnly week, CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         if (!element.CanViewTimetable)
             throw new UnauthorizedAccessException($"The current session isn't allowed to view the timetable of {element.Name}");
 
         ElementType type = element.GetElementType();
-        UriBuilder uriBuilder = new(ServerUrl)
+        UriBuilder uriBuilder = new(ServerName!)
         {
             Path = "/WebUntis/api/public/timetable/weekly/data",
             Query = $"elementType={(int)type}&elementId={element.Id}&date={week:yyyy-MM-dd}"
