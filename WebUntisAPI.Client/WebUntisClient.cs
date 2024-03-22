@@ -255,7 +255,7 @@ public partial class WebUntisClient : IDisposable
             string jwtContentPart = Encoding.UTF8.GetString(jwtContentPartB);
             _jwtContent = JObject.Parse(jwtContentPart);
         }
-        return false;
+        return result;
     }
 
     /// <summary>

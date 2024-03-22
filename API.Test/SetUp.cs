@@ -19,7 +19,7 @@ internal class SetUp
 
     static SetUp()
     {
-        Client = new(TimeSpan.FromSeconds(5));
+        Client = new();
 
         Assembly assembly = typeof(SetUp).Assembly;
         Configuration = new ConfigurationBuilder()

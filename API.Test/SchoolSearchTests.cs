@@ -30,7 +30,9 @@ internal class SchoolSearchTests
     [Test]
     public async Task NormalSearchAsync()
     {
-        IEnumerable<School>? schools = await _searcher.SearchAsync("Marie-Curie");
+        string schoolName = SetUp.Configuration.GetSection("untis")["loginName"]!;
+
+        IEnumerable<School>? schools = await _searcher.SearchAsync(schoolName);
         Assert.That(schools?.Count(), Is.GreaterThan(0));
     }
 
@@ -44,21 +46,26 @@ internal class SchoolSearchTests
     [Test]
     public async Task NoSchoolsFoundAsync()
     {
-        IEnumerable<School>? schools = await _searcher.SearchAsync("MMMMMMMMMMMMMMMMMMMMMMMMMMM");
+        IEnumerable<School>? schools = await _searcher.SearchAsync("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
         Assert.That(schools, Is.Empty);
     }
 
     [Test]
     public async Task SearchSchoolByNameAsync()
     {
-        School? school = await _searcher.GetSchoolByNameAsync("Marie-Curie Gym");
+        string schoolName = SetUp.Configuration.GetSection("untis")["loginName"]!;
+
+        School? school = await _searcher.GetSchoolByNameAsync(schoolName);
         Assert.That(school, Is.Not.Null);
     }
 
     [Test]
     public async Task GetSchoolByIdAsync()
     {
-        School? school = await _searcher.GetSchoolByIdAsync(2382100);
+        string schoolIdString = SetUp.Configuration.GetSection("untis")["schoolId"]!;
+        int schoolId = int.Parse(schoolIdString);
+
+        School? school = await _searcher.GetSchoolByIdAsync(schoolId);
         Assert.That(school, Is.Not.Null);
     }
 }
