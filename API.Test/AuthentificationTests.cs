@@ -21,7 +21,9 @@ internal class AuthentificationTests
     [Test]
     public void GetSessionExpiresDateTime()
     {
-        SetUp.Client.GetIssuedAndExpiresDateTime(out DateTimeOffset iat, out DateTimeOffset exp);
+        DateTimeOffset iat = SetUp.Client.GetIssuedTime();
+        DateTimeOffset exp = SetUp.Client.GetExpiresTime();
+
         DateTimeOffset current = DateTimeOffset.Now;
 
         Assert.Multiple(() =>

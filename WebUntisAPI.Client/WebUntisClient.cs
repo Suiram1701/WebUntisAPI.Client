@@ -13,6 +13,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client;
 
@@ -35,6 +37,7 @@ public partial class WebUntisClient : IDisposable
     public string? ServerName { get; private set; }
 
     private string? _jwtToken;
+    private JObject? _jwtContent;
 
     private readonly HttpClient _client;
     private readonly bool _disposeClient;
@@ -181,25 +184,109 @@ public partial class WebUntisClient : IDisposable
     }
 
     /// <summary>
-    /// Get the time where the current session were issued and where it will be expires
+    /// Get the currently signed in user
     /// </summary>
-    /// <param name="issuedAt">The date time where the current session was issued</param>
-    /// <param name="expiresAt">The date time where the current session will be expires. You have to reload the session with <see cref="ReloadSessionAsync(CancellationToken)"/> before this date time</param>
-    /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when the client isn't logged in</exception>
-    public void GetIssuedAndExpiresDateTime(out DateTimeOffset issuedAt, out DateTimeOffset expiresAt)
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The user</returns>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public async Task<IUser> GetSignedInUserAsync(CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
 
-        byte[] jwtContentPartB = Convert.FromBase64String(_jwtToken!.Split('.')[1]);
-        string jwtContentPart = Encoding.UTF8.GetString(jwtContentPartB);
-        JObject jwtContent = JObject.Parse(jwtContentPart);
+        // Determine the type of the user by in the jwt saved 'roles' property
+        string userRoles = _jwtContent!["roles"]!.Value<string>()!;
+        ElementType userType = userRoles.Contains("STUDENT")
+            ? ElementType.Student
+            : ElementType.Teacher;
 
-        long iat = jwtContent["iat"]!.Value<long>();
-        issuedAt = DateTimeOffset.FromUnixTimeSeconds(iat);
+        UriBuilder uriBuilder = new()
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/public/timetable/weekly/pageconfig",
+            Query = $"type={(int)userType}"
+        };
+        string response = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
 
-        long exp = jwtContent["exp"]!.Value<long>();
-        expiresAt = DateTimeOffset.FromUnixTimeSeconds(exp);
+        JToken responseElement = JObject.Parse(response)["data"]!["elements"]![0]!;
+        Type tUser = responseElement["type"]!.Value<int>() switch
+        {
+            (int)ElementType.Teacher => typeof(Teacher),
+            (int)ElementType.Student => typeof(Student),
+            _ => throw new Exception("The in the response specified element type isn't a user.")
+        };
+
+        IUser user = (IUser)responseElement.ToObject(tUser)!;
+        user.CanViewTimetable = true;
+
+        return user;
+    }
+
+    /// <summary>
+    /// Refresh the session
+    /// </summary>
+    /// <remarks>
+    /// Until this action was successfully ended no request should made
+    /// </remarks>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>A value that indicates whether the reload was successful (when <see langword="false"/> it isn't possible to determine the specific error)</returns>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    public async Task<bool> ReloadSessionAsync(CancellationToken ct = default)
+    {
+        string response = await InternalAPIRequestAsync("/WebUntis/api/token/new", ct);
+
+        // determine whether a new jwt was returned
+        string[] jwtParts = response.Split('.');
+        bool result = jwtParts.Length == 3
+            && jwtParts.Take(2).All(p => p.StartsWith("ey"));
+
+        if (result)
+        {
+            _jwtToken = response;
+
+            // Parse the returned jwt in preparation for other methods
+            byte[] jwtContentPartB = Convert.FromBase64String(_jwtToken!.Split('.')[1]);
+            string jwtContentPart = Encoding.UTF8.GetString(jwtContentPartB);
+            _jwtContent = JObject.Parse(jwtContentPart);
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Get the time where the current session were issued
+    /// </summary>
+    /// <returns>The date time where the current session was issued</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public DateTimeOffset GetIssuedTime()
+    {
+        ThrowWhenNotAvailable();
+
+        long iat = _jwtContent!["iat"]!.Value<long>();
+        return DateTimeOffset.FromUnixTimeSeconds(iat);
+    }
+
+    /// <summary>
+    /// Get the time where the current session will be expired
+    /// </summary>
+    /// <remarks>
+    /// You have to reload the session with <see cref="ReloadSessionAsync(CancellationToken)"/> before the returned date time
+    /// </remarks>
+    /// <returns>The date time where the current session will be expired</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    public DateTimeOffset GetExpiresTime()
+    {
+        ThrowWhenNotAvailable();
+
+        long exp = _jwtContent!["exp"]!.Value<long>();
+        return DateTimeOffset.FromUnixTimeSeconds(exp);
     }
 
     /// <summary>
@@ -270,7 +357,7 @@ public partial class WebUntisClient : IDisposable
         return responseObject["result"];
     }
 
-    internal async Task<string> InternalAPIRequestAsync(string path, CancellationToken ct)
+    private async Task<string> InternalAPIRequestAsync(string path, CancellationToken ct)
     {
         ThrowWhenNotAvailable();
 
@@ -293,7 +380,7 @@ public partial class WebUntisClient : IDisposable
         return await InternalAPIRequestAsync(request, ct);
     }
 
-    internal async Task<string> InternalAPIRequestAsync(HttpRequestMessage request, CancellationToken ct)
+    private async Task<string> InternalAPIRequestAsync(HttpRequestMessage request, CancellationToken ct)
     {
         ThrowWhenNotAvailable();
 
@@ -320,29 +407,6 @@ public partial class WebUntisClient : IDisposable
         return responseString;
     }
 
-    /// <summary>
-    /// Refresh the session
-    /// </summary>
-    /// <remarks>
-    /// Until this action was successfully ended no request should made
-    /// </remarks>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>A value that indicates whether the reload was successful (when <see langword="false"/> it isn't possible to determine the specific error)</returns>
-    /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-    public async Task<bool> ReloadSessionAsync(CancellationToken ct = default)
-    {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/token/new", ct);
-
-        // determine whether a new jwt was returned
-        string[] jwtParts = response.Split('.');
-        bool result = jwtParts.Length == 3
-            && jwtParts.Take(2).All(p => p.StartsWith("ey"));
-
-        if (result)
-            _jwtToken = response;
-        return result;
-    }
-
     private void ThrowWhenNotAvailable()
     {
         // Check for disposing
@@ -363,7 +427,9 @@ public partial class WebUntisClient : IDisposable
         LoggedIn = false;
         ServerName = null;
         _jwtToken = null;
+        _jwtContent = null;
 
+        // Clear the cookies of the webuntis domain when its possible
         FieldInfo iHandler = typeof(HttpMessageInvoker).GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance)!;
         HttpMessageHandler? handler = iHandler.GetValue(_client) as HttpMessageHandler;
 

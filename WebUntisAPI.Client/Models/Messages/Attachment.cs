@@ -43,7 +43,7 @@ namespace WebUntisAPI.Client.Models.Messages
         /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
         public async Task DownloadContentAsStreamAsync(WebUntisClient client, Stream targetStream, TimeSpan timeout, IProgress<double> progress = null, CancellationToken ct = default)
         {
-            string storageResponseString = await client.InternalAPIRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
+            string storageResponseString = "";//await client.InternalAPIRequestAsync($"/WebUntis/api/rest/view/v1/messages/{Id}/attachmentstorageurl", ct);
 
             JObject data = JObject.Parse(storageResponseString);
             JArray headerArray = data.Value<JArray>("additionalHeaders");

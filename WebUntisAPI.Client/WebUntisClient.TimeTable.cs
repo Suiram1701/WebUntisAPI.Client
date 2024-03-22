@@ -44,8 +44,10 @@ public partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        UriBuilder uriBuilder = new(ServerName!)
+        UriBuilder uriBuilder = new()
         {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
             Path = "/WebUntis/api/public/timegrid",
             Query = "schoolyearId=" + year.Id
         };
@@ -125,8 +127,10 @@ public partial class WebUntisClient
             throw new UnauthorizedAccessException($"The current session isn't allowed to view the timetable of {element.Name}");
 
         ElementType type = element.GetElementType();
-        UriBuilder uriBuilder = new(ServerName!)
+        UriBuilder uriBuilder = new()
         {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
             Path = "/WebUntis/api/public/timetable/weekly/data",
             Query = $"elementType={(int)type}&elementId={element.Id}&date={week:yyyy-MM-dd}"
         };

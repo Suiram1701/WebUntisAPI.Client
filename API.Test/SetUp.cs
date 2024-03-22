@@ -15,12 +15,14 @@ internal class SetUp
 {
     public static WebUntisClient Client { get; private set; }
 
-    private readonly IConfiguration _configuration;
+    public static IConfiguration Configuration { get; private set; }
 
-    public SetUp()
+    static SetUp()
     {
+        Client = new(TimeSpan.FromSeconds(5));
+
         Assembly assembly = typeof(SetUp).Assembly;
-        _configuration = new ConfigurationBuilder()
+        Configuration = new ConfigurationBuilder()
             .AddUserSecrets(assembly)
             .Build();
     }
@@ -28,13 +30,12 @@ internal class SetUp
     [OneTimeSetUp]
     public async Task SetUpAsync()
     {
-        IConfigurationSection untisConfig = _configuration.GetSection("untis");
+        IConfigurationSection untisConfig = Configuration.GetSection("untis");
         string serverName = untisConfig["serverName"]!;
         string loginName = untisConfig["loginName"]!;
         string username = untisConfig["username"]!;
         string password = untisConfig["password"]!;
 
-        Client = new(TimeSpan.FromSeconds(5));
         bool success = await Client.LoginAsync(serverName, loginName, username, password);
 
         if (!success)

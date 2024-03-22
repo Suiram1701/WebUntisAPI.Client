@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client;
 using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace API.Test;
 
@@ -14,38 +15,11 @@ namespace API.Test;
 internal class UserTest
 {
     [Test]
-    [Order(1)]
-    public void GetStudents()
+    public async Task GetCurrentPersonAsync()
     {
-        Task<Student[]> students = SetUp.Client.GetStudentsAsync();
-        students.Wait();
-        if (students.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
-    }
+        IUser user = await SetUp.Client.GetSignedInUserAsync();
 
-    [Test]
-    [Order(2)]
-    public void GetTeachers()
-    {
-        Task<Teacher[]> teachers = SetUp.Client.GetTeachersAsync();
-        teachers.Wait();
-        if (teachers.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
-    }
-
-    [Test]
-    [Order(3)]
-    public void GetPersonId()
-    {
-        //Task<int> personId = SetUp.Client.GetPersonIdAsync(Client.User.ForeName, SetUp.Client.User.LongName, SetUp.Client.UserType ?? UserType.Student);
-        //personId.Wait();
-        //if (personId.Result == SetUp.Client.User.Id)
-        //    Assert.Pass();
-        //else
-        //    Assert.Fail();
+        string realUsername = SetUp.Configuration.GetSection("untis")["username"]!;
+        Assert.That(user.Name, Is.EqualTo(realUsername));
     }
 }

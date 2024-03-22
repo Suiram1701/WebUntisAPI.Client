@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Interfaces;
 
 /// <summary>
 /// Student or teacher
@@ -20,7 +20,13 @@ public interface IUser
     public string Name { get; set; }
 
     /// <summary>
-    /// The long name of the user
+    /// the forename of the user
+    /// </summary>
+    [JsonProperty("forename")]
+    public string ForeName { get; set; }
+
+    /// <summary>
+    /// The last name of the user
     /// </summary>
     [JsonProperty("longName")]
     public string LongName { get; set; }
@@ -36,4 +42,10 @@ public interface IUser
     /// </summary>
     [JsonProperty("alternatename")]
     public string Alternatename { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user that requeted this instance is allowed to request the timetable for this element
+    /// </summary>
+    [JsonProperty("canViewTimetable")]
+    public bool CanViewTimetable { get; set; }
 }
