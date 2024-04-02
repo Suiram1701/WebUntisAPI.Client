@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client.Converters;
 
@@ -21,7 +22,7 @@ internal class TimetableJsonConverter : JsonConverter<Timetable>
         int userId = data["elementIds"]!.First!.Value<int>();
         IEnumerable<Period> periods = data["elementPeriods"]![userId.ToString()]!.ToObject<IEnumerable<Period>>()!;
 
-        Collection<ElementBase> elements = new();
+        Collection<IElement> elements = new();
         foreach (JToken elementToken in data["elements"]!)
         {
             ElementType type = (ElementType)elementToken["type"]!.Value<int>()!;
@@ -35,7 +36,7 @@ internal class TimetableJsonConverter : JsonConverter<Timetable>
                 _ => throw new NotImplementedException($"The element type {type} isn't implemented.")
             };
 
-            elements.Add((ElementBase)elementToken.ToObject(targetType)!);
+            elements.Add((IElement)elementToken.ToObject(targetType)!);
         }
 
         long lastImportTimestamp = result["lastImportTimestamp"]!.Value<long>();

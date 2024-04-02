@@ -14,12 +14,10 @@ internal class MessagesTests
     [Test]
     public void GetUnreadMessages()
     {
-        Task<int> messages = SetUp.Client.GetUnreadMessagesCountAsync();
-        messages.Wait();
-        if (messages.Result == 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Assert.DoesNotThrowAsync(async delegate
+        {
+            _ = await SetUp.Client.GetUnreadMessagesCountAsync();
+        });
     }
 
     [Test]

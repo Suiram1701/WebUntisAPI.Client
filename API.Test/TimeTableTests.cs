@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 using static API.Test.AuthentificationTests;
 
 namespace API.Test;
@@ -45,7 +46,9 @@ internal class TimetableTests
     [Test]
     public async Task GetTimetableAsync()
     {
-        Timetable timetable = await SetUp.Client.GetTimetableAsync(new Student() { Id = 3299, CanViewTimetable = true }, new DateOnly(2024, 3, 18));
+        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        Timetable timetable = await SetUp.Client.GetTimetableAsync(user, new DateOnly(2024, 3, 18));
+
         Assert.Multiple(() =>
         {
             Assert.That(timetable.Periods.Count(), Is.GreaterThan(0));

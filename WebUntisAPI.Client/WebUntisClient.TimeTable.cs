@@ -6,8 +6,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
-using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client;
 
@@ -119,7 +120,7 @@ public partial class WebUntisClient
     /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<Timetable> GetTimetableAsync(ElementBase element, DateOnly week, CancellationToken ct = default)
+    public async Task<Timetable> GetTimetableAsync(IElement element, DateOnly week, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
 

@@ -69,11 +69,15 @@ internal class ProfileTests
     }
 
     [Test]
-    public void GetOwnProfileImage()
+    public async Task GetProfileImageAsync()
     {
-        Task<(Image? image, bool read, bool write)> image = SetUp.Client.GetOwnProfileImageAsync();
-        image.Wait();
+        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        ProfileImageInfo info = await SetUp.Client.GetProfileImageAsync(user, Stream.Null);
 
-        image.Result.image.SaveAsPngAsync("ProfileImg.png");       
+        Assert.Multiple(() =>
+        {
+            Assert.That(info.Permissions.Read);
+            Assert.That(info.Permissions.Write);
+        });
     }
 }

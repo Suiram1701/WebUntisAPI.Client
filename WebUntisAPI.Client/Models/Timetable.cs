@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converters;
-using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client.Models;
 
@@ -23,7 +23,7 @@ public class Timetable
     /// <summary>
     /// All elements like classes, subjects, teachers and rooms that are used by <see cref="Periods"/>
     /// </summary>
-    public IEnumerable<ElementBase> Elements { get; }
+    public IEnumerable<IElement> Elements { get; }
 
     /// <summary>
     /// The timestamp of the last update
@@ -36,7 +36,7 @@ public class Timetable
     /// <param name="periods">The periods</param>
     /// <param name="elements">The elements</param>
     /// <param name="lastImportTimestamp">The last import timestamp</param>
-    public Timetable(IEnumerable<Period> periods, IEnumerable<ElementBase> elements, DateTimeOffset lastImportTimestamp)
+    public Timetable(IEnumerable<Period> periods, IEnumerable<IElement> elements, DateTimeOffset lastImportTimestamp)
     {
         Periods = periods;
         Elements = elements;

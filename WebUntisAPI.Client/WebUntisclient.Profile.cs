@@ -12,6 +12,12 @@ using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Exceptions;
 using System.Collections.ObjectModel;
 using WebUntisAPI.Client.Models.Interfaces;
+using System.IO;
+using WebUntisAPI.Client.Models.Elements;
+using WebUntisAPI.Client.Extensions;
+
+
+
 
 #if NET47 || NET481
 using System.Drawing.Drawing2D;
@@ -248,46 +254,90 @@ public partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get your own profile image
+    /// Get the profile image of the specifed user
     /// </summary>
     /// <remarks>
-    /// If you have not specified a profile picture, the image would be null
+    /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif
     /// </remarks>
+    /// <param name="user">The user of the image to get</param>
+    /// <param name="stream">The stream to write the image to</param>
+    /// <param name="progress">Provides a functionality to report the download progress of the image</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>If canRead is false, the image is <see langword="null"/></returns>
+    /// <returns>
+    /// <c>permissions</c> are the permissions the signed in user have to the image (when <see cref="AccessPermissions.Read"/> is <c>false</c> nothing will wrote to the <paramref name="stream"/> and <c>hasImage</c> will be <c>false</c>). 
+    /// <c>hasImage</c> indicates whether the user has a profile image.
+    /// </returns>
     /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
     /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
     /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-#if NET47 || NET481
-        public async Task<(Image image, bool canRead, bool canWrite)> GetOwnProfileImageAsync(CancellationToken ct = default)
-#elif NET6_0_OR_GREATER
-    public async Task<(Image image, bool canRead, bool canWrite)> GetOwnProfileImageAsync(CancellationToken ct = default)
-#endif
+    public async Task<ProfileImageInfo> GetProfileImageAsync(IUser user, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/image?type={(int)UserType}&id={User.Id}", ct);
-        JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
+        if (!stream.CanWrite)
+            throw new InvalidOperationException("The stream have to be writable.");
 
-        if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
-            return (null, false, data["write"].Value<bool>());
+        UriBuilder uriBuilder = new()
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/profile/image",
+            Query = $"type={(int)user.GetElementType()}&id={user.Id}"
+        };
+        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
 
-        HttpRequestMessage request = new HttpRequestMessage { Method = HttpMethod.Get };
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _jwtToken);
+        JToken dataToken = JObject.Parse(responseString)["data"]!;
+        int categoryId = dataToken["categoryId"]!.Value<int>()!;
+        int imageId = dataToken["imageId"]!.Value<int>()!;
+        AccessPermissions permissions = dataToken.ToObject<AccessPermissions>()!;
 
-        if (data["imageId"].Value<int>() < 0)     // Return the default image when the image isn't set
-            return (null, true, data["write"].Value<bool>());
+        if (imageId == -1)     // user has no image
+        {
+            return new()
+            {
+                Permissions = permissions,
+                HasImage = false,
+                ImageMimeType = null
+            };
+        }
 
-        request.RequestUri = new Uri(ServerName + $"/WebUntis/image.do?cat={data["categoryId"].Value<int>()}&id={data["imageId"].Value<int>()}");
-        HttpResponseMessage response = await _client.SendAsync(request, ct);
+        if (!permissions.Read)     // user has no access
+        {
+            return new()
+            {
+                Permissions = permissions,
+                HasImage = true,
+                ImageMimeType = null
+            };
+        }
+
+        UriBuilder imageUriBuilder = new()
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/image.do",
+            Query = $"cat={categoryId}&id={imageId}"
+        };
+        using HttpResponseMessage response = await _client.GetAsync(imageUriBuilder.ToString(), HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
-        // Check cancellation token
-        if (ct.IsCancellationRequested)
-            return default;
-#if NET47 || NET481
-            Image image = Image.FromStream(await response.Content.ReadAsStreamAsync());
-#elif NET6_0_OR_GREATER
-        Image image = await Image.LoadAsync(await response.Content.ReadAsStreamAsync(ct), ct);
-#endif
-        return (image, true, data["write"].Value<bool>());
+        long totalBytes = response.Content.Headers.ContentLength ?? -1L;
+        long totalReceivedBytes = 0L;
+        int bytesRead = 0;
+
+        Memory<byte> buffer = new byte[4096];
+        Stream responseStream = await response.Content.ReadAsStreamAsync(ct);
+
+        while ((bytesRead = await responseStream.ReadAsync(buffer, ct)) > 0)
+        {
+            await stream.WriteAsync(buffer[..bytesRead], ct);
+
+            totalReceivedBytes += bytesRead;
+            progress?.Report((double)totalReceivedBytes / totalBytes * 100d);
+        }
+        return new()
+        {
+            Permissions = permissions,
+            HasImage = true,
+            ImageMimeType = response.Content.Headers.ContentType
+        };
     }
 }
