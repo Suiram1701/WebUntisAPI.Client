@@ -235,6 +235,8 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetContactDetailsAsync(IUser user, CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         UriBuilder uriBuilder = new()
         {
             Scheme = Uri.UriSchemeHttps,
@@ -272,6 +274,8 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
     public async Task<ProfileImageInfo> GetProfileImageAsync(IUser user, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         if (!stream.CanWrite)
             throw new InvalidOperationException("The stream have to be writable.");
 

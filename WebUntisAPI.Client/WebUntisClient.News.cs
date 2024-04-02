@@ -29,7 +29,7 @@ public partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get all news for of the school for the current date
+    /// Get all news of the school for the current date
     /// </summary>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The new at the school for the requested day</returns>
@@ -41,7 +41,7 @@ public partial class WebUntisClient
         GetNewsFeedAsync(DateOnly.FromDateTime(DateTime.Now), ct);
 
     /// <summary>
-    /// Get all news for of the school for the day
+    /// Get all news of the school for the specified day
     /// </summary>
     /// <param name="date">Date to get the news</param>
     /// <param name="ct">Cancellation token</param>
