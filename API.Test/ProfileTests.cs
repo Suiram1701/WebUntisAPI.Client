@@ -7,6 +7,7 @@ using static API.Test.AuthentificationTests;
 using SixLabors.ImageSharp;
 using WebUntisAPI.Client.Models;
 using NUnit.Framework;
+using WebUntisAPI.Client.Models.Interfaces;
 
 namespace API.Test;
 
@@ -40,15 +41,10 @@ internal class ProfileTests
     }
 
     [Test]
-    public void GetAccountConfiguration()
+    public async Task GetAccountConfigAsync()
     {
-        Task<AccountConfig> accountConfig = SetUp.Client.GetAccountConfigAsync();
-        accountConfig.Wait();
-
-        if (accountConfig.Result is not null)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        AccountConfig accountConfig = await SetUp.Client.GetAccountConfigAsync();
+        Assert.That(accountConfig, Is.Not.Null);
     }
 
     [Test]
@@ -59,15 +55,17 @@ internal class ProfileTests
     }
 
     [Test]
-    public void GetContactDetails()
+    public async Task GetContactDetailsAsync()
     {
-        Task<(ContactDetails? contact, bool read, bool write)> contact = SetUp.Client.GetContactDetailsAsync();
-        contact.Wait();
+        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        (AccessPermissions permissions, ContactDetails? contactDetails) = await SetUp.Client.GetContactDetailsAsync(user);
 
-        if (contact.Result.read)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Assert.Multiple(() =>
+        {
+            Assert.That(permissions.Read);
+            Assert.That(permissions.Write);
+            Assert.That(contactDetails, Is.Not.Null);
+        });
     }
 
     [Test]

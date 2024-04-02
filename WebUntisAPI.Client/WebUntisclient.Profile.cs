@@ -11,6 +11,7 @@ using Newtonsoft.Json.Linq;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Exceptions;
 using System.Collections.ObjectModel;
+using WebUntisAPI.Client.Models.Interfaces;
 
 #if NET47 || NET481
 using System.Drawing.Drawing2D;
@@ -167,10 +168,10 @@ public partial class WebUntisClient
     /// Get all by WebUntis supported languages
     /// </summary>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The languages (<see cref="KeyValuePair{TKey, TValue}.Key"/> is the WebUntis internal name of the language and <see cref="KeyValuePair{TKey, TValue}.Value"/> is the full name)</returns>
-    /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
-    /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<WebUntisLanguage>> GetWebUntisLanguagesAsync(CancellationToken ct = default)
     {
         string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/languages", ct);
@@ -180,17 +181,20 @@ public partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get the account configuration
+    /// Get the account configuration for a user (the configuration consist only out of one property)
     /// </summary>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The account configuration</returns>
-    /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
-    /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
     {
         string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/config", ct);
-        return JObject.Parse(responseString)["data"].ToObject<AccountConfig>();
+
+        JToken dataToken = JObject.Parse(responseString)["data"]!;
+        return dataToken.ToObject<AccountConfig>()!;
     }
 
     /// <summary>
@@ -214,23 +218,33 @@ public partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get the contact details for this account
+    /// Get the contact details for the specified account
     /// </summary>
+    /// <param name="user">The user whose <see cref="ContactDetails"/> should be requested</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>If canRead is false, the contact is <see langword="null"/></returns>
-    /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
-    /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
-    public async Task<(ContactDetails contact, bool canRead, bool canWrite)> GetContactDetailsAsync(CancellationToken ct = default)
+    /// <returns>The contact details and the permissions the signed in user has to the details</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetContactDetailsAsync(IUser user, CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/contactdetails?personId={User.Id}&isRequestForStudent=false", ct);
-        JObject data = JObject.Parse(responseString)["data"].Value<JObject>();
+        UriBuilder uriBuilder = new()
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/profile/contactdetails",
+            Query = $"personId={user.Id}&isRequestForStudent={false}"     // idk why isRequestForStudent must set to false also when the request where send by a student but when I set it to true I get always 'wrong' data
+        };
+        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        JToken dataToken = JObject.Parse(responseString)["data"]!;
 
-        if (!data["read"].Value<bool>())     // Return null when you do not have a read permission
-            return (null, false, data["write"].Value<bool>());
+        AccessPermissions permissions = dataToken.ToObject<AccessPermissions>()!;
+        if (!permissions.Read)
+            return (permissions, null);
 
-        ContactDetails contact = data["address"].ToObject<ContactDetails>();
-        return (contact, data["read"].Value<bool>(), data["write"].Value<bool>());
+        ContactDetails contactDetails = dataToken["address"]!.ToObject<ContactDetails>()!;
+        return (permissions, contactDetails);
     }
 
     /// <summary>
