@@ -10,7 +10,7 @@ using WebUntisAPI.Client.Models.Elements;
 namespace API.Test;
 
 [TestFixture]
-internal class TeachingTests
+internal class NewsTests
 {
     [Test]
     public async Task GetUnreadNewsAsync()

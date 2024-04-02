@@ -17,11 +17,11 @@ public class NewsMessage
     /// The involved subject
     /// </summary>
     [JsonProperty("subject")]
-    public string Subject { get; set; }
+    public string Subject { get; set; } = string.Empty;
 
     /// <summary>
     /// The normal text of the news (<![CDATA[<br>]]> or \n is used for line breaks)
     /// </summary>
     [JsonProperty("text")]
-    public string Text { get; set; }
+    public string Text { get; set; } = string.Empty;
 }

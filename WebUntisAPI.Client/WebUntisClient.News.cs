@@ -61,8 +61,8 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/public/news/newsWidgetData",
             Query = $"date={date:yyyyMMdd}"
         };
-
         string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+
         return JObject.Parse(responseString)!.GetValue("data")!.ToObject<NewsWidget>()!;
     }
 }

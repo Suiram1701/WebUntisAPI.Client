@@ -26,15 +26,17 @@ internal class ProfileTests
     }
 
     [Test]
-    public void GetSupportedLanguages()
+    public async Task GetSupportedLanguagesAsync()
     {
-        Task<Dictionary<string, string>> languages = SetUp.Client.GetAvailableLanguagesAsync();
-        languages.Wait();
+        IEnumerable<WebUntisLanguage> languages = await SetUp.Client.GetWebUntisLanguagesAsync();
 
-        if (languages.Result.Count > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Assert.Multiple(() =>
+        {
+            Assert.That(languages.Count(), Is.GreaterThan(1));
+            Assert.That(languages.Select(l => l.Key), Is.Unique);
+            Assert.That(languages.Select(l => l.Name), Is.Unique);
+            Assert.That(languages.Select(l => l.TryGetCulture(out _)), Is.All.True);
+        });
     }
 
     [Test]
@@ -50,15 +52,10 @@ internal class ProfileTests
     }
 
     [Test]
-    public void GetGenerallyInformation()
+    public async Task GetGeneralInfoAsync()
     {
-        Task<GeneralAccount> account = SetUp.Client.GetGenerallyAccountInformationAsync();
-        account.Wait();
-
-        if (account.Result is not null)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        GeneralAccountInfo accountInfo = await SetUp.Client.GetGeneralAccountInfoAsync();
+        Assert.That(accountInfo, Is.Not.Null);
     }
 
     [Test]

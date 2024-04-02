@@ -42,7 +42,7 @@ internal class AuthentificationTests
     }
 
     [Test]
-    public void GetSessionExpiresDateTime()
+    public void GetSessionIatExp()
     {
         DateTimeOffset iat = SetUp.Client.GetIssuedTime();
         DateTimeOffset exp = SetUp.Client.GetExpiresTime();
