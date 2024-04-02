@@ -75,7 +75,7 @@ public class WebUntisLanguage
     {
         bool success = TryGetCulture(out CultureInfo? culture);
         if (!success)
-            throw new FormatException("The speicifed key isn't in a culture code valid format.");
+            throw new FormatException("The specified key isn't in a culture code valid format.");
 
         return culture!;
     }
