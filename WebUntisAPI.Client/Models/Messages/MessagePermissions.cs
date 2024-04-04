@@ -1,58 +1,59 @@
 ﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
-namespace WebUntisAPI.Client.Models.Messages
+namespace WebUntisAPI.Client.Models.Messages;
+
+/// <summary>
+/// Information about the permissions you have in context of messages
+/// </summary>
+public class MessagePermissions
 {
     /// <summary>
-    /// Information about the permissions you have for messages
+    /// Represents the types of users you're allowed to send messages to
     /// </summary>
-    public class MessagePermissions
-    {
-        /// <summary>
-        /// To wich person types you could send the message
-        /// </summary>
-        [JsonProperty("recipientOptions")]
-        public string[] RecipientOptions { get; set; }
+    [JsonProperty("recipientOptions")]
+    public IEnumerable<string> RecipientOptions { get; set; } = Array.Empty<string>();
 
-        /// <summary>
-        /// allow request read confirmation
-        /// </summary>
-        [JsonProperty("allowRequestReadConfirmation")]
-        public bool AllowRequestReadConfirmation { get; set; }
+    /// <summary>
+    /// Indicates whether you're allowed to request a read confirmation from the recipients
+    /// </summary>
+    [JsonProperty("allowRequestReadConfirmation")]
+    public bool AllowRequestReadConfirmation { get; set; }
 
-        /// <summary>
-        /// How much recipient are listed in the search result
-        /// </summary>
-        [JsonProperty("recipientSearchMaxResult")]
-        public int RecipientSearchMaxResult { get; set; }
+    /// <summary>
+    /// The count of recipients listed in the search list
+    /// </summary>
+    [JsonProperty("recipientSearchMaxResult")]
+    public int RecipientSearchMaxResult { get; set; }
 
-        /// <summary>
-        /// Can you save drafts
-        /// </summary>
-        [JsonProperty("showDraftsTab")]
-        public bool ShowDraftsTab { get; set; }
+    /// <summary>
+    /// Indicates whether you're allowed to see the drafts tab
+    /// </summary>
+    [JsonProperty("showDraftsTab")]
+    public bool ShowDraftsTab { get; set; }
 
-        /// <summary>
-        /// Can you send messages
-        /// </summary>
-        [JsonProperty("showSentTab")]
-        public bool ShowSentTab { get; set; }
+    /// <summary>
+    /// Indicates whether you're allowed to see the sent tab
+    /// </summary>
+    [JsonProperty("showSentTab")]
+    public bool ShowSentTab { get; set; }
 
-        /// <summary>
-        /// Can you forbid replies of a message
-        /// </summary>
-        [JsonProperty("canForbidReplies")]
-        public bool CanForbidReplies { get; set; }
+    /// <summary>
+    /// Indicates whether you're allowed to forbid the recipients to reply the message
+    /// </summary>
+    [JsonProperty("canForbidReplies")]
+    public bool CanForbidReplies { get; set; }
 
-        /// <summary>
-        /// The maximum size of a file you could attach to a message in bytes
-        /// </summary>
-        [JsonProperty("maxFileSize")]
-        public long MaxFileSize { get; set; }
+    /// <summary>
+    /// The maximum size in bytes of each file attached to a message
+    /// </summary>
+    [JsonProperty("maxFileSize")]
+    public long MaxFileSize { get; set; }
 
-        /// <summary>
-        /// The maximum count of files you could attach to one message
-        /// </summary>
-        [JsonProperty("maxFileCount")]
-        public int MaxFileCount { get; set; }
-    }
+    /// <summary>
+    /// The maximum count of files you're allowed to attach to a message
+    /// </summary>
+    [JsonProperty("maxFileCount")]
+    public int MaxFileCount { get; set; }
 }

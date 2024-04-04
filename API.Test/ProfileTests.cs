@@ -15,18 +15,6 @@ namespace API.Test;
 internal class ProfileTests
 {
     [Test]
-    public void GetRecipientProfileImgTest()
-    {
-        Task<Image> imgRender = SetUp.Client.GetMessagePersonProfileImageAsync(new() { DisplayName = "Test Person" });
-        imgRender.Wait();
-        imgRender.Result.SaveAsPng("RenderImg.png");
-
-        Task<Image> imgDownload = SetUp.Client.GetMessagePersonProfileImageAsync(new() { ImageUrl = new("https://foundations.projectpythia.org/_images/GitHub-logo.png") });     // A Random non square GitHub image i found
-        imgDownload.Wait();
-        imgDownload.Result.SaveAsPng("DownloadImg.png");
-    }
-
-    [Test]
     public async Task GetSupportedLanguagesAsync()
     {
         IEnumerable<WebUntisLanguage> languages = await SetUp.Client.GetWebUntisLanguagesAsync();

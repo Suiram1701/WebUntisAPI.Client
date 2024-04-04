@@ -1,22 +1,23 @@
 ﻿using Newtonsoft.Json;
+using System.Diagnostics;
 
-namespace WebUntisAPI.Client.Models.Messages
+namespace WebUntisAPI.Client.Models.Messages;
+
+/// <summary>
+/// A filter item that can applied to a staff search
+/// </summary>
+[DebuggerDisplay("{Name,nq}")]
+public struct FilterItem
 {
     /// <summary>
-    /// A filter item that can applied to a staff search
+    /// The id of this filter item
     /// </summary>
-    public struct FilterItem
-    {
-        /// <summary>
-        /// The id of this filter item
-        /// </summary>
-        [JsonProperty("referenceId")]
-        public int ReferenceId { get; set; }
+    [JsonProperty("referenceId")]
+    public int ReferenceId { get; set; }
 
-        /// <summary>
-        /// The displayed name of this filter item
-        /// </summary>
-        [JsonProperty("name")]
-        public string Name { get; set; }
-    }
+    /// <summary>
+    /// The displayed name of this filter item
+    /// </summary>
+    [JsonProperty("name")]
+    public string Name { get; set; }
 }

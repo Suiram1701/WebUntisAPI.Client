@@ -21,14 +21,15 @@ internal class MessagesTests
     }
 
     [Test]
-    public void GetMessagePermissions()
+    public async Task GetMessagePermissionsAsync()
     {
-        Task<MessagePermissions> permissions = SetUp.Client.GetMessagePermissionsAsync();
-        permissions.Wait();
-        if (permissions.Result != null)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        MessagePermissions permissions = await SetUp.Client.GetMessagePermissionsAsync();
+        Assert.Multiple(() =>
+        {
+            Assert.That(permissions.ShowSentTab);
+            Assert.That(permissions.ShowDraftsTab);
+            Assert.That(permissions.MaxFileSize, Is.GreaterThan(0L));
+        });
     }
 
     [Test]
@@ -65,38 +66,39 @@ internal class MessagesTests
     }
 
     [Test]
-    public void GetReceptionPeople()
+    public async Task GetTeacherRecipientsAsync()
     {
-        Task<Dictionary<string, MessagePerson[]>> people = SetUp.Client.GetMessagePeopleAsync();
-        people.Wait();
-        if (people.Result.Count > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Dictionary<string, IEnumerable<MessagePerson>> persons = await SetUp.Client.GetTeacherRecipientsAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(persons.Select(kv => kv.Key), Is.Unique.And.Not.Empty);
+            Assert.That(persons.Select(kv => kv.Value.Select(mp => mp.Id)), Is.All.Unique);
+        });
     }
 
     [Test]
-    public void GetStaffFilters()
+    public async Task GetStaffRecipientsFiltersAsync()
     {
-        Task<Dictionary<string, FilterItem[]>> filters = SetUp.Client.GetStaffSearchFiltersAsync();
-        filters.Wait();
+        Dictionary<string, IEnumerable<FilterItem>> filters = await SetUp.Client.GetStaffRecipientsSearchFiltersAsync();
 
-        if (filters.Result.Count > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Assert.Multiple(() =>
+        {
+            Assert.That(filters.Select(kv => kv.Key), Is.Unique.And.Not.Empty);
+            Assert.That(filters.Select(kv => kv.Value.Select(f => f.ReferenceId)), Is.All.Unique);
+        });
     }
 
     [Test]
-    public void GetSearchedStaffPeople()
+    public async Task GetStaffRecipientsAsync()
     {
-        Task<MessagePerson[]> filters = SetUp.Client.GetStaffFilterSearchResultAsync("", new());
-        filters.Wait();
+        IEnumerable<MessagePerson> people = await SetUp.Client.GetStaffRecipientsAsync(null);
 
-        if (filters.Result.Length > 0)
-            Assert.Pass();
-        else
-            Assert.Fail();
+        Assert.Multiple(() =>
+        {
+            Assert.That(people.Count(), Is.GreaterThan(0));
+            Assert.That(people.Select(p => p.Id), Is.Unique);
+        });
     }
 
     [Test]
