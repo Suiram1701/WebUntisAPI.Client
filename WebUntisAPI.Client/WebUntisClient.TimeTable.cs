@@ -125,7 +125,7 @@ public partial class WebUntisClient
         ThrowWhenNotAvailable();
 
         if (!element.CanViewTimetable)
-            throw new UnauthorizedAccessException($"The current session isn't allowed to view the timetable of {element.Name}");
+            throw new InvalidOperationException($"The current session isn't allowed to view the timetable of {element.Name}");
 
         ElementType type = element.GetElementType();
         UriBuilder uriBuilder = new()

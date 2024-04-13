@@ -170,23 +170,9 @@ public partial class WebUntisClient
             Path = "/WebUntis/image.do",
             Query = $"cat={categoryId}&id={imageId}"
         };
-        using HttpResponseMessage response = await _client.GetAsync(imageUriBuilder.ToString(), HttpCompletionOption.ResponseHeadersRead, ct);
+        using HttpResponseMessage response = await _client.GetWithProgressAsync(imageUriBuilder.Uri, stream, progress, ct: ct);
         response.EnsureSuccessStatusCode();
 
-        long totalBytes = response.Content.Headers.ContentLength ?? -1L;
-        long totalReceivedBytes = 0L;
-        int bytesRead = 0;
-
-        Memory<byte> buffer = new byte[4096];
-        Stream responseStream = await response.Content.ReadAsStreamAsync(ct);
-
-        while ((bytesRead = await responseStream.ReadAsync(buffer, ct)) > 0)
-        {
-            await stream.WriteAsync(buffer[..bytesRead], ct);
-
-            totalReceivedBytes += bytesRead;
-            progress?.Report((double)totalReceivedBytes / totalBytes * 100d);
-        }
         return new()
         {
             Permissions = permissions,
