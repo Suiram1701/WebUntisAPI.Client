@@ -19,7 +19,7 @@ using WebUntisAPI.Client.Models.Messages;
 
 namespace WebUntisAPI.Client;
 
-public partial class WebUntisClient
+partial class WebUntisClient
 {
     /// <summary>
     /// Get the count of unread messages
@@ -32,7 +32,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<int> GetUnreadMessagesCountAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/status", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/status", ct);
         return JObject.Parse(responseString)["unreadMessagesCount"]!.Value<int>();
     }
 
@@ -47,7 +47,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<MessagePermissions> GetMessagePermissionsAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/permissions", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/permissions", ct);
         return JsonConvert.DeserializeObject<MessagePermissions>(responseString)!;
     }
 
@@ -65,7 +65,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<Dictionary<string, IEnumerable<MessagePerson>>> GetTeacherRecipientsAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
 
         Dictionary<string, IEnumerable<MessagePerson>> results = new();
 
@@ -92,7 +92,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<Dictionary<string, IEnumerable<FilterItem>>> GetStaffRecipientsSearchFiltersAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
 
         Dictionary<string, IEnumerable<FilterItem>> results = new();
 
@@ -152,7 +152,7 @@ public partial class WebUntisClient
             Content = new StringContent(requestObj.ToString(Formatting.None), Encoding.UTF8, MediaTypeNames.Application.Json)
         };
 
-        string response = await InternalAPIRequestAsync(request, ct);
+        string response = await InternalApiRequestAsync(request, ct);
 
         JToken usersToken = JObject.Parse(response)["users"]!;
         return usersToken.ToObject<IEnumerable<MessagePerson>>()!;
@@ -169,7 +169,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<InboxMessagePreview>> GetMessageInboxAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
 
         JObject responseObj = JObject.Parse(responseString);
         IEnumerable<InboxMessagePreview> inboxMessages = responseObj["incomingMessages"]!.ToObject<IEnumerable<InboxMessagePreview>>()!;
@@ -196,7 +196,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<SentMessagePreview>> GetSentMessagesAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
         return JObject.Parse(responseString)["sentMessages"]!.ToObject<IEnumerable<SentMessagePreview>>()!;
     }
 
@@ -211,7 +211,7 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<DraftMessagePreview>> GetSavedDraftsAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts", ct);
         return JObject.Parse(responseString)["draftMessages"]!.ToObject<IEnumerable<DraftMessagePreview>>()!;
     }
 
@@ -285,9 +285,9 @@ public partial class WebUntisClient
             Path = $"/WebUntis/api/rest/view/v1/messages{pathExtension}/{preview.Id}",
             Query = $"contentAsHtml={contentAsHtml}"
         };
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        return (IMessage)JObject.Parse(responseString).ToObject(responseType)!;
+        return (IMessage)JsonConvert.DeserializeObject(responseString, responseType)!;
     }
 
     /// <summary>
@@ -305,8 +305,8 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<ConfirmationInformation> ConfirmMessageAsync(InboxMessage message, CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync($"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation", ct);
-        return JObject.Parse(responseString).ToObject<ConfirmationInformation>()!;
+        string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation", ct);
+        return JsonConvert.DeserializeObject< ConfirmationInformation>(responseString)!;
     }
 
     /// <summary>
@@ -328,7 +328,7 @@ public partial class WebUntisClient
         if (!stream.CanWrite)
             throw new InvalidOperationException("The stream have to be writable.");
 
-        string responseString = await InternalAPIRequestAsync($"/WebUntis/api/rest/view/v1/messages/{attachment.Id}/attachmentstorageurl", ct);
+        string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/{attachment.Id}/attachmentstorageurl", ct);
 
         JObject responseObj = JObject.Parse(responseString);
         string downloadUrl = responseObj["downloadUrl"]!.Value<string>()!;
@@ -369,11 +369,8 @@ public partial class WebUntisClient
     public async Task<SentMessagePreview> SendMessageAsync(string subject, string content, IEnumerable<MessagePerson> recipients, bool requestConfirmation, bool forbidReply, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
-        foreach (Stream stream in attachments.Select(t => t.Item2))
-        {
-            if (!stream.CanRead)
-                throw new InvalidOperationException("Every attachment stream have to be readable.");
-        }
+        if (attachments.Any(attachment => !attachment.Item2.CanRead))
+            throw new InvalidOperationException("Every attachment stream have to be readable.");
 
         JObject requestJson = new()
         {
@@ -394,7 +391,7 @@ public partial class WebUntisClient
         {
             Content = CreateMessageHttpContent(requestJson, attachments)
         };
-        string responseString = await InternalAPIRequestAsync(request, ct);
+        string responseString = await InternalApiRequestAsync(request, ct);
 
         return JsonConvert.DeserializeObject<SentMessagePreview>(responseString)!;
     }
@@ -448,11 +445,8 @@ public partial class WebUntisClient
     public async Task<DraftMessagePreview> CreateDraftMessageAsync(string subject, string content, string recipientOption, bool forbidReply, bool requestConfirmation, bool copyToStudent, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
-        foreach (Stream stream in attachments.Select(t => t.Item2))
-        {
-            if (!stream.CanRead)
-                throw new InvalidOperationException("Every attachment stream have to be readable.");
-        }
+        if (attachments.Any(attachment => !attachment.Item2.CanRead))
+            throw new InvalidOperationException("Every attachment stream have to be readable.");
 
         JObject requestJson = new()
         {
@@ -474,7 +468,7 @@ public partial class WebUntisClient
         {
             Content = CreateMessageHttpContent(requestJson, attachments)
         };
-        string responseString = await InternalAPIRequestAsync(request, ct);
+        string responseString = await InternalApiRequestAsync(request, ct);
 
         return JsonConvert.DeserializeObject<DraftMessagePreview>(responseString)!;
     }
@@ -497,12 +491,8 @@ public partial class WebUntisClient
         ArgumentNullException.ThrowIfNull(message, nameof(message));
 
         newAttachments ??= Enumerable.Empty<Tuple<string, Stream>>();
-        foreach (Stream stream in newAttachments.Select(t => t.Item2))
-        {
-            if (!stream.CanRead)
-                throw new InvalidOperationException("Every attachment stream have to be readable.");
-        }
-
+        if (newAttachments.Any(attachment => !attachment.Item2.CanRead))
+            throw new InvalidOperationException("Every attachment stream have to be readable.");
 
         JObject requestJson = new()
         {
@@ -528,7 +518,7 @@ public partial class WebUntisClient
         {
             Content = CreateMessageHttpContent(requestJson, newAttachments)
         };
-        string responseString = await InternalAPIRequestAsync(request, ct);
+        string responseString = await InternalApiRequestAsync(request, ct);
 
         return JsonConvert.DeserializeObject<DraftMessage>(responseString)!;
     }
@@ -550,11 +540,8 @@ public partial class WebUntisClient
     public async Task ReplyMessageAsync(MessageReplyForm replyForm, string subject, string content, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
-        foreach (Stream stream in attachments.Select(t => t.Item2))
-        {
-            if (!stream.CanRead)
-                throw new InvalidOperationException("Every attachment stream have to be readable.");
-        }
+        if (attachments.Any(attachment => !attachment.Item2.CanRead))
+            throw new InvalidOperationException("Every attachment stream have to be readable.");
 
         JObject requestJson = new()
         {
@@ -573,7 +560,7 @@ public partial class WebUntisClient
             Content = CreateMessageHttpContent(requestJson, attachments)
         };
 
-        await InternalAPIRequestAsync(request, ct);
+        await InternalApiRequestAsync(request, ct);
     }
 
     private static HttpContent CreateMessageHttpContent(JObject jsonPart, IEnumerable<Tuple<string, Stream>> attachments)
@@ -640,7 +627,7 @@ public partial class WebUntisClient
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}/reply-form",
             Query = $"contentAsHtml={contentAsHtml}"
         };
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
         MessageReplyForm replyForm = JsonConvert.DeserializeObject<MessageReplyForm>(responseString)!;
         replyForm.Id = id;     // The id isn't provided by the Api so I add it here
@@ -714,7 +701,7 @@ public partial class WebUntisClient
             Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}/revoke"
         }.Uri);
-        await InternalAPIRequestAsync(request, ct);
+        await InternalApiRequestAsync(request, ct);
     }
 
     /// <summary>
@@ -753,6 +740,6 @@ public partial class WebUntisClient
             Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}"
         }.Uri);
-        await InternalAPIRequestAsync(request, ct);
+        await InternalApiRequestAsync(request, ct);
     }
 }

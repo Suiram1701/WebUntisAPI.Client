@@ -18,7 +18,7 @@ using WebUntisAPI.Client.Extensions;
 
 namespace WebUntisAPI.Client;
 
-public partial class WebUntisClient
+partial class WebUntisClient
 {
     /// <summary>
     /// Get all by WebUntis supported languages
@@ -30,10 +30,8 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<WebUntisLanguage>> GetWebUntisLanguagesAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/languages", ct);
-
-        JObject responseObj = JObject.Parse(responseString);
-        return responseObj["data"]!["languages"]!.ToObject<IEnumerable<WebUntisLanguage>>()!;
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/languages", ct);
+        return JObject.Parse(responseString)["data"]!["languages"]!.ToObject<IEnumerable<WebUntisLanguage>>()!;
     }
 
     /// <summary>
@@ -47,10 +45,8 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/config", ct);
-
-        JToken dataToken = JObject.Parse(responseString)["data"]!;
-        return dataToken.ToObject<AccountConfig>()!;
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/config", ct);
+        return JObject.Parse(responseString)["data"]!.ToObject<AccountConfig>()!;
     }
 
     /// <summary>
@@ -64,11 +60,11 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<GeneralAccountInfo> GetGeneralAccountInfoAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/profile/general", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/general", ct);
 
         JToken dataToken = JObject.Parse(responseString)["data"]!;
         GeneralAccountInfo accountInfo = dataToken["profile"]!.ToObject<GeneralAccountInfo>()!;
-        accountInfo.PasswordChangeAllowed |= dataToken["pwChangeAllowed"]!.Value<bool>()!;
+        accountInfo.PasswordChangeAllowed |= dataToken["pwChangeAllowed"]!.Value<bool>()!;     // there two properties that indicates whether it is allowed to change the password
 
         return accountInfo;
     }
@@ -94,7 +90,7 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/profile/contactdetails",
             Query = $"personId={user.Id}&isRequestForStudent={false}"     // idk why isRequestForStudent must set to false also when the request where send by a student but when I set it to true I get always 'wrong' data
         };
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
         JToken dataToken = JObject.Parse(responseString)["data"]!;
 
         AccessPermissions permissions = dataToken.ToObject<AccessPermissions>()!;
@@ -136,7 +132,7 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/profile/image",
             Query = $"type={(int)user.GetElementType()}&id={user.Id}"
         };
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
         JToken dataToken = JObject.Parse(responseString)["data"]!;
         int categoryId = dataToken["categoryId"]!.Value<int>()!;

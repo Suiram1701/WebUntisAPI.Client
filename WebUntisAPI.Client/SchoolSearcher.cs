@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ using WebUntisAPI.Client.Models;
 namespace WebUntisAPI.Client;
 
 /// <summary>
-/// A helper class for school search
+/// A client to search for schools
 /// </summary>
 public class SchoolSearcher : IDisposable
 {
@@ -57,12 +58,14 @@ public class SchoolSearcher : IDisposable
     /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<School>?> SearchAsync(string name, string id = "searchForSchool", CancellationToken ct = default)
     {
-        Action<JsonWriter> paramsAction = new(writer =>
+        JArray requestParams = new()
         {
-            writer.WritePropertyName("search");
-            writer.WriteValue(name);
-        });
-        return await InternalSearchAsync(paramsAction, id, ct);
+            new JObject
+            {
+                new JProperty("search", name)
+            }
+        };
+        return await InternalSearchAsync(requestParams, id, ct);
     }
 
     /// <summary>
@@ -76,13 +79,15 @@ public class SchoolSearcher : IDisposable
     /// <exception cref="HttpRequestException"></exception>
     public async Task<School?> GetSchoolByNameAsync(string schoolName, string id = "getSchoolByName", CancellationToken ct = default)
     {
-        Action<JsonWriter> paramsAction = new(writer =>
+        JArray requestParams = new()
         {
-            writer.WritePropertyName("schoolname");
-            writer.WriteValue(schoolName);
-        });
+            new JObject
+            {
+                new JProperty("schoolname", schoolName)
+            }
+        };
+        IEnumerable<School>? schools = await InternalSearchAsync(requestParams, id, ct);
 
-        IEnumerable<School>? schools = await InternalSearchAsync(paramsAction, id, ct);
         return schools?.FirstOrDefault();
     }
 
@@ -97,56 +102,40 @@ public class SchoolSearcher : IDisposable
     /// <exception cref="HttpRequestException"></exception>
     public async Task<School?> GetSchoolByIdAsync(int schoolId, string id = "getSchoolById", CancellationToken ct = default)
     {
-        Action<JsonWriter> paramsAction = new(writer =>
+        JArray requestParams = new()
         {
-            writer.WritePropertyName("schoolid");
-            writer.WriteValue(schoolId);
-        });
+            new JObject
+            {
+                new JProperty("schoolid", schoolId)
+            }
+        };
+        IEnumerable<School>? schools = await InternalSearchAsync(requestParams, id, ct);
 
-        IEnumerable<School>? schools = await InternalSearchAsync(paramsAction, id, ct);
         return schools?.FirstOrDefault();
     }
 
-    private async Task<IEnumerable<School>?> InternalSearchAsync(Action<JsonWriter> paramsWriter, string id, CancellationToken ct)
+    private async Task<IEnumerable<School>?> InternalSearchAsync(JArray @params, string id, CancellationToken ct)
     {
         // Write a basic JSON RPC 2.0 request that is used here (https://untis-sr.ch/wp-content/uploads/2019/11/2018-09-20-WebUntis_JSON_RPC_API.pdf)
-        StringWriter sw = new();
-        using (JsonWriter writer = new JsonTextWriter(sw))
+        JObject requestJson = new()
         {
-            writer.WriteStartObject();
+            new JProperty("id", id),
+            new JProperty("method", "searchSchool"),
+            new JProperty("params", @params),
+            new JProperty("jsonrpc", "2.0")
+        };
 
-            writer.WritePropertyName("id");
-            writer.WriteValue(id);
-
-            writer.WritePropertyName("method");
-            writer.WriteValue("searchSchool");
-
-            writer.WritePropertyName("params");
-            writer.WriteStartArray();
-            writer.WriteStartObject();
-
-            paramsWriter(writer);
-
-            writer.WriteEndObject();
-            writer.WriteEndArray();
-
-            writer.WritePropertyName("jsonrpc");
-            writer.WriteValue("2.0");
-
-            writer.WriteEndObject();
-        }
-
-        StringContent requestContent = new(sw.ToString(), Encoding.UTF8, "application/json");
+        using StringContent requestContent = new(requestJson.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
         using HttpResponseMessage response = await _client.PostAsync(_apiUrl, requestContent, ct);
-        response.EnsureSuccessStatusCode();
+        string responseString = await response.Content.ReadAsStringAsync(ct);
 
-        JObject responseObject = JObject.Parse(await response.Content.ReadAsStringAsync(ct));
+        JObject responseObject = JObject.Parse(responseString);
 
         // Check for an error response 
         if (responseObject["error"] is JToken errorToken)
         {
             int errorCode = errorToken["code"]!.Value<int>();
-            if (errorCode == -6003)     // -6003 means too many results
+            if (errorCode == -6003)     // -6003 means there to many results
             {
                 return null;
             }
@@ -157,7 +146,7 @@ public class SchoolSearcher : IDisposable
             throw new WebUntisException(errors);
         }
 
-        return responseObject["result"]!["schools"]!.ToObject<School[]>();
+        return responseObject["result"]!["schools"]!.ToObject<IEnumerable<School>>();
     }
 
 #pragma warning disable CS1591

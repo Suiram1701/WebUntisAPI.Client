@@ -11,7 +11,7 @@ using WebUntisAPI.Client.Models.Elements;
 
 namespace WebUntisAPI.Client;
 
-public partial class WebUntisClient
+partial class WebUntisClient
 {
     /// <summary>
     /// Get the count of unread news
@@ -24,7 +24,7 @@ public partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/dashboard/cards/status", ct);
         return JObject.Parse(responseString)["unreadCardsCount"]!.Value<int>();
     }
 
@@ -61,8 +61,8 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/public/news/newsWidgetData",
             Query = $"date={date:yyyyMMdd}"
         };
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        return JObject.Parse(responseString)!.GetValue("data")!.ToObject<NewsWidget>()!;
+        return JObject.Parse(responseString)["data"]!.ToObject<NewsWidget>()!;
     }
 }

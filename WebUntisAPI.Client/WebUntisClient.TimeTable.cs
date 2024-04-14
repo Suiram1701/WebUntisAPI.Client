@@ -12,7 +12,7 @@ using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client;
 
-public partial class WebUntisClient
+partial class WebUntisClient
 {
     /// <summary>
     /// Get the timegrid for the school for the current school year
@@ -25,10 +25,8 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<Timegrid> GetTimegridAsync(CancellationToken ct = default)
     {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/public/timegrid", ct);
-
-        JObject obj = JObject.Parse(response);
-        return obj["data"]!.ToObject<Timegrid>()!;
+        string response = await InternalApiRequestAsync("/WebUntis/api/public/timegrid", ct);
+        return JObject.Parse(response)["data"]!.ToObject<Timegrid>()!;
     }
 
     /// <summary>
@@ -52,10 +50,9 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/public/timegrid",
             Query = "schoolyearId=" + year.Id
         };
-        string response = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string response = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        JObject obj = JObject.Parse(response);
-        return obj["data"]!.ToObject<Timegrid>()!;
+        return JObject.Parse(response)["data"]!.ToObject<Timegrid>()!;
     }
 
     /// <summary>
@@ -69,10 +66,8 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
     public async Task<IEnumerable<SchoolYear>> GetSchoolYearsAsync(CancellationToken ct = default)
     {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/schoolyears", ct);
-
-        JArray obj = JArray.Parse(response);
-        return obj.ToObject<IEnumerable<SchoolYear>>()!;
+        string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/schoolyears", ct);
+        return JArray.Parse(response).ToObject<IEnumerable<SchoolYear>>()!;
     }
 
     /// <summary>
@@ -86,10 +81,8 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<SchoolYear?> GetCurrentSchoolYearAsync(CancellationToken ct = default)
     {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
-
-        JObject responseObj = JObject.Parse(response);
-        return responseObj["currentSchoolYear"]?.ToObject<SchoolYear>();
+        string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
+        return JObject.Parse(response)["currentSchoolYear"]?.ToObject<SchoolYear>();
     }
 
     /// <summary>
@@ -103,10 +96,8 @@ public partial class WebUntisClient
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<Holiday>> GetHolidaysAsync(CancellationToken ct = default)
     {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
-
-        JObject responseObj = JObject.Parse(response);
-        return responseObj["holidays"]!.ToObject<IEnumerable<Holiday>>()!;
+        string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
+        return JObject.Parse(response)["holidays"]!.ToObject<IEnumerable<Holiday>>()!;
     }
 
     /// <summary>
@@ -135,10 +126,8 @@ public partial class WebUntisClient
             Path = "/WebUntis/api/public/timetable/weekly/data",
             Query = $"elementType={(int)type}&elementId={element.Id}&date={week:yyyy-MM-dd}"
         };
+        string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        string responseString = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
-        JToken responseObj = JObject.Parse(responseString)["data"]!["result"]!;
-
-        return responseObj.ToObject<Timetable>()!;
+        return JObject.Parse(responseString)["data"]!["result"]!.ToObject<Timetable>()!;
     }
 }

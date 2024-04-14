@@ -122,14 +122,12 @@ public partial class WebUntisClient : IDisposable
         if (LoggedIn)
             return false;
 
-        UriBuilder uriBuilder = new()
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
         {
             Scheme = Uri.UriSchemeHttps,
             Host = server,
             Path = "/WebUntis/j_spring_security_check"
-        };
-
-        using HttpRequestMessage request = new(HttpMethod.Post, uriBuilder.Uri)
+        }.Uri)
         {
             Content = new FormUrlEncodedContent(new KeyValuePair<string, string>[]
             {
@@ -209,7 +207,7 @@ public partial class WebUntisClient : IDisposable
             Path = "/WebUntis/api/public/timetable/weekly/pageconfig",
             Query = $"type={(int)userType}"
         };
-        string response = await InternalAPIRequestAsync(uriBuilder.ToString(), ct);
+        string response = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
         JToken responseElement = JObject.Parse(response)["data"]!["elements"]![0]!;
         Type tUser = responseElement["type"]!.Value<int>() switch
@@ -239,7 +237,7 @@ public partial class WebUntisClient : IDisposable
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task<bool> ReloadSessionAsync(CancellationToken ct = default)
     {
-        string response = await InternalAPIRequestAsync("/WebUntis/api/token/new", ct);
+        string response = await InternalApiRequestAsync("/WebUntis/api/token/new", ct);
 
         // determine whether a new jwt was returned
         string[] jwtParts = response.Split('.');
@@ -289,30 +287,28 @@ public partial class WebUntisClient : IDisposable
         return DateTimeOffset.FromUnixTimeSeconds(exp);
     }
 
-    private async Task<string> InternalAPIRequestAsync(string path, CancellationToken ct)
+    private async Task<string> InternalApiRequestAsync(string path, CancellationToken ct)
     {
         ThrowWhenNotAvailable();
 
-        // adds the server url when only the path is specified
-        string url;
-        if (path.StartsWith("http"))
-            url = path;
-        else
+        UriBuilder uriBuilder = new()
         {
-            UriBuilder uriBuilder = new()
-            {
-                Scheme = Uri.UriSchemeHttps,
-                Host = ServerName,
-                Path = path
-            };
-            url = uriBuilder.ToString();
-        }
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = path
+        };
 
-        using HttpRequestMessage request = new(HttpMethod.Get, url);
-        return await InternalAPIRequestAsync(request, ct);
+        using HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.Uri);
+        return await InternalApiRequestAsync(request, ct);
     }
 
-    private async Task<string> InternalAPIRequestAsync(HttpRequestMessage request, CancellationToken ct)
+    private async Task<string> InternalApiRequestAsync(Uri uri, CancellationToken ct)
+    {
+        using HttpRequestMessage request = new(HttpMethod.Get, uri);
+        return await InternalApiRequestAsync(request, ct);
+    }
+
+    private async Task<string> InternalApiRequestAsync(HttpRequestMessage request, CancellationToken ct)
     {
         ThrowWhenNotAvailable();
 
