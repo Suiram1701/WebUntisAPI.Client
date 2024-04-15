@@ -20,9 +20,9 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The timegrid</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<Timegrid> GetTimegridAsync(CancellationToken ct = default)
     {
         string response = await InternalApiRequestAsync("/WebUntis/api/public/timegrid", ct);
@@ -36,9 +36,9 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The timegrid for all days</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<Timegrid> GetTimegridAsync(SchoolYear year, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
@@ -60,14 +60,14 @@ partial class WebUntisClient
     /// </summary>
     /// <param name="ct">Cancellation token</param>
     /// <returns>All school years</returns>
-    /// <exception cref="ObjectDisposedException">Thrown when thew instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when you're not logged in</exception>
-    /// <exception cref="HttpRequestException">Thrown when an error happend while the http request</exception>
-    /// <exception cref="WebUntisException">Thrown when the WebUntis API returned an error</exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<SchoolYear>> GetSchoolYearsAsync(CancellationToken ct = default)
     {
         string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/schoolyears", ct);
-        return JArray.Parse(response).ToObject<IEnumerable<SchoolYear>>()!;
+        return JsonConvert.DeserializeObject<IEnumerable<SchoolYear>>(response)!;
     }
 
     /// <summary>
@@ -76,9 +76,9 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The school year. When <c>null</c> there is no active school year</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<SchoolYear?> GetCurrentSchoolYearAsync(CancellationToken ct = default)
     {
         string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
@@ -91,9 +91,9 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>All holidays</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<Holiday>> GetHolidaysAsync(CancellationToken ct = default)
     {
         string response = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
@@ -108,12 +108,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The periods for the class</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<Timetable> GetTimetableAsync(IElement element, DateOnly week, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(element, nameof(element));
 
         if (!element.CanViewTimetable)
             throw new InvalidOperationException($"The current session isn't allowed to view the timetable of {element.Name}");

@@ -19,12 +19,12 @@ namespace WebUntisAPI.Client.Models
         /// Name of the department
         /// </summary>
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         /// <summary>
         /// Long name of the department
         /// </summary>
         [JsonProperty("longName")]
-        public string LongName { get; set; }
+        public string LongName { get; set; } = string.Empty;
     }
 }

@@ -32,12 +32,12 @@ internal class AuthentificationTests
         // test for 'SCHOOL_NOT_FOUND' exception
         WebUntisException? wuEx = Assert.ThrowsAsync<WebUntisException>(async () =>
         {
-            await client.LoginAsync(serverName, string.Empty, string.Empty, string.Empty);
+            await client.SignInAsync(serverName, string.Empty, string.Empty, string.Empty);
         });
         Assert.That(wuEx.Errors.First().Code, Is.EqualTo("SCHOOL_NOT_FOUND"));
 
         // test for wrong credentials
-        bool success = await client.LoginAsync(serverName, schoolName, string.Empty, string.Empty);
+        bool success = await client.SignInAsync(serverName, schoolName, string.Empty, string.Empty);
         Assert.That(success, Is.False);
     }
 

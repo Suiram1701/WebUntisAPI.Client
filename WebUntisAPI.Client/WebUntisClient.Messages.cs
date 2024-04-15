@@ -27,7 +27,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The count of unread messages</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<int> GetUnreadMessagesCountAsync(CancellationToken ct = default)
@@ -42,7 +42,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The permissions</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<MessagePermissions> GetMessagePermissionsAsync(CancellationToken ct = default)
@@ -60,7 +60,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The people (the key is the type of people that are contained in the value)</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<Dictionary<string, IEnumerable<MessagePerson>>> GetTeacherRecipientsAsync(CancellationToken ct = default)
@@ -87,7 +87,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The filters (the <see cref="KeyValuePair{TKey, TValue}.Key"/> is the type of the filter and <see cref="KeyValuePair{TKey, TValue}.Value"/> are the available filters for that type)</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<Dictionary<string, IEnumerable<FilterItem>>> GetStaffRecipientsSearchFiltersAsync(CancellationToken ct = default)
@@ -109,29 +109,30 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get all staff recipients for the applied <paramref name="filters"/> and <paramref name="searchText"/>
+    /// Get all staff recipients for the applied <paramref name="appliedFilters"/> and <paramref name="searchText"/>
     /// </summary>
     /// <remarks>
     /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> returned by <see cref="GetMessagePermissionsAsync(CancellationToken)"/> contains <c>STAFF</c>
     /// </remarks>
     /// <param name="searchText">Text to be searched for</param>
-    /// <param name="filters">The filters to apply. You have to use values returned by <see cref="GetStaffRecipientsSearchFiltersAsync(CancellationToken)"/></param>
+    /// <param name="appliedFilters">The filters to apply. You have to use values returned by <see cref="GetStaffRecipientsSearchFiltersAsync(CancellationToken)"/></param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The staff recipients</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<IEnumerable<MessagePerson>> GetStaffRecipientsAsync(string? searchText, Dictionary<string, IEnumerable<FilterItem>>? filters = null, CancellationToken ct = default)
+    public async Task<IEnumerable<MessagePerson>> GetStaffRecipientsAsync(string? searchText, Dictionary<string, IEnumerable<FilterItem>>? appliedFilters, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
 
-        filters ??= new(0);
+        searchText ??= string.Empty;
+        appliedFilters ??= new(0);
 
         JObject requestObj = new()
         {
-            new JProperty("searchText", searchText ?? string.Empty),
-            new JProperty("filters", new JArray(filters.Select(kv => new JObject(
+            new JProperty("searchText", searchText),
+            new JProperty("filters", new JArray(appliedFilters.Select(kv => new JObject(
                 new JProperty("type", kv.Key),
                 new JProperty("items", new JArray(kv.Value.Select(i => new JObject(
                     new JProperty("referenceId", i.ReferenceId),
@@ -162,9 +163,9 @@ partial class WebUntisClient
     /// Get all messages of you're inbox
     /// </summary>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>All messages</returns>
+    /// <returns>All messages in the inbox</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<InboxMessagePreview>> GetMessageInboxAsync(CancellationToken ct = default)
@@ -191,7 +192,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>All sent messages</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<SentMessagePreview>> GetSentMessagesAsync(CancellationToken ct = default)
@@ -206,7 +207,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The draft messages saved by the signed in user</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<IEnumerable<DraftMessagePreview>> GetSavedDraftsAsync(CancellationToken ct = default)
@@ -223,7 +224,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The full message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<InboxMessage> GetFullMessageAsync(InboxMessagePreview preview, bool contentAsHtml = false, CancellationToken ct = default)
@@ -240,7 +242,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The full message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<SentMessage> GetFullMessageAsync(SentMessagePreview preview, bool contentAsHtml = false, CancellationToken ct = default)
@@ -257,7 +260,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The full message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<DraftMessage> GetFullMessageAsync(DraftMessagePreview preview, bool contentAsHtml = false, CancellationToken ct = default)
@@ -269,6 +273,7 @@ partial class WebUntisClient
     private async Task<IMessage> GetFullMessageInternalAsync(IMessagePreview preview, bool contentAsHtml, CancellationToken ct)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(preview, nameof(preview));
 
         (string pathExtension, Type responseType) = preview.GetType() switch
         {
@@ -300,11 +305,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>Information about the confirmation</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<ConfirmationInformation> ConfirmMessageAsync(InboxMessage message, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation", ct);
         return JsonConvert.DeserializeObject< ConfirmationInformation>(responseString)!;
     }
@@ -318,13 +326,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>A task to await the download</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task DownloadMessageAttachmentAsync(Attachment attachment, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
-
+        ArgumentNullException.ThrowIfNull(stream, nameof(stream));
         if (!stream.CanWrite)
             throw new InvalidOperationException("The stream have to be writable.");
 
@@ -363,12 +372,20 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The preview for this message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<SentMessagePreview> SendMessageAsync(string subject, string content, IEnumerable<MessagePerson> recipients, bool requestConfirmation, bool forbidReply, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(subject, nameof(subject));
+        ArgumentNullException.ThrowIfNull(content, nameof(content));
+        ArgumentNullException.ThrowIfNull(recipients, nameof(recipients));
+        if (!recipients.Any())
+            throw new ArgumentException("The message have to be at least one recipient.", nameof(recipients));
+        ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -405,11 +422,14 @@ partial class WebUntisClient
     /// <returns>The preview of the sent message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<SentMessagePreview> SendDraftAsync(DraftMessage draft, IEnumerable<MessagePerson> recipients, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(draft, nameof(draft));
 
         Collection<Tuple<string, Stream>> attachments = new();
         IEnumerable<Task> tasks = draft.Attachments
@@ -440,11 +460,16 @@ partial class WebUntisClient
     /// <returns>The preview of the created draft</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<DraftMessagePreview> CreateDraftMessageAsync(string subject, string content, string recipientOption, bool forbidReply, bool requestConfirmation, bool copyToStudent, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(subject, nameof(subject));
+        ArgumentNullException.ThrowIfNull(content, nameof(content));
+        ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -482,15 +507,18 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The updated draft</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<DraftMessage> UpdateDraftMessageAsync(DraftMessage message, IEnumerable<Attachment>? attachmentsToDelete,  IEnumerable<Tuple<string, Stream>>? newAttachments, CancellationToken ct = default)
+    public async Task<DraftMessage> UpdateDraftMessageAsync(DraftMessage message, IEnumerable<Attachment>? attachmentsToDelete, IEnumerable<Tuple<string, Stream>>? newAttachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(message, nameof(message));
 
+        attachmentsToDelete ??= Enumerable.Empty<Attachment>();
         newAttachments ??= Enumerable.Empty<Tuple<string, Stream>>();
+
         if (newAttachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -504,8 +532,7 @@ partial class WebUntisClient
             new JProperty("copyToStudent", message.CopyToStudent),
             new JProperty("oneDriveAttachments", new JArray()),
             new JProperty("attachmentIdsToDelete", new JArray(
-                attachmentsToDelete?.Select(attachment => attachment.Id)
-                ?? Enumerable.Empty<Guid>())
+                attachmentsToDelete.Select(attachment => attachment.Id))
             )
         };
 
@@ -532,14 +559,18 @@ partial class WebUntisClient
     /// <param name="attachments">Attachments of the reply</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
-    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task ReplyMessageAsync(MessageReplyForm replyForm, string subject, string content, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(replyForm, nameof(replyForm));
+        ArgumentNullException.ThrowIfNull(subject, nameof(subject));
+        ArgumentNullException.ThrowIfNull(content, nameof(content));
+        ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -595,10 +626,13 @@ partial class WebUntisClient
     /// <returns>A reply form that can be used to reply the message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<MessageReplyForm> GetReplyFormAsync(IMessagePreview messagePreview, bool contentAsHtml = false, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(messagePreview, nameof(messagePreview));
+
         return await GetReplyFormInternalAsync(messagePreview.Id, contentAsHtml, ct);
     }
 
@@ -610,16 +644,21 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>A reply form that can be used to reply the message</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task<MessageReplyForm> GetReplyFormAsync(IMessage message, bool contentAsHtml = false, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         return await GetReplyFormInternalAsync(message.Id, contentAsHtml, ct);
     }
 
     private async Task<MessageReplyForm> GetReplyFormInternalAsync(int id, bool contentAsHtml, CancellationToken ct)
     {
+        ThrowWhenNotAvailable();
+
         UriBuilder uriBuilder = new()
         {
             Scheme = Uri.UriSchemeHttps,
@@ -630,7 +669,7 @@ partial class WebUntisClient
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
         MessageReplyForm replyForm = JsonConvert.DeserializeObject<MessageReplyForm>(responseString)!;
-        replyForm.Id = id;     // The id isn't provided by the Api so I add it here
+        replyForm.Id = id;     // The id isn't provided by the api so I add it here
 
         return replyForm;
     }
@@ -642,10 +681,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task RevokeMessageAsync(InboxMessagePreview messagePreview, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(messagePreview, nameof(messagePreview));
+
         await RevokeMessageInternalAsync(messagePreview.Id, ct);
     }
 
@@ -656,10 +699,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task RevokeMessageAsync(InboxMessage message, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         await RevokeMessageInternalAsync(message.Id, ct);
     }
 
@@ -670,10 +717,13 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task RevokeMessageAsync(SentMessagePreview messagePreview, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(messagePreview, nameof(messagePreview));
+
         await RevokeMessageInternalAsync(messagePreview.Id, ct);
     }
 
@@ -684,10 +734,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     public async Task RevokeMessageAsync(SentMessage message, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         await RevokeMessageInternalAsync(message.Id, ct);
     }
 
@@ -711,11 +765,16 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task DeleteMessageAsync(IMessagePreview preview, CancellationToken ct = default) =>
+    public async Task DeleteMessageAsync(IMessagePreview preview, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(preview, nameof(preview));
+
         await DeleteMessageInternalAsync(preview.Id, ct);
+    }
 
     /// <summary>
     /// Deletes a message
@@ -724,11 +783,16 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The task to await</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task DeleteMessageAsync(IMessage message, CancellationToken ct = default) =>
+    public async Task DeleteMessageAsync(IMessage message, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         await DeleteMessageInternalAsync(message.Id, ct);
+    }
 
     private async Task DeleteMessageInternalAsync(int id, CancellationToken ct)
     {

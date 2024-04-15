@@ -25,7 +25,7 @@ partial class WebUntisClient
     /// </summary>
     /// <param name="ct">Cancellation token</param>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<WebUntisLanguage>> GetWebUntisLanguagesAsync(CancellationToken ct = default)
@@ -40,7 +40,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The account configuration</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
@@ -55,7 +55,7 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The information</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<GeneralAccountInfo> GetGeneralAccountInfoAsync(CancellationToken ct = default)
@@ -76,12 +76,14 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The contact details and the permissions the signed in user has to the details</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetContactDetailsAsync(IUser user, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(user, nameof(user));
 
         UriBuilder uriBuilder = new()
         {
@@ -115,13 +117,17 @@ partial class WebUntisClient
     /// <c>permissions</c> are the permissions the signed in user have to the image (when <see cref="AccessPermissions.Read"/> is <c>false</c> nothing will wrote to the <paramref name="stream"/> and <c>hasImage</c> will be <c>false</c>). 
     /// <c>hasImage</c> indicates whether the user has a profile image.
     /// </returns>
-    /// <exception cref="ObjectDisposedException">Thrown when the instance was disposed</exception>
-    /// <exception cref="UnauthorizedAccessException">Thrown when you're logged in</exception>
-    /// <exception cref="HttpRequestException">Thrown when an error happened while the http request</exception>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
     public async Task<ProfileImageInfo> GetProfileImageAsync(IUser user, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(user, nameof(user));
 
+        ArgumentNullException.ThrowIfNull(stream, nameof(stream));
         if (!stream.CanWrite)
             throw new InvalidOperationException("The stream have to be writable.");
 

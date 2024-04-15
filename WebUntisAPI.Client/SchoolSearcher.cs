@@ -43,6 +43,8 @@ public class SchoolSearcher : IDisposable
     /// <param name="dispose">Indicates whether the <paramref name="client"/> should disposed after this instance get disposed</param>
     public SchoolSearcher(HttpClient client, bool dispose)
     {
+        ArgumentNullException.ThrowIfNull(client, nameof(client));
+
         _client = client;
         _disposeClient = dispose;
     }
@@ -56,8 +58,12 @@ public class SchoolSearcher : IDisposable
     /// <returns>Found schools, an empty collection when no school found or <c>null</c> when too many schools were found</returns>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task<IEnumerable<School>?> SearchAsync(string name, string id = "searchForSchool", CancellationToken ct = default)
+    /// <exception cref="ArgumentNullException"></exception>
+    public async Task<IEnumerable<School>?> SearchAsync(string? name, string id = "searchForSchool", CancellationToken ct = default)
     {
+        name ??= string.Empty;
+        ArgumentNullException.ThrowIfNull(id, nameof(id));
+
         JArray requestParams = new()
         {
             new JObject
@@ -75,10 +81,14 @@ public class SchoolSearcher : IDisposable
     /// <param name="id">Identifier for the request</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The school that was found or <c>null</c> when no school was found</returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<School?> GetSchoolByNameAsync(string schoolName, string id = "getSchoolByName", CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(schoolName, nameof(schoolName));
+        ArgumentNullException.ThrowIfNull(id, nameof(id));
+
         JArray requestParams = new()
         {
             new JObject
@@ -98,10 +108,13 @@ public class SchoolSearcher : IDisposable
     /// <param name="id">Identifier for the request</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The school that was found or <c>null</c> when no school was found</returns>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<School?> GetSchoolByIdAsync(int schoolId, string id = "getSchoolById", CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(id, nameof(id));
+
         JArray requestParams = new()
         {
             new JObject

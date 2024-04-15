@@ -47,7 +47,7 @@ internal class MessagesTests
     [Test]
     public async Task GetStaffRecipientsAsync()
     {
-        IEnumerable<MessagePerson> people = await SetUp.Client.GetStaffRecipientsAsync(null);
+        IEnumerable<MessagePerson> people = await SetUp.Client.GetStaffRecipientsAsync(null, null);
 
         Assert.Multiple(() =>
         {

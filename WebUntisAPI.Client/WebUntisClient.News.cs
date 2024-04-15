@@ -19,8 +19,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The count of the unread news</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<int> GetUnreadNewsCountAsync(CancellationToken ct = default)
     {
@@ -34,8 +34,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The new at the school for the requested day</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public Task<NewsWidget> GetNewsFeedAsync(CancellationToken ct = default) =>
         GetNewsFeedAsync(DateOnly.FromDateTime(DateTime.Now), ct);
@@ -47,8 +47,8 @@ partial class WebUntisClient
     /// <param name="ct">Cancellation token</param>
     /// <returns>The new at the school for the requested day</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     public async Task<NewsWidget> GetNewsFeedAsync(DateOnly date, CancellationToken ct = default)
     {

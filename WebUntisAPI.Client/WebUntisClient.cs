@@ -53,8 +53,14 @@ public partial class WebUntisClient : IDisposable
     /// Creates a new instance that creates its own <see cref="HttpClient"/> that uses the specified timeout and a user agent in the format of WebUntisAPI.Client/{version}
     /// </summary>
     /// <param name="timeout">The timeout for every request</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
     public WebUntisClient(TimeSpan timeout)
     {
+        ArgumentNullException.ThrowIfNull(timeout, nameof(timeout));
+        if (timeout <= TimeSpan.Zero)
+            throw new ArgumentOutOfRangeException(nameof(timeout), "The timeout have to be larger than 0.");
+
         _client = new()
         {
             Timeout = timeout
@@ -69,8 +75,11 @@ public partial class WebUntisClient : IDisposable
     /// </summary>
     /// <param name="client">A client instance to use</param>
     /// <param name="disposeClient">Indicates whether the client should disposed when this instance will be disposed</param>
+    /// <exception cref="ArgumentNullException"></exception>
     public WebUntisClient(HttpClient client, bool disposeClient)
     {
+        ArgumentNullException.ThrowIfNull(_client, nameof(_client));
+
         _client = client;
         _disposeClient = disposeClient;
     }
@@ -86,12 +95,16 @@ public partial class WebUntisClient : IDisposable
     /// <param name="password">Password of the user to login</param>
     /// <param name="ct">Cancelation Token</param>
     /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public Task<bool> LoginAsync(School school, string username, string password, CancellationToken ct = default) =>
-        LoginAsync(school.Server, school.LoginName, username, password, ct);
+    public async Task<bool> SignInAsync(School school, string username, string password, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(school, nameof(school));
+
+        return await SignInAsync(school.Server, school.LoginName, username, password, ct);
+    }
 
     /// <summary>
     /// Login a user
@@ -99,17 +112,17 @@ public partial class WebUntisClient : IDisposable
     /// <remarks>
     /// A thrown <see cref="WebUntisException"/> that contains an error with the <see cref="WebUntisError.Code"/> <c>SCHOOL_NOT_FOUND</c> means that <paramref name="loginName"/> is invalid
     /// </remarks>
-    /// <param name="server">server name to login (example: "herakles.webuntis.com")</param>
+    /// <param name="server">server name to login (example: <c>herakles.webuntis.com</c>)</param>
     /// <param name="loginName">School to login (<see cref="School.LoginName"/>)</param>
     /// <param name="username">Name of the user to login</param>
     /// <param name="password">Password of the user to login</param>
     /// <param name="ct">Cancelation Token</param>
     /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid or the client is already logged in</returns>
-    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public async Task<bool> LoginAsync(string server, string loginName, string username, string password, CancellationToken ct = default)
+    public async Task<bool> SignInAsync(string server, string loginName, string username, string password, CancellationToken ct = default)
     {
         // Check for disposing
 #if NET8_0_OR_GREATER
@@ -118,6 +131,9 @@ public partial class WebUntisClient : IDisposable
         if (_disposedValue)
             throw new ObjectDisposedException(GetType().FullName);
 #endif
+        ArgumentNullException.ThrowIfNull(server, nameof(server));
+        ArgumentNullException.ThrowIfNull(username, nameof(username));
+        ArgumentNullException.ThrowIfNull(password, nameof(password));
 
         if (LoggedIn)
             return false;
@@ -188,7 +204,7 @@ public partial class WebUntisClient : IDisposable
     /// <returns>The user</returns>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task<IUser> GetSignedInUserAsync(CancellationToken ct = default)
     {
@@ -233,7 +249,7 @@ public partial class WebUntisClient : IDisposable
     /// <returns>A value that indicates whether the reload was successful (when <see langword="false"/> it isn't possible to determine the specific error)</returns>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task<bool> ReloadSessionAsync(CancellationToken ct = default)
     {
@@ -261,7 +277,7 @@ public partial class WebUntisClient : IDisposable
     /// </summary>
     /// <returns>The date time where the current session was issued</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public DateTimeOffset GetIssuedTime()
     {
         ThrowWhenNotAvailable();
@@ -278,7 +294,7 @@ public partial class WebUntisClient : IDisposable
     /// </remarks>
     /// <returns>The date time where the current session will be expired</returns>
     /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
     public DateTimeOffset GetExpiresTime()
     {
         ThrowWhenNotAvailable();
@@ -297,8 +313,8 @@ public partial class WebUntisClient : IDisposable
             Host = ServerName,
             Path = path
         };
-
         using HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.Uri);
+
         return await InternalApiRequestAsync(request, ct);
     }
 
@@ -345,7 +361,7 @@ public partial class WebUntisClient : IDisposable
             throw new ObjectDisposedException(GetType().FullName);
 #endif
         if (!LoggedIn)
-            throw new UnauthorizedAccessException("The client is currently not logged in!");
+            throw new InvalidOperationException("The client is currently not signed in!");
     }
 
     private void ClearSession()

@@ -36,7 +36,7 @@ internal class SetUp
         string username = untisConfig["username"]!;
         string password = untisConfig["password"]!;
 
-        bool success = await Client.LoginAsync(serverName, loginName, username, password);
+        bool success = await Client.SignInAsync(serverName, loginName, username, password);
 
         if (!success)
             throw new UnauthorizedAccessException("Could not login the user.");

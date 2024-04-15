@@ -21,7 +21,7 @@ public class SchoolHour
     /// The description of the the hour
     /// </summary>
     [JsonProperty("description")]
-    public string Description { get; init; }
+    public string Description { get; init; } = string.Empty;
 
     /// <summary>
     /// The start time of the school hour
