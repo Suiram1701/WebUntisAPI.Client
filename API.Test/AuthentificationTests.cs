@@ -29,15 +29,15 @@ internal class AuthentificationTests
         string serverName = untisConfig["serverName"]!;
         string schoolName = untisConfig["loginName"]!;
 
-        // test for 'SCHOOL_NOT_FOUND' exception
+        // test for error code -8500 that means school not found
         WebUntisException? wuEx = Assert.ThrowsAsync<WebUntisException>(async () =>
         {
-            await client.SignInAsync(serverName, string.Empty, string.Empty, string.Empty);
+            await client.SignInAsync(serverName, "abc", "def", "ghi", null);
         });
-        Assert.That(wuEx.Errors.First().Code, Is.EqualTo("SCHOOL_NOT_FOUND"));
+        Assert.That(wuEx.Errors.First().Code, Is.EqualTo((-8500).ToString()));
 
         // test for wrong credentials
-        bool success = await client.SignInAsync(serverName, schoolName, string.Empty, string.Empty);
+        bool success = await client.SignInAsync(serverName, schoolName, "abc", "def", null);
         Assert.That(success, Is.False);
     }
 

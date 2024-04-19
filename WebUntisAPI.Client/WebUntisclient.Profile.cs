@@ -70,6 +70,22 @@ partial class WebUntisClient
     }
 
     /// <summary>
+    /// Get the contact details for the signed in account
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The contact details and the permissions the signed in user has to the details</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetOwnContactDetailsAsync(CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        return await GetContactDetailsInternalAsync(_userId ?? -1, ct);
+    }
+
+    /// <summary>
     /// Get the contact details for the specified account
     /// </summary>
     /// <param name="user">The user whose <see cref="ContactDetails"/> should be requested</param>
@@ -82,15 +98,20 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetContactDetailsAsync(IUser user, CancellationToken ct = default)
     {
-        ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(user, nameof(user));
+        return await GetContactDetailsInternalAsync(user.Id, ct);
+    }
+
+    private async Task<(AccessPermissions permissions, ContactDetails? contactDetails)> GetContactDetailsInternalAsync(int userId, CancellationToken ct)
+    {
+        ThrowWhenNotAvailable();
 
         UriBuilder uriBuilder = new()
         {
             Scheme = Uri.UriSchemeHttps,
             Host = ServerName,
             Path = "/WebUntis/api/profile/contactdetails",
-            Query = $"personId={user.Id}&isRequestForStudent={false}"     // idk why isRequestForStudent must set to false also when the request where send by a student but when I set it to true I get always 'wrong' data
+            Query = $"personId={userId}&isRequestForStudent={false}"     // idk why isRequestForStudent must set to false also when the request where send by a student but when I set it to true I get always 'wrong' data
         };
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
         JToken dataToken = JObject.Parse(responseString)["data"]!;
@@ -101,6 +122,30 @@ partial class WebUntisClient
 
         ContactDetails contactDetails = dataToken["address"]!.ToObject<ContactDetails>()!;
         return (permissions, contactDetails);
+    }
+
+    /// <summary>
+    /// Get the profile image of the signed in user
+    /// </summary>
+    /// <remarks>
+    /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif
+    /// </remarks>
+    /// <param name="stream">The stream to write the image to</param>
+    /// <param name="progress">Provides a functionality to report the download progress of the image</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>
+    /// <c>permissions</c> are the permissions the signed in user have to the image (when <see cref="AccessPermissions.Read"/> is <c>false</c> nothing will wrote to the <paramref name="stream"/> and <c>hasImage</c> will be <c>false</c>). 
+    /// <c>hasImage</c> indicates whether the user has a profile image.
+    /// </returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<ProfileImageInfo> GetOwnProfileImageAsync(Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        return await GetProfileImageInternalAsync(_userId ?? -1, _userType ?? -1, stream, progress, ct);
     }
 
     /// <summary>
@@ -124,8 +169,13 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<ProfileImageInfo> GetProfileImageAsync(IUser user, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(user, nameof(user));
+        return await GetProfileImageInternalAsync(user.Id, (int)user.GetElementType(), stream, progress, ct);
+    }
+
+    private async Task<ProfileImageInfo> GetProfileImageInternalAsync(int userId, int userType, Stream stream, IProgress<double>? progress, CancellationToken ct)
+    {
+        ThrowWhenNotAvailable();
 
         ArgumentNullException.ThrowIfNull(stream, nameof(stream));
         if (!stream.CanWrite)
@@ -136,7 +186,7 @@ partial class WebUntisClient
             Scheme = Uri.UriSchemeHttps,
             Host = ServerName,
             Path = "/WebUntis/api/profile/image",
-            Query = $"type={(int)user.GetElementType()}&id={user.Id}"
+            Query = $"type={(int)userType}&id={userId}"
         };
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 

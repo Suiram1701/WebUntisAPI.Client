@@ -36,15 +36,16 @@ internal class SetUp
         string username = untisConfig["username"]!;
         string password = untisConfig["password"]!;
 
-        bool success = await Client.SignInAsync(serverName, loginName, username, password);
+        bool success = await Client.SignInAsync(serverName, loginName, username, password, null);
 
         if (!success)
             throw new UnauthorizedAccessException("Could not login the user.");
     }
 
     [OneTimeTearDown]
-    public void TearDown()
+    public async Task TearDownAsync()
     {
-        SetUp.Client.Dispose();
+        await Client.SignOutAsync(null);
+        Client.Dispose();
     }
 }

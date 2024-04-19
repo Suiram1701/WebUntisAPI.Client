@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -35,6 +36,9 @@ public partial class WebUntisClient : IDisposable
     /// <c>null</c> means that the client isn't currently logged in
     /// </remarks>
     public string? ServerName { get; private set; }
+
+    private int? _userType;
+    private int? _userId;
 
     private string? _jwtToken;
     private JObject? _jwtContent;
@@ -85,7 +89,7 @@ public partial class WebUntisClient : IDisposable
     }
 
     /// <summary>
-    /// Login a user
+    /// Signs in a user
     /// </summary>
     /// <remarks>
     /// A thrown <see cref="WebUntisException"/> that contains an error with the <see cref="WebUntisError.Code"/> <c>SCHOOL_NOT_FOUND</c> means that <paramref name="school"/> is invalid
@@ -93,36 +97,40 @@ public partial class WebUntisClient : IDisposable
     /// <param name="school">The school to login</param>
     /// <param name="username">Name of the user to login</param>
     /// <param name="password">Password of the user to login</param>
+    /// <param name="id">The identifier of the request. When the param is <c>null</c> then a random GUID will get used.</param>
+    /// <param name="clientName">The name of the client. When <c>null</c> the UserAgent of the HttpClient will get used.</param>
     /// <param name="ct">Cancelation Token</param>
     /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid</returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public async Task<bool> SignInAsync(School school, string username, string password, CancellationToken ct = default)
+    public async Task<bool> SignInAsync(School school, string username, string password, string? id = null, string? clientName = null, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(school, nameof(school));
 
-        return await SignInAsync(school.Server, school.LoginName, username, password, ct);
+        return await SignInAsync(school.Server, school.LoginName, username, password, id, clientName, ct);
     }
 
     /// <summary>
-    /// Login a user
+    /// Signs in a user
     /// </summary>
     /// <remarks>
-    /// A thrown <see cref="WebUntisException"/> that contains an error with the <see cref="WebUntisError.Code"/> <c>SCHOOL_NOT_FOUND</c> means that <paramref name="loginName"/> is invalid
+    /// A thrown <see cref="WebUntisException"/> that contains an error with the <see cref="WebUntisError.Code"/> <c>-8500</c> means that <paramref name="loginName"/> is invalid
     /// </remarks>
     /// <param name="server">server name to login (example: <c>herakles.webuntis.com</c>)</param>
     /// <param name="loginName">School to login (<see cref="School.LoginName"/>)</param>
     /// <param name="username">Name of the user to login</param>
     /// <param name="password">Password of the user to login</param>
+    /// <param name="id">The identifier of the request. When the param is <c>null</c> then a random GUID will get used.</param>
+    /// <param name="clientName">The name of the client. When <c>null</c> the UserAgent of the HttpClient will get used.</param>
     /// <param name="ct">Cancelation Token</param>
-    /// <returns><see langword="true"/> when the login was successful. <see langword="false"/> when the <paramref name="username"/> or <paramref name="password"/> was invalid or the client is already logged in</returns>
+    /// <returns><c>true</c> when the login was successful. <c>false</c> when the <paramref name="username"/> or <paramref name="password"/> was invalid or the client were already logged in</returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public async Task<bool> SignInAsync(string server, string loginName, string username, string password, CancellationToken ct = default)
+    public async Task<bool> SignInAsync(string server, string loginName, string username, string password, string? id, string? clientName = null, CancellationToken ct = default)
     {
         // Check for disposing
 #if NET8_0_OR_GREATER
@@ -132,43 +140,43 @@ public partial class WebUntisClient : IDisposable
             throw new ObjectDisposedException(GetType().FullName);
 #endif
         ArgumentNullException.ThrowIfNull(server, nameof(server));
+        ArgumentNullException.ThrowIfNull(loginName, nameof(loginName));
         ArgumentNullException.ThrowIfNull(username, nameof(username));
         ArgumentNullException.ThrowIfNull(password, nameof(password));
+
+        clientName ??= _client.DefaultRequestHeaders.UserAgent.ToString();
 
         if (LoggedIn)
             return false;
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        JObject @params = new()
+        {
+            new JProperty("user", username),
+            new JProperty("password", password),
+            new JProperty("client", clientName)
+        };
+        Uri requestUri = new UriBuilder
         {
             Scheme = Uri.UriSchemeHttps,
             Host = server,
-            Path = "/WebUntis/j_spring_security_check"
-        }.Uri)
-        {
-            Content = new FormUrlEncodedContent(new KeyValuePair<string, string>[]
-            {
-                new("school", loginName),
-                new("j_username", username),
-                new("j_password", password)
-            })
-        };
+            Path = "WebUntis/jsonrpc.do",
+            Query = $"school={loginName}"
+        }.Uri;
 
-        using HttpResponseMessage response = await _client.SendAsync(request, ct);
-        response.EnsureSuccessStatusCode();
-
-        // The result of the login will be determined by the lenght of the response
-        long contentLenght = response.Content.Headers.ContentLength ?? 0L;
-        if (contentLenght <= 1 * 1024)     // school not found
+        try
         {
-            WebUntisError[] errors = new[] { new WebUntisError("SCHOOL_NOT_FOUND", "The specified login name of the school could not found.") };
-            throw new WebUntisException(errors);
+            JObject result = (await InternalJsonRpcRequestAsync(@params, "authenticate", id, requestUri, ct: ct))!;
+
+            _userType = result["personType"]!.Value<int>()!;
+            _userId = result["personId"]!.Value<int>()!;
         }
-        else if (contentLenght <= 16 * 1024)     // wrong credentials 
+        catch (WebUntisException ex)
         {
-            return false;
+            if (ex.Errors.Any(e => e.Code.Equals((-8504).ToString())))     // code -8504 indicates that the credentials were wrong
+                return false;
+            throw;
         }
 
-        // successful
         try
         {
             LoggedIn = true;
@@ -188,12 +196,14 @@ public partial class WebUntisClient : IDisposable
     }
 
     /// <summary>
-    /// Logout (You can reuse the client)
+    /// igns out the user (You can reuse the client)
     /// </summary>
     /// <exception cref="ObjectDisposedException"></exception>
-    public void Logout()
+    public async Task SignOutAsync(string? id, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+
+        await InternalJsonRpcRequestAsync(new JObject(), "logout", id, ct: ct);
         ClearSession();
     }
 
@@ -351,6 +361,46 @@ public partial class WebUntisClient : IDisposable
         return responseString;
     }
 
+    private async Task<JObject?> InternalJsonRpcRequestAsync(JToken @params, string method, string? id, string requestPath = "WebUntis/jsonrpc.do", CancellationToken ct = default)
+    {
+        return await InternalJsonRpcRequestAsync(@params, method, id, new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = requestPath
+        }.Uri, ct);
+    }
+
+    private async Task<JObject?> InternalJsonRpcRequestAsync(JToken @params, string method, string? id, Uri requestrUri, CancellationToken ct = default)
+    {
+        id ??= Guid.NewGuid().ToString();
+
+        JObject requestJson = new()
+        {
+            new JProperty("id", id),
+            new JProperty("method", method),
+            new JProperty("params", @params),
+            new JProperty("jsonrpc", "2.0")
+        };
+
+        using HttpContent content = new StringContent(requestJson.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
+        using HttpResponseMessage response = await _client.PostAsync(requestrUri, content, ct);
+
+        string responseString = await response.Content.ReadAsStringAsync(ct);
+        JObject responseJson = JObject.Parse(responseString);
+
+        if (responseJson["error"] is JObject error)
+        {
+            int code = error["code"]!.Value<int>()!;
+            string message = error["message"]!.Value<string>()!;
+
+            IEnumerable<WebUntisError> errors = new[] { new WebUntisError(code.ToString(), message) };
+            throw new WebUntisException(errors);
+        }
+
+        return responseJson["result"] as JObject;
+    }
+
     private void ThrowWhenNotAvailable()
     {
         // Check for disposing
@@ -368,6 +418,8 @@ public partial class WebUntisClient : IDisposable
     {
         string servername = ServerName!;
 
+        _userType = null;
+        _userId = null;
         LoggedIn = false;
         ServerName = null;
         _jwtToken = null;

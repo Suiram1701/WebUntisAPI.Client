@@ -101,12 +101,29 @@ partial class WebUntisClient
     }
 
     /// <summary>
+    /// Get the timetable for the signed in user
+    /// </summary>
+    /// <param name="week">The first day of the week to get the timetable</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The timetable for this user</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<Timetable> GetOwnTimetableAsync(DateOnly week, CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        return await GetTimetableInternalAsync(_userId ?? -1, _userType ?? -1, week, ct);
+    }
+
+    /// <summary>
     /// Get the timetable for an element
     /// </summary>
     /// <param name="element">The element of the timetable to get</param>
     /// <param name="week">The first day of the week to get the timetable</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The periods for the class</returns>
+    /// <returns>The timetable for the element</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
@@ -120,13 +137,17 @@ partial class WebUntisClient
         if (!element.CanViewTimetable)
             throw new InvalidOperationException($"The current session isn't allowed to view the timetable of {element.Name}");
 
-        ElementType type = element.GetElementType();
+        return await GetTimetableInternalAsync(element.Id, (int)element.GetElementType(), week, ct);
+    }
+
+    private async Task<Timetable> GetTimetableInternalAsync(int id, int type, DateOnly week, CancellationToken ct)
+    {
         UriBuilder uriBuilder = new()
         {
             Scheme = Uri.UriSchemeHttps,
             Host = ServerName,
             Path = "/WebUntis/api/public/timetable/weekly/data",
-            Query = $"elementType={(int)type}&elementId={element.Id}&date={week:yyyy-MM-dd}"
+            Query = $"elementType={type}&elementId={id}&date={week:yyyy-MM-dd}"
         };
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
