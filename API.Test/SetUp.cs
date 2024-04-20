@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using NUnit.Framework;
+using OtpNet;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client;
+using WebUntisAPI.Client.Models;
 
 namespace API.Test;
 
@@ -35,10 +37,19 @@ internal class SetUp
         string loginName = untisConfig["loginName"]!;
         string username = untisConfig["username"]!;
         string password = untisConfig["password"]!;
+        string? mfaBase32Secret = untisConfig["mfaSecret"];
 
-        bool success = await Client.SignInAsync(serverName, loginName, username, password, null);
+        string? generatetSecret = null;
+        if (mfaBase32Secret is not null)
+        {
+            byte[] mfaSecret = Base32Encoding.ToBytes(mfaBase32Secret);
+            Totp totp = new(mfaSecret);
+            generatetSecret = totp.ComputeTotp();
+        }
 
-        if (!success)
+        SignInResult result = await Client.SignInAsync(serverName, loginName, username, password, generatetSecret, null);
+
+        if (!result.Successful)
             throw new UnauthorizedAccessException("Could not login the user.");
     }
 

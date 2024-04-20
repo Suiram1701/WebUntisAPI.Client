@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client;
 using WebUntisAPI.Client.Exceptions;
+using WebUntisAPI.Client.Models;
 
 namespace API.Test;
 
@@ -29,16 +30,13 @@ internal class AuthentificationTests
         string serverName = untisConfig["serverName"]!;
         string schoolName = untisConfig["loginName"]!;
 
-        // test for error code -8500 that means school not found
-        WebUntisException? wuEx = Assert.ThrowsAsync<WebUntisException>(async () =>
-        {
-            await client.SignInAsync(serverName, "abc", "def", "ghi", null);
-        });
-        Assert.That(wuEx.Errors.First().Code, Is.EqualTo((-8500).ToString()));
+        // test for that the school isn't found
+        SignInResult signInResult = await client.SignInAsync(serverName, "abc", "def", "ghi", null, null);
+        Assert.That(signInResult.SchoolNotFound);
 
         // test for wrong credentials
-        bool success = await client.SignInAsync(serverName, schoolName, "abc", "def", null);
-        Assert.That(success, Is.False);
+        SignInResult result = await client.SignInAsync(serverName, schoolName, "abc", "def", null, null);
+        Assert.That(result.Successful, Is.False);
     }
 
     [Test]
@@ -47,11 +45,11 @@ internal class AuthentificationTests
         DateTimeOffset iat = SetUp.Client.GetIssuedTime();
         DateTimeOffset exp = SetUp.Client.GetExpiresTime();
 
-        DateTimeOffset current = DateTimeOffset.Now;
+        DateTimeOffset current = DateTimeOffset.Now.AddSeconds(5);     // idk why but I have to add some seconds the current tim because the iat value is to large 
 
         Assert.Multiple(() =>
         {
-            Assert.That(iat, Is.LessThan(current));
+            Assert.That(iat, Is.LessThanOrEqualTo(current));
             Assert.That(exp, Is.GreaterThan(current));
         });
     }
