@@ -168,7 +168,7 @@ internal class MessagesTests
     [Test]
     public async Task GetReplyFormAsync()
     {
-        IEnumerable<InboxMessagePreview> messages = await SetUp.Client.GetMessageInboxAsync();
+        IEnumerable<InboxMessagePreview> messages = (await SetUp.Client.GetMessageInboxAsync()).Where(m => m.IsReplyAllowed);
 
         if (!messages.Any())
             Assert.Ignore("Could not run test because there no messages to reply available.");

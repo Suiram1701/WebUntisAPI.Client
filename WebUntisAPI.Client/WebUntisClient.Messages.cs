@@ -594,7 +594,7 @@ partial class WebUntisClient
         await InternalApiRequestAsync(request, ct);
     }
 
-    private static HttpContent CreateMessageHttpContent(JObject jsonPart, IEnumerable<Tuple<string, Stream>> attachments)
+    private static MultipartFormDataContent CreateMessageHttpContent(JObject jsonPart, IEnumerable<Tuple<string, Stream>> attachments)
     {
         MultipartFormDataContent content = new()
         {

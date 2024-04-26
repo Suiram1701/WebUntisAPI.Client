@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static API.Test.AuthentificationTests;
+using static API.Test.AuthenticationTests;
 using WebUntisAPI.Client.Models;
 using NUnit.Framework;
 using WebUntisAPI.Client.Models.Interfaces;

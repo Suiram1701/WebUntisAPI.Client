@@ -44,7 +44,7 @@ public class Period
     /// When <c>null</c> the default lesson color should used
     /// </remarks>
     [JsonProperty("lessonBackColor")]
-    [JsonConverter(typeof(ColorJsonConverter))]
+    [JsonConverter(typeof(HexColorJsonConverter))]
     public Color? LessonBackColor { get; set; }
 
     /// <summary>

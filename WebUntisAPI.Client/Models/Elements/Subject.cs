@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Interfaces;
@@ -39,6 +40,14 @@ public class Subject : IElement
     /// When <c>null</c> the default color should used
     /// </remarks>
     [JsonProperty("backColor")]
-    [JsonConverter(typeof(ColorJsonConverter))]
+    [JsonConverter(typeof(HexColorJsonConverter))]
     public Color? BackColor { get; set; }
+
+    [JsonProperty("displayAllowed")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
+    private bool DisplayAllowed
+    {
+        get => CanViewTimetable;
+        set => CanViewTimetable = value;
+    }
 }

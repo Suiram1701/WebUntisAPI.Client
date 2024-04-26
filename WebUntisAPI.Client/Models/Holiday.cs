@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using WebUntisAPI.Client.Converters;
 
 namespace WebUntisAPI.Client.Models;
@@ -40,6 +41,22 @@ public class Holiday : IEquatable<Holiday>, IComparable<Holiday>
     /// </summary>
     [JsonProperty("bookable")]
     public bool Bookable { get; set; }
+
+    [JsonProperty("startDate")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private DateTime Start
+    {
+        get => StartDate;
+        set => StartDate = value;
+    }
+
+    [JsonProperty("endDate")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private DateTime End
+    {
+        get => EndDate;
+        set => EndDate = value;
+    }
 
     /// <inheritdoc/>
     public int CompareTo(Holiday? other)

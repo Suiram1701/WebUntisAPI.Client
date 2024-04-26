@@ -54,9 +54,12 @@ public class SentMessagePreview : IMessagePreview
     [JsonProperty("recipientPersons")]
     public IEnumerable<MessagePerson> RecipientPeople { get; set; } = Enumerable.Empty<MessagePerson>();
 
-    ///// <summary>
-    ///// The confirmation state of this message
-    ///// </summary>
-    //[JsonProperty("requestConfirmationStatus")]
-    //public ConfirmationInformation? RequestConfirmationState { get; set; }
+    /// <summary>
+    /// The confirmation state of this message
+    /// </summary>
+    /// <remarks>
+    /// When <c>null</c> weren't a confirmation requested
+    /// </remarks>
+    [JsonProperty("requestConfirmationStatus")]
+    public ConfirmationState? RequestConfirmationState { get; set; }
 }

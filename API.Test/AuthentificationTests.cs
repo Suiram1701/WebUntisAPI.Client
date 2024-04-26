@@ -12,8 +12,29 @@ using WebUntisAPI.Client.Models;
 namespace API.Test;
 
 [TestFixture]
-internal class AuthentificationTests
+internal class AuthenticationTests
 {
+    [Test]
+    public async Task AppCredentialsSignInAsync()
+    {
+        AppCredentials credentials = await SetUp.Client.GetAppCredentialsAsync();
+        Assert.That(credentials, Is.Not.Null); 
+
+        IConfigurationSection untisConfig = SetUp.Configuration.GetSection("untis");
+        Assert.Multiple(() =>
+        {
+            Assert.That(credentials.ServerName, Is.EqualTo(untisConfig["serverName"]));
+            Assert.That(credentials.School, Is.EqualTo(untisConfig["loginName"]));
+            Assert.That(credentials.SchoolId.ToString(), Is.EqualTo(untisConfig["schoolId"]));
+            Assert.That(credentials.Username, Is.EqualTo(untisConfig["username"]));
+        });
+
+        using WebUntisClient client = new();
+        (bool success, MasterData? data) = await client.SignInAsync(credentials, null);
+
+        Assert.That(success, Is.True);
+    }
+
     [Test]
     public async Task ReloadSessionTokenTestAsync()
     {
@@ -22,7 +43,7 @@ internal class AuthentificationTests
     }
 
     [Test]
-    public async Task FailedLoginAsync()
+    public async Task FailedSignInAsync()
     {
         using WebUntisClient client = new();
 
@@ -31,11 +52,11 @@ internal class AuthentificationTests
         string schoolName = untisConfig["loginName"]!;
 
         // test for that the school isn't found
-        SignInResult signInResult = await client.SignInAsync(serverName, "abc", "def", "ghi", null, null);
+        SignInResult signInResult = await client.SignInAsync(serverName, "abc", "def", "ghi", null);
         Assert.That(signInResult.SchoolNotFound);
 
         // test for wrong credentials
-        SignInResult result = await client.SignInAsync(serverName, schoolName, "abc", "def", null, null);
+        SignInResult result = await client.SignInAsync(serverName, schoolName, "abc", "def", null);
         Assert.That(result.Successful, Is.False);
     }
 

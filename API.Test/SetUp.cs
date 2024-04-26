@@ -47,7 +47,7 @@ internal class SetUp
             generatetSecret = totp.ComputeTotp();
         }
 
-        SignInResult result = await Client.SignInAsync(serverName, loginName, username, password, generatetSecret, null);
+        SignInResult result = await Client.SignInAsync(serverName, loginName, username, password, generatetSecret);
 
         if (!result.Successful)
             throw new UnauthorizedAccessException("Could not login the user.");

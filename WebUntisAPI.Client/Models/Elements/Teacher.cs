@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client.Models.Elements;
@@ -39,4 +40,12 @@ public class Teacher : IElement, IUser
     /// </summary>
     [JsonProperty("externKey")]
     public string ExternKey { get; set; } = string.Empty;
+
+    [JsonProperty("displayAllowed")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
+    private bool DisplayAllowed
+    {
+        get => CanViewTimetable;
+        set => CanViewTimetable = value;
+    }
 }

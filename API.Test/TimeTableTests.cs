@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
-using static API.Test.AuthentificationTests;
+using static API.Test.AuthenticationTests;
 
 namespace API.Test;
 

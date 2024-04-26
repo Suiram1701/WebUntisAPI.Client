@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using WebUntisAPI.Client.Models.Interfaces;
 
 namespace WebUntisAPI.Client.Models.Elements;
@@ -29,4 +30,12 @@ public class Room : IElement
 
     /// <inheritdoc/>
     public int RoomCapacity { get; set; }
+
+    [JsonProperty("displayAllowed")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
+    private bool DisplayAllowed
+    {
+        get => CanViewTimetable;
+        set => CanViewTimetable = value;
+    }
 }

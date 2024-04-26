@@ -43,7 +43,7 @@ public class SentMessage : IMessage
     public bool IsReplyForbidden { get; set; }
 
     /// <summary>
-    /// The groups of repicients
+    /// The groups of recipients
     /// </summary>
     [JsonProperty("recipientGroups")]
     public IEnumerable<string> RecipientGroups { get; set; } = Enumerable.Empty<string>();
@@ -60,9 +60,12 @@ public class SentMessage : IMessage
     [JsonProperty("replyHistory")]
     public IEnumerable<ReplyMessage> ReplyHistory { get; set; } = Enumerable.Empty<ReplyMessage>();
 
-    ///// <summary>
-    ///// The confirmation state of this message
-    ///// </summary>
-    //[JsonProperty("requestConfirmationStatus")]
-    //public object? RequestConfirmationState { get; set; }
+    /// <summary>
+    /// The confirmation state of this message
+    /// </summary>
+    /// <remarks>
+    /// When <c>null</c> weren't a confirmation requested
+    /// </remarks>
+    [JsonProperty("requestConfirmationStatus")]
+    public ConfirmationState? RequestConfirmationState { get; set; }
 }

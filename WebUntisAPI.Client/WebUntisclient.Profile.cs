@@ -104,7 +104,7 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get the profile image of the specifed user
+    /// Get the profile image of the specified user
     /// </summary>
     /// <remarks>
     /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif
@@ -181,5 +181,21 @@ partial class WebUntisClient
             HasImage = true,
             ImageMimeType = response.Content.Headers.ContentType
         };
+    }
+
+    /// <summary>
+    /// Get the app credentials that can be used to sign in into this account
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The credentials</returns> 
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<AppCredentials> GetAppCredentialsAsync(CancellationToken ct = default)
+    {
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/access", ct);
+
+        return JObject.Parse(responseString)["data"]!["appCredentials"]!.ToObject<AppCredentials>()!;
     }
 }

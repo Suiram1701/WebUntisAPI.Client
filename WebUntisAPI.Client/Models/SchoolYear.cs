@@ -15,17 +15,17 @@ public class SchoolYear
     /// The internal id of the school year
     /// </summary>
     [JsonProperty("id")]
-    public int Id { get; init; }
+    public int Id { get; set; }
 
     /// <summary>
     /// Name of the school year
     /// </summary>
     [JsonProperty("name")]
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The start and end of the school year
     /// </summary>
     [JsonProperty("dateRange")]
-    public DateRange Range { get; init; }
+    public DateRange Range { get; set; }
 }

@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using WebUntisAPI.Client.Converters;
 
 namespace WebUntisAPI.Client.Models;
@@ -15,25 +16,33 @@ public class SchoolHour
     /// The number of the period of the day
     /// </summary>
     [JsonProperty("period")]
-    public int Period { get; init; }
+    public int Period { get; set; }
 
     /// <summary>
     /// The description of the the hour
     /// </summary>
     [JsonProperty("description")]
-    public string Description { get; init; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// The start time of the school hour
     /// </summary>
     [JsonProperty("startTime")]
     [JsonConverter(typeof(TimeOnlyJsonConverter))]
-    public TimeOnly StartTime { get; init; }
+    public TimeOnly StartTime { get; set; }
 
     /// <summary>
     /// The end time of the school hour
     /// </summary>
     [JsonProperty("endTime")]
     [JsonConverter(typeof(TimeOnlyJsonConverter))]
-    public TimeOnly EndTime { get; init; }
+    public TimeOnly EndTime { get; set; }
+
+    [JsonProperty("label")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private string Label
+    {
+        get => Description;
+        set => Description = value;
+    }
 }
