@@ -299,7 +299,7 @@ partial class WebUntisClient
     /// Confirms a message in the inbox
     /// </summary>
     /// <remarks>
-    /// You should only use this method when the message requires confirmation and isn't already confimed. Otherwise an exception with the code <c>MESSAGING_READ_CONFIRMATION_ALREADY_CONFIRMED</c> will be thrown.
+    /// You should only use this method when the message requires confirmation and isn't already confirmed. Otherwise an <see cref="InvalidOperationException"/> or a <see cref="WebUntisException"/> with the code <c>MESSAGING_READ_CONFIRMATION_ALREADY_CONFIRMED</c> will be thrown.
     /// </remarks>
     /// <param name="message">The message to confirm</param>
     /// <param name="ct">Cancellation token</param>
@@ -312,6 +312,19 @@ partial class WebUntisClient
     public async Task<ConfirmationInformation> ConfirmMessageAsync(InboxMessage message, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(message, nameof(message));
+
+        if (message.RequestConfirmation is not ConfirmationInformation confirmation)
+        {
+            throw new InvalidOperationException("A message that doesn't require a read confirmation can't confirmed.");
+        }
+        else if (confirmation.ConfirmationDate is not null && confirmation.ConfirmerUserId is not null && confirmation.ConfirmerUserName is not null)     // indicators that this message were already confirmed
+        {
+            throw new InvalidOperationException("A message that were already confirmed can't confirmed again.");
+        }
+        else if (confirmation.AllowSendConfirmation)
+        {
+            throw new InvalidOperationException("It isn't allowed to confirm this message.");
+        }
 
         string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation", ct);
         return JsonConvert.DeserializeObject< ConfirmationInformation>(responseString)!;
@@ -629,9 +642,11 @@ partial class WebUntisClient
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<MessageReplyForm> GetReplyFormAsync(IMessagePreview messagePreview, bool contentAsHtml = false, CancellationToken ct = default)
+    public async Task<MessageReplyForm> GetReplyFormAsync(InboxMessagePreview messagePreview, bool contentAsHtml = false, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(messagePreview, nameof(messagePreview));
+        if (!messagePreview.IsReplyAllowed)
+            throw new InvalidOperationException("It isn't allowed to reply this message.");
 
         return await GetReplyFormInternalAsync(messagePreview.Id, contentAsHtml, ct);
     }
@@ -648,9 +663,13 @@ partial class WebUntisClient
     /// <exception cref="UnauthorizedAccessException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<MessageReplyForm> GetReplyFormAsync(IMessage message, bool contentAsHtml = false, CancellationToken ct = default)
+    public async Task<MessageReplyForm> GetReplyFormAsync(InboxMessage message, bool contentAsHtml = false, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(message, nameof(message));
+        if (!message.IsReplyAllowed || message.IsReplyForbidden)
+            throw new InvalidOperationException("It isn't allowed to reply this message.");
+        if (!(message.RequestConfirmation?.IsReplyAllowed ?? true))
+            throw new InvalidOperationException("The message have to get confirmed before a reply is created.");
 
         return await GetReplyFormInternalAsync(message.Id, contentAsHtml, ct);
     }
@@ -672,42 +691,6 @@ partial class WebUntisClient
         replyForm.Id = id;     // The id isn't provided by the api so I add it here
 
         return replyForm;
-    }
-
-    /// <summary>
-    /// Revokes a message
-    /// </summary>
-    /// <param name="messagePreview">The preview of the message to revoke</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The task to await</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    public async Task RevokeMessageAsync(InboxMessagePreview messagePreview, CancellationToken ct = default)
-    {
-        ArgumentNullException.ThrowIfNull(messagePreview, nameof(messagePreview));
-
-        await RevokeMessageInternalAsync(messagePreview.Id, ct);
-    }
-
-    /// <summary>
-    /// Revokes a message
-    /// </summary>
-    /// <param name="message">The message to revoke</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The task to await</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    public async Task RevokeMessageAsync(InboxMessage message, CancellationToken ct = default)
-    {
-        ArgumentNullException.ThrowIfNull(message, nameof(message));
-
-        await RevokeMessageInternalAsync(message.Id, ct);
     }
 
     /// <summary>
@@ -773,6 +756,15 @@ partial class WebUntisClient
     {
         ArgumentNullException.ThrowIfNull(preview, nameof(preview));
 
+        if (preview is InboxMessagePreview inboxPreview && !inboxPreview.AllowDeletion)
+        {
+            throw new InvalidOperationException("It isn't allowed to delete this message.");
+        }
+        else if (preview is SentMessagePreview sentPreview && !sentPreview.AllowDeletion)
+        {
+            throw new InvalidOperationException("It isn't allowed to delete this message.");
+        }
+
         await DeleteMessageInternalAsync(preview.Id, ct);
     }
 
@@ -790,6 +782,15 @@ partial class WebUntisClient
     public async Task DeleteMessageAsync(IMessage message, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(message, nameof(message));
+
+        if (message is InboxMessage inboxMessage && !(inboxMessage.AllowDeletion && (inboxMessage.RequestConfirmation?.AllowMessageDeletion ?? true)))
+        {
+            throw new InvalidOperationException("It isn't allowed to delete this message or you have to confirm this message first.");
+        }
+        else if (message is SentMessage sentMessage && !sentMessage.AllowDeletion)
+        {
+            throw new InvalidOperationException("It isn't allowed to delete this message.");
+        }
 
         await DeleteMessageInternalAsync(message.Id, ct);
     }
