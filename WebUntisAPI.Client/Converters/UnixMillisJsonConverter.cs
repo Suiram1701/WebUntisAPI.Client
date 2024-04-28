@@ -23,7 +23,7 @@ internal class UnixMillisJsonConverter : JsonConverter<DateTimeOffset>
 
     public override void WriteJson(JsonWriter writer, DateTimeOffset value, JsonSerializer serializer)
     {
-        // never get called
-        throw new NotImplementedException();
+        long timestamp = value.ToUnixTimeMilliseconds();
+        writer.WriteValue(timestamp);
     }
 }

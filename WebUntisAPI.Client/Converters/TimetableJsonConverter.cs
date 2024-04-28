@@ -47,7 +47,7 @@ internal class TimetableJsonConverter : JsonConverter<Timetable>
 
     public override void WriteJson(JsonWriter writer, Timetable? value, JsonSerializer serializer)
     {
-        // will never get called
+        // JSON contains information about the element the timetable is about.
         throw new NotImplementedException();
     }
 }

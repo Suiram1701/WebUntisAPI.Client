@@ -1,23 +1,41 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace WebUntisAPI.Client.Converters;
 
-internal class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
+internal partial class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
 {
     private const string _parseRegEx = @"^T?(\d\d?):?(\d\d)$";
 
+#if NET7_0_OR_GREATER
+    [GeneratedRegex(_parseRegEx)]
+    private static partial Regex ParseRegEx();
+#else
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static Regex ParseRegEx()
+    {
+        return new(_parseRegEx);
+    }
+#endif
+
     public override TimeOnly ReadJson(JsonReader reader, Type objectType, TimeOnly existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        JToken token = JToken.Load(reader);
+        if (reader.TokenType != JsonToken.String)
+        {
+            throw new JsonSerializationException("A string value were expected.");
+        }
 
-        string tokenString = token.Value<string>()!;
+        string tokenString = reader.ReadAsString() ?? string.Empty;
+        Match match = ParseRegEx().Match(tokenString);
 
-        Match match = Regex.Match(tokenString, _parseRegEx);
         if (!match.Success)
-            throw new FormatException($"The token have to match the following expression: '{_parseRegEx}'.");
+        {
+            Exception innerEx = new FormatException($"The token have to match the following expression: '{_parseRegEx}'.");
+            throw new JsonSerializationException("Unable to deserialize token.", innerEx);
+        }
 
         int hours = int.Parse(match.Groups[1].Value);
         int minutes = int.Parse(match.Groups[2].Value);
@@ -27,7 +45,7 @@ internal class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
 
     public override void WriteJson(JsonWriter writer, TimeOnly value, JsonSerializer serializer)
     {
-        // will never get called
-        throw new NotImplementedException();
+        string timeString = value.ToString("hh:mm");
+        writer.WriteValue(timeString);
     }
 }

@@ -11,10 +11,24 @@ internal class GuidJsonConverter : JsonConverter<Guid>
 {
     public override Guid ReadJson(JsonReader reader, Type objectType, Guid existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
+        if (reader.TokenType != JsonToken.String)
+        {
+            throw new JsonSerializationException("A string value were expected.");
+        }
+
         string value = reader.ReadAsString() ?? string.Empty;
-        return Guid.Parse(value);
+        if (!Guid.TryParse(value, out Guid result))
+        {
+            Exception innerEx = new FormatException("The string doesn't match the format of a GUID.");
+            throw new JsonSerializationException("Unable to deserialize the token.");
+        }
+
+        return result;
     }
 
-    public override void WriteJson(JsonWriter writer, Guid value, JsonSerializer serializer) =>
-        serializer.Serialize(writer, value);
+    public override void WriteJson(JsonWriter writer, Guid value, JsonSerializer serializer)
+    {
+        string stringValue = value.ToString();
+        writer.WriteValue(stringValue);
+    }
 }

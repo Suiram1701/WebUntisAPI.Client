@@ -21,7 +21,7 @@ public class Timetable
     public IEnumerable<Period> Periods { get; }
 
     /// <summary>
-    /// All elements like classes, subjects, teachers and rooms that are used by <see cref="Periods"/>
+    /// All elements like classes, subjects, teachers and rooms that are used the containing periods
     /// </summary>
     public IEnumerable<IElement> Elements { get; }
 

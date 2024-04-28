@@ -25,6 +25,12 @@ public class Holiday : IEquatable<Holiday>, IComparable<Holiday>
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// The long name (user displayed) name of the holiday
+    /// </summary>
+    [JsonProperty("longName")]
+    public string LongName { get; set; } = string.Empty;
+
+    /// <summary>
     /// The start date of the holiday
     /// </summary>
     [JsonProperty("start")] 

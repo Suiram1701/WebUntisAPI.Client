@@ -11,6 +11,11 @@ internal class TimegridJsonConverter : JsonConverter<Timegrid>
 {
     public override Timegrid ReadJson(JsonReader reader, Type objectType, Timegrid? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
+        if (reader.TokenType != JsonToken.StartObject)
+        {
+            throw new JsonSerializationException("An object were expected.");
+        }
+
         JToken data = JObject.Load(reader);
 
         int schoolyear = data["schoolyearId"]!.Value<int>();
@@ -26,7 +31,45 @@ internal class TimegridJsonConverter : JsonConverter<Timegrid>
 
     public override void WriteJson(JsonWriter writer, Timegrid? value, JsonSerializer serializer)
     {
-        // will never get called
-        throw new NotImplementedException();
+        ArgumentNullException.ThrowIfNull(value, nameof(value));
+
+        writer.WriteStartObject();
+
+        writer.WritePropertyName("schoolyearId");
+        writer.WriteValue(value.SchoolYearId);
+
+        writer.WritePropertyName("persisted");
+        writer.WriteValue(value.Persisted);
+
+        writer.WritePropertyName("rows");
+        writer.WriteStartArray();
+        foreach (SchoolHour hour in value.Hours)
+        {
+            serializer.Serialize(writer, hour);
+        }
+        writer.WriteEndArray();
+
+        writer.WritePropertyName("units");
+        writer.WriteStartObject();
+        for (int i = 0; i < value.LessonStates.Length; i++)
+        {
+            writer.WritePropertyName(i.ToString());
+            writer.WriteStartArray();
+
+            foreach (LessonState state in value.LessonStates[i])
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("state");
+                writer.WriteValue(state);
+
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
+        }
+        writer.WriteEndObject();
+
+        writer.WriteEndObject();
     }
 }

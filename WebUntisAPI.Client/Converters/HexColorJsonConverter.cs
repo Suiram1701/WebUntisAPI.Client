@@ -8,27 +8,41 @@ namespace WebUntisAPI.Client.Converters;
 
 internal class HexColorJsonConverter : JsonConverter<Color>
 {
-    /// <inheritdoc/>
     public override Color ReadJson(JsonReader reader, Type objectType, Color existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        JToken token = JToken.Load(reader);
-        string colorString = token.Value<string>() ?? string.Empty;
-
-        if (token.Type == JTokenType.String)
+        if (!(reader.TokenType is JsonToken.String or JsonToken.Null))
         {
-            return ColorTranslator.FromHtml(colorString);
+            throw new JsonSerializationException("A string or null value were expected.");
         }
-        else if (token.Type == JTokenType.Null)
+
+        string? value = reader.Value as string;
+        if (value is not null)
+        {
+            try
+            {
+                return ColorTranslator.FromHtml(value);
+            }
+            catch (Exception ex)
+            {
+                throw new JsonSerializationException("Unable to deserialize the token.", ex);
+            }
+        }
+        else
         {
             return Color.Empty;
         }
-        throw new JsonSerializationException("Invalid color format.");
     }
 
-    /// <inheritdoc/>
     public override void WriteJson(JsonWriter writer, Color value, JsonSerializer serializer)
     {
-        // will never get called
-        throw new NotImplementedException();
+        if (!value.IsEmpty)
+        {
+            string colorString = Convert.ToHexString(new[] { value.A, value.R, value.G, value.B });
+            writer.WriteValue("#" + colorString);
+        }
+        else
+        {
+            writer.WriteNull();
+        }
     }
 }
