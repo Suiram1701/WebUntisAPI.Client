@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client.Models.Messages;
 
@@ -15,7 +16,7 @@ public class MessageReplyForm
     /// <summary>
     /// The id of the message to reply
     /// </summary>
-    public int Id { get; set; }
+    public int Id { get; set; }     // This isn't provided by the api response
 
     /// <summary>
     /// The subject of the message to reply

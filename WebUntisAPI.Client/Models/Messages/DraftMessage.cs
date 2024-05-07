@@ -34,7 +34,7 @@ public class DraftMessage : IMessage
     public IEnumerable<Attachment> Attachments { get; set; } = Enumerable.Empty<Attachment>();
 
     /// <summary>
-    /// The recipient option available for this draft
+    /// The recipient option with that this draft was created
     /// </summary>
     [JsonProperty("recipientOption")]
     public string RecipientOption { get; set; } = string.Empty;
@@ -56,16 +56,4 @@ public class DraftMessage : IMessage
     /// </summary>
     [JsonProperty("requestConfirmation")]
     public bool RequestConfirmation { get; set; }
-
-    /// <summary>
-    /// The recipient groups (for drafts this is always empty)
-    /// </summary>
-    [JsonProperty("recipientGroups")]
-    public IEnumerable<string> RecipientGroups { get; set; } = Enumerable.Empty<string>();
-
-    /// <summary>
-    /// The recipient people (for drafts this is always empty)
-    /// </summary>
-    [JsonProperty("recipientPersons")]
-    public IEnumerable<MessagePerson> RecipientPeople { get; set; } = Enumerable.Empty<MessagePerson>();
 }

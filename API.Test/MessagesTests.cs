@@ -5,36 +5,69 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models.Messages;
+using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace API.Test;
 
 internal class MessagesTests
 {
     [Test]
-    public void GetUnreadMessages()
+    public async Task GetUnreadMessagesAsync()
     {
-        Assert.DoesNotThrowAsync(async delegate
-        {
-            _ = await SetUp.Client.GetUnreadMessagesCountAsync();
-        });
+        await SetUp.Client.GetUnreadMessagesCountAsync();
     }
 
     [Test]
     public async Task GetTeacherRecipientsAsync()
     {
-        Dictionary<string, IEnumerable<MessagePerson>> persons = await SetUp.Client.GetTeacherRecipientsAsync();
+        IEnumerable<TeacherRecipientGroup> recipients = await SetUp.Client.GetTeacherRecipientsAsync();
 
         Assert.Multiple(() =>
         {
-            Assert.That(persons.Select(kv => kv.Key), Is.Unique.And.Not.Empty);
-            Assert.That(persons.SelectMany(kv => kv.Value.Select(mp => mp.Id)), Is.Unique);
+            Assert.That(recipients.Select(group => group.TypeName), Is.Unique.And.Not.Empty);
+            Assert.That(recipients.SelectMany(group => group.Select(teacher => teacher.Id)), Is.Unique);
         });
     }
 
     [Test]
-    public async Task GetStaffRecipientsFiltersAsync()
+    public async Task GetStudentRecipientsAsync()
     {
-        Dictionary<string, IEnumerable<FilterItem>> filters = await SetUp.Client.GetStaffRecipientsSearchFiltersAsync();
+        (IEnumerable<StudentRecipient> students, IEnumerable<RecipientSection> sections) = await SetUp.Client.GetStudentRecipientsAsync();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(students.Select(student => student.Id), Is.Unique);
+            Assert.That(sections.Select(section => section.SectionType), Is.Unique);
+        });
+    }
+
+    [Test]
+    public async Task GetStaffRecipientsFilterAsync()
+    {
+        await GetRecipientsFiltersAsync("STAFF");
+    }
+
+    [Test]
+    public async Task GetStaffRecipientsAsync()
+    {
+        await GetRecipientsAsync("STAFF");
+    }
+
+    [Test]
+    public async Task GetCustomRecipientsFilterAsync()
+    {
+        await GetRecipientsFiltersAsync("CUSTOM");
+    }
+
+    [Test]
+    public async Task GetCustomRecipientsAsync()
+    {
+        await GetRecipientsAsync("CUSTOM");
+    }
+
+    private static async Task GetRecipientsFiltersAsync(string recipientOption)
+    {
+        Dictionary<string, IEnumerable<FilterItem>> filters = await SetUp.Client.GetRecipientsFiltersAsync(recipientOption);
 
         Assert.Multiple(() =>
         {
@@ -44,10 +77,9 @@ internal class MessagesTests
         });
     }
 
-    [Test]
-    public async Task GetStaffRecipientsAsync()
+    private static async Task GetRecipientsAsync(string recipientOption)
     {
-        IEnumerable<MessagePerson> people = await SetUp.Client.GetStaffRecipientsAsync(null, null);
+        IEnumerable<Recipient> people = await SetUp.Client.ApplyRecipientsFiltersAsync(recipientOption, "A", new Dictionary<string, IEnumerable<FilterItem>>(0));
 
         Assert.Multiple(() =>
         {
@@ -78,6 +110,7 @@ internal class MessagesTests
 
         Assert.Multiple(() =>
         {
+            Assert.That(messages.Select(m => m.Sender), Is.Not.Null);
             Assert.That(messages.Select(m => m.Id), Is.Unique);
             Assert.That(messages.Select(m => m.SentDateTime), Is.Ordered.Descending);
         });
@@ -106,7 +139,11 @@ internal class MessagesTests
         if (!messages.Any())
             Assert.Ignore("Could not run test because there no drafts available.");
 
-        Assert.That(messages.Select(m => m.Id), Is.Unique);
+        Assert.Multiple(() =>
+        {
+            Assert.That(messages.Select(m => m.Id), Is.Unique);
+            Assert.That(messages.Select(m => m.SentDateTime), Is.All.EqualTo(DateTime.UnixEpoch));
+        });
     }
 
     [Test]

@@ -31,26 +31,8 @@ public class DraftMessagePreview : IMessagePreview
     public bool HasAttachments { get; set; }
 
     /// <summary>
-    /// The recipient option available for this draft
+    /// The recipient option with that this draft was created
     /// </summary>
     [JsonProperty("recipientOption")]
     public string RecipientOption { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The count of recipients
-    /// </summary>
-    [JsonProperty("numberOfRecipients")]
-    public int NumberOfRecipients { get; set; }
-
-    /// <summary>
-    /// The recipient groups (for drafts this is always empty)
-    /// </summary>
-    [JsonProperty("recipientGroups")]
-    public IEnumerable<string> RecipientGroups { get; set; } = Enumerable.Empty<string>();
-
-    /// <summary>
-    /// The recipient people (for drafts this is always empty)
-    /// </summary>
-    [JsonProperty("recipientPersons")]
-    public IEnumerable<MessagePerson> RecipientPeople { get; set; } = Enumerable.Empty<MessagePerson>();
 }

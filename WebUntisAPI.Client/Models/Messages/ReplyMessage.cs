@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client.Models.Messages;
 

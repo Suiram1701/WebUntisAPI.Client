@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Converters;
+using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client.Models.Messages;
 
@@ -43,9 +45,9 @@ public class SentMessagePreview : IMessagePreview
     public int NumberOfRecipients { get; set; }
 
     /// <summary>
-    /// The recipient groups of this message
+    /// A collection that contains the displayed names of every recipient group.
     /// </summary>
-    [JsonProperty("recipientGroups")]
+    [JsonProperty("recipientGroups", ItemConverterType = typeof(RecipientGroupJsonConverter))]
     public IEnumerable<string> RecipientGroups { get; set; } = Enumerable.Empty<string>();
 
     /// <summary>

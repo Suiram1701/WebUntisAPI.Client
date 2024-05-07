@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models.Messages;
+using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client;
 
@@ -52,47 +53,64 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get all available 
+    /// Get all available teacher recipient groups.
     /// </summary>
     /// <remarks>
-    /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> returned by <see cref="GetMessagePermissionsAsync(CancellationToken)"/> contains <c>TEACHER</c>
+    /// This method should used instead of <see cref="ApplyRecipientsFiltersAsync(string, string?, IDictionary{string, IEnumerable{FilterItem}}, CancellationToken)"/> for the recipient option <c>TEACHER</c> and should only used when this recipient option is available.
     /// </remarks>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The people (the key is the type of people that are contained in the value)</returns>
+    /// <returns>The groups of teacher recipients</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<Dictionary<string, IEnumerable<MessagePerson>>> GetTeacherRecipientsAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<TeacherRecipientGroup>> GetTeacherRecipientsAsync(CancellationToken ct = default)
     {
         string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/static/persons", ct);
-
-        Dictionary<string, IEnumerable<MessagePerson>> results = new();
-
-        JArray jArray = JArray.Parse(responseString);
-        foreach (JToken jToken in jArray)
-        {
-            IEnumerable<MessagePerson> people = jToken["persons"]!.ToObject<IEnumerable<MessagePerson>>()!;
-            string type = jToken["type"]!.Value<string>()!;
-
-            results.Add(type, people);
-        }
-
-        return results;
+        return JsonConvert.DeserializeObject<IEnumerable<TeacherRecipientGroup>>(responseString)!;
     }
 
     /// <summary>
-    /// Get all avalable filters for the staff recipients
+    /// Get all available student recipients and their subdivisions
     /// </summary>
+    /// <remarks>
+    /// This method is usually used instead of <see cref="ApplyRecipientsFiltersAsync(string, string?, IDictionary{string, IEnumerable{FilterItem}}, CancellationToken)"/> for the recipient option <c>STUDENTS</c>.
+    /// </remarks>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The filters (the <see cref="KeyValuePair{TKey, TValue}.Key"/> is the type of the filter and <see cref="KeyValuePair{TKey, TValue}.Value"/> are the available filters for that type)</returns>
+    /// <returns>The recipients and subdivisions</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<Dictionary<string, IEnumerable<FilterItem>>> GetStaffRecipientsSearchFiltersAsync(CancellationToken ct = default)
+    public async Task<(IEnumerable<StudentRecipient> people, IEnumerable<RecipientSection> sections)> GetStudentRecipientsAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter", ct);
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/recipients/STUDENTS", ct);
+
+        JObject responseObj = JObject.Parse(responseString);
+        IEnumerable<StudentRecipient> people = responseObj["persons"]!.ToObject<IEnumerable<StudentRecipient>>()!;
+        IEnumerable<RecipientSection> sections = responseObj["sections"]!.ToObject<IEnumerable<RecipientSection>>()!;
+
+        return (people, sections);
+    }
+
+    /// <summary>
+    /// Get all available filters for the specified recipients option
+    /// </summary>
+    /// <remarks>
+    /// When the recipient option doesn't support/use filters then an empty dictionary will get returned.
+    /// </remarks>
+    /// <param name="recipientOption">The recipient option</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The available filters. The key is the internal name of the option and the values are the available options.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    public async Task<Dictionary<string, IEnumerable<FilterItem>>> GetRecipientsFiltersAsync(string recipientOption, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(recipientOption, nameof(recipientOption));
+
+        string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v2/messages/recipients/{recipientOption}/filter", ct);
 
         Dictionary<string, IEnumerable<FilterItem>> results = new();
 
@@ -109,54 +127,71 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get all staff recipients for the applied <paramref name="appliedFilters"/> and <paramref name="searchText"/>
+    /// Get the filtered recipients by the applied filters and search text.
     /// </summary>
-    /// <remarks>
-    /// Use this method only when <see cref="MessagePermissions.RecipientOptions"/> returned by <see cref="GetMessagePermissionsAsync(CancellationToken)"/> contains <c>STAFF</c>
-    /// </remarks>
-    /// <param name="searchText">Text to be searched for</param>
-    /// <param name="appliedFilters">The filters to apply. You have to use values returned by <see cref="GetStaffRecipientsSearchFiltersAsync(CancellationToken)"/></param>
+    /// <param name="recipientOption">The recipient option</param>
+    /// <param name="searchText">The search text to apply. When <c>null</c> or an empty string will this ignored.</param>
+    /// <param name="appliedFilters">The filters to apply. The key is the type of the filter to apply and the value is the actual filter. It is possible to apply multiple filters of the same type</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The staff recipients</returns>
+    /// <returns>The filtered recipients.</returns>
     /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="ArgumentException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<IEnumerable<MessagePerson>> GetStaffRecipientsAsync(string? searchText, Dictionary<string, IEnumerable<FilterItem>>? appliedFilters, CancellationToken ct = default)
+    public async Task<IEnumerable<Recipient>> ApplyRecipientsFiltersAsync(string recipientOption, string? searchText, IEnumerable<KeyValuePair<string, FilterItem>> appliedFilters, CancellationToken ct = default)
     {
-        ThrowWhenNotAvailable();
+        Dictionary<string, IEnumerable<FilterItem>> filters = appliedFilters
+            .GroupBy(kv => kv.Key, kv => kv.Value)
+            .ToDictionary(g => g.Key, g => g.ToArray().AsEnumerable());
 
-        searchText ??= string.Empty;
-        appliedFilters ??= new(0);
+        return await ApplyRecipientsFiltersAsync(recipientOption, searchText, filters, ct);
+    }
 
-        JObject requestObj = new()
+    /// <summary>
+    /// Get the filtered recipients by the applied filters and search text.
+    /// </summary>
+    /// <param name="recipientOption">The recipient option</param>
+    /// <param name="searchText">The search text to apply. When <c>null</c> or an empty string will this ignored.</param>
+    /// <param name="appliedFilters">The filters to apply. The format is the same that were returned by <see cref="GetRecipientsFiltersAsync(string, CancellationToken)"/> with the differences that you only have to hand over the filter type and the values that you want to apply.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The filtered recipients.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    public async Task<IEnumerable<Recipient>> ApplyRecipientsFiltersAsync(string recipientOption, string? searchText, IDictionary<string, IEnumerable<FilterItem>> appliedFilters, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(recipientOption, nameof(recipientOption));
+        ArgumentNullException.ThrowIfNull(appliedFilters, nameof(appliedFilters));
+        if (appliedFilters.Any())
         {
-            new JProperty("searchText", searchText),
-            new JProperty("filters", new JArray(appliedFilters.Select(kv => new JObject(
-                new JProperty("type", kv.Key),
-                new JProperty("items", new JArray(kv.Value.Select(i => new JObject(
-                    new JProperty("referenceId", i.ReferenceId),
-                    new JProperty("name", i.Name)
-                    ))))
-                ))))
-        };
+            throw new ArgumentException("At least one filter have to be applied.");
+        }
 
-        using HttpRequestMessage request = new()
+        JObject requestJson = new()
         {
-            Method = HttpMethod.Post,
-            RequestUri = new UriBuilder()
+            new JProperty("filters", new JArray(appliedFilters.Select(filterOption => new JObject
             {
-                Scheme = Uri.UriSchemeHttps,
-                Host = ServerName,
-                Path = "/WebUntis/api/rest/view/v2/messages/recipients/STAFF/filter"
-            }.Uri,
-            Content = new StringContent(requestObj.ToString(Formatting.None), Encoding.UTF8, MediaTypeNames.Application.Json)
+                new JProperty("type", filterOption.Key),
+                new JProperty("items", new JArray(filterOption.Value))
+            }))),
+            new JProperty("searchText", searchText ?? string.Empty)
         };
 
-        string response = await InternalApiRequestAsync(request, ct);
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = $"/WebUntis/api/rest/view/v2/messages/recipients/{recipientOption}/filter",
+        }.Uri)
+        {
+            Content = new StringContent(requestJson.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json)
+        };
+        string responseString = await InternalApiRequestAsync(request, ct);
 
-        JToken usersToken = JObject.Parse(response)["users"]!;
-        return usersToken.ToObject<IEnumerable<MessagePerson>>()!;
+        return JObject.Parse(responseString)["users"]!.ToObject<IEnumerable<Recipient>>()!;
     }
 
     /// <summary>
@@ -336,6 +371,7 @@ partial class WebUntisClient
     /// <param name="attachment">The attachment to download</param>
     /// <param name="stream">The stream the attachment should be written to</param>
     /// <param name="progress">The instance the progress should be reported to</param>
+    /// <param name="client">The client that should used to download the file. When <c>null</c> same client than for every other request will get used.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>A task to await the download</returns>
     /// <exception cref="ObjectDisposedException"></exception>
@@ -343,7 +379,7 @@ partial class WebUntisClient
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task DownloadMessageAttachmentAsync(Attachment attachment, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
+    public async Task DownloadMessageAttachmentAsync(Attachment attachment, Stream stream, IProgress<double>? progress = null, HttpClient? client = null, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(stream, nameof(stream));
@@ -369,7 +405,7 @@ partial class WebUntisClient
             request.Headers.Add(key, value);
         }
 
-        using HttpResponseMessage response = await _client.SendWithProgressReportAsync(request, stream, progress, ct: ct);
+        using HttpResponseMessage response = await (client ?? _client).SendWithProgressReportAsync(request, stream, progress, ct: ct);
         response.EnsureSuccessStatusCode();
     }
 
@@ -378,25 +414,27 @@ partial class WebUntisClient
     /// </summary>
     /// <param name="subject">The subject of the message</param>
     /// <param name="content">The content of the message (\n is used for line breaks)</param>
+    /// <param name="recipientOption">The recipient option that is used for this message. This should be the value that were used</param>
     /// <param name="recipients">The every recipient of the message</param>
+    /// <param name="recipientGroups">Groups of recipients</param>
+    /// <param name="attachments">Attachments that will be attach to the message</param>
     /// <param name="requestConfirmation">Indicates whether you request a confirmation (you need the permission to do that)</param>
     /// <param name="forbidReply">Indicates whether you forbid the recipients to reply the message</param>
-    /// <param name="attachments">Attachments that will be attach to the message</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The preview for this message</returns>
+    /// <returns>The state of the sent message.</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="ArgumentException"></exception>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<SentMessagePreview> SendMessageAsync(string subject, string content, IEnumerable<MessagePerson> recipients, bool requestConfirmation, bool forbidReply, IEnumerable<Tuple<string, Stream>> attachments, CancellationToken ct = default)
+    public async Task<SentMessageState> SendMessageAsync(string subject, string content, string recipientOption, IEnumerable<MessagePerson> recipients, IEnumerable<RecipientGroup> recipientGroups, IEnumerable<Tuple<string, Stream>> attachments, bool requestConfirmation, bool forbidReply, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(subject, nameof(subject));
         ArgumentNullException.ThrowIfNull(content, nameof(content));
         ArgumentNullException.ThrowIfNull(recipients, nameof(recipients));
-        if (!recipients.Any())
+        if (!recipients.Any() && !recipientGroups.Any())
             throw new ArgumentException("The message have to be at least one recipient.", nameof(recipients));
         ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
@@ -406,57 +444,27 @@ partial class WebUntisClient
         {
             new JProperty("subject", subject),
             new JProperty("content", content),
+            new JProperty("recipientOption", recipientOption),
+            new JProperty("recipientPersonIds", new JArray(recipients.Select(r => r.Id))),
+            new JProperty("recipientPersonIds", recipientGroups.Select(g => g.Id)),
+            new JProperty("copyToStudent", false),     // idk what this do
             new JProperty("requestConfirmation", requestConfirmation),
+            new JProperty("oneDriveAttachments", new JArray()),
             new JProperty("forbidReply", forbidReply),
-            new JProperty("recipientUserIds", new JArray(recipients.Select(r => r.Id))),
-            new JProperty("oneDriveAttachments", new JArray())
         };
 
         using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
         {
             Scheme = Uri.UriSchemeHttps,
             Host = ServerName,
-            Path = "/WebUntis/api/rest/view/v2/messages/users"
+            Path = "/WebUntis/api/rest/view/v2/messages"
         }.Uri)
         {
             Content = CreateMessageHttpContent(requestJson, attachments)
         };
         string responseString = await InternalApiRequestAsync(request, ct);
 
-        return JsonConvert.DeserializeObject<SentMessagePreview>(responseString)!;
-    }
-
-    /// <summary>
-    /// Sends a draft and afterwords deletes the draft
-    /// </summary>
-    /// <param name="draft">The draft to send</param>
-    /// <param name="recipients">The recipients of the message</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The preview of the sent message</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="UnauthorizedAccessException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    public async Task<SentMessagePreview> SendDraftAsync(DraftMessage draft, IEnumerable<MessagePerson> recipients, CancellationToken ct = default)
-    {
-        ThrowWhenNotAvailable();
-        ArgumentNullException.ThrowIfNull(draft, nameof(draft));
-
-        Collection<Tuple<string, Stream>> attachments = new();
-        IEnumerable<Task> tasks = draft.Attachments
-            .Select(attachment =>
-            {
-                Stream stream = new MemoryStream();
-                attachments.Add(new Tuple<string, Stream>(attachment.Name, stream));
-                return DownloadMessageAttachmentAsync(attachment, stream, ct: ct);
-            });
-        await Task.WhenAll(tasks);
-
-        SentMessagePreview preview = await SendMessageAsync(draft.Subject, draft.Content, recipients, draft.RequestConfirmation, draft.ForbidReply, attachments, ct);
-        await DeleteMessageAsync(draft, ct);
-        return preview;
+        return JsonConvert.DeserializeObject<SentMessageState>(responseString)!;
     }
 
     /// <summary>
