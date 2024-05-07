@@ -20,6 +20,7 @@ public class StudentRecipient : IRecipient
     [JsonProperty("id")]
     public int Id { get; set; }
 
+    [DebuggerHidden]
     [JsonProperty("personId")]
     [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for json deserialization.")]
     private int PersonId

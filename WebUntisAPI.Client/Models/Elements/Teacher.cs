@@ -32,6 +32,14 @@ public class Teacher : IElement, IUser
     /// <inheritdoc/>
     public bool CanViewTimetable { get; set; }
 
+    [DebuggerHidden]
+    [JsonProperty("displayAllowed")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private bool DisplayAllowed
+    {
+        set => CanViewTimetable = value;
+    }
+
     /// <inheritdoc/>
     public int RoomCapacity { get; set; }
 
@@ -40,12 +48,4 @@ public class Teacher : IElement, IUser
     /// </summary>
     [JsonProperty("externKey")]
     public string ExternKey { get; set; } = string.Empty;
-
-    [JsonProperty("displayAllowed")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
-    private bool DisplayAllowed
-    {
-        get => CanViewTimetable;
-        set => CanViewTimetable = value;
-    }
 }

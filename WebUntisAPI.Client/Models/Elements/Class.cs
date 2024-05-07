@@ -29,14 +29,14 @@ public class Class : IElement
     /// <inheritdoc/>
     public bool CanViewTimetable { get; set; }
 
-    /// <inheritdoc/>
-    public int RoomCapacity { get; set; }
-
+    [DebuggerHidden]
     [JsonProperty("displayable")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
     private bool Displayable
     {
-        get => CanViewTimetable;
         set => CanViewTimetable = value;
     }
+
+    /// <inheritdoc/>
+    public int RoomCapacity { get; set; }
 }

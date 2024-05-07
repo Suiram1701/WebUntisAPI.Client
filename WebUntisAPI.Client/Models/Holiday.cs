@@ -9,7 +9,7 @@ namespace WebUntisAPI.Client.Models;
 /// <summary>
 /// A holiday
 /// </summary>
-[DebuggerDisplay("Name: {Name,nq}")]
+[DebuggerDisplay($"Name: {{{nameof(Name)},nq}}")]
 public class Holiday : IEquatable<Holiday>, IComparable<Holiday>
 {
     /// <summary>
@@ -33,36 +33,36 @@ public class Holiday : IEquatable<Holiday>, IComparable<Holiday>
     /// <summary>
     /// The start date of the holiday
     /// </summary>
-    [JsonProperty("start")] 
+    [JsonProperty("startDate")] 
     public DateTime StartDate { get; set; }
+
+    [DebuggerHidden]
+    [JsonProperty("start")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private DateTime Start
+    {
+        set => StartDate = value;
+    }
 
     /// <summary>
     /// The end date of the holiday
     /// </summary>
-    [JsonProperty("end")]
+    [JsonProperty("endDate")]
     public DateTime EndDate { get; set; }
+
+    [DebuggerHidden]
+    [JsonProperty("end")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private DateTime End
+    {
+        set => EndDate = value;
+    }
 
     /// <summary>
     /// Is the holiday bookable
     /// </summary>
     [JsonProperty("bookable")]
     public bool Bookable { get; set; }
-
-    [JsonProperty("startDate")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
-    private DateTime Start
-    {
-        get => StartDate;
-        set => StartDate = value;
-    }
-
-    [JsonProperty("endDate")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
-    private DateTime End
-    {
-        get => EndDate;
-        set => EndDate = value;
-    }
 
     /// <inheritdoc/>
     public int CompareTo(Holiday? other)

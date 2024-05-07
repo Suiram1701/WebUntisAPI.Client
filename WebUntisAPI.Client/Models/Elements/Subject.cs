@@ -30,6 +30,14 @@ public class Subject : IElement
     /// <inheritdoc/>
     public bool CanViewTimetable { get; set; }
 
+    [DebuggerHidden]
+    [JsonProperty("displayAllowed")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private bool DisplayAllowed
+    {
+        set => CanViewTimetable = value;
+    }
+
     /// <inheritdoc/>
     public int RoomCapacity { get; set; }
 
@@ -42,12 +50,4 @@ public class Subject : IElement
     [JsonProperty("backColor")]
     [JsonConverter(typeof(HexColorJsonConverter))]
     public Color? BackColor { get; set; }
-
-    [JsonProperty("displayAllowed")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialisation.")]
-    private bool DisplayAllowed
-    {
-        get => CanViewTimetable;
-        set => CanViewTimetable = value;
-    }
 }

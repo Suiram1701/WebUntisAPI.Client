@@ -10,6 +10,7 @@ namespace WebUntisAPI.Client.Models.Messages.Recipients;
 [DebuggerDisplay($"{{{nameof(DisplayName)},nq}}")]
 public class TeacherRecipient : Recipient
 {
+    [DebuggerHidden]
     [JsonProperty("userId")]
     [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for json deserialization.")]
     private int UserId

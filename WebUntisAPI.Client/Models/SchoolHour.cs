@@ -24,6 +24,14 @@ public class SchoolHour
     [JsonProperty("description")]
     public string Description { get; set; } = string.Empty;
 
+    [DebuggerHidden]
+    [JsonProperty("label")]
+    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
+    private string Label
+    {
+        set => Description = value;
+    }
+
     /// <summary>
     /// The start time of the school hour
     /// </summary>
@@ -37,12 +45,4 @@ public class SchoolHour
     [JsonProperty("endTime")]
     [JsonConverter(typeof(TimeOnlyJsonConverter))]
     public TimeOnly EndTime { get; set; }
-
-    [JsonProperty("label")]
-    [SuppressMessage("CodeQuality", "IDE0051", Justification = "Member used for JSON deserialization.")]
-    private string Label
-    {
-        get => Description;
-        set => Description = value;
-    }
 }
