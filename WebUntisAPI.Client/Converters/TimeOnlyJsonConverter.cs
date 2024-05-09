@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
@@ -47,7 +47,7 @@ internal partial class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
 
     public override void WriteJson(JsonWriter writer, TimeOnly value, JsonSerializer serializer)
     {
-        int resultValue = value.Hour * 100 + value.Minute;
+        int resultValue = (value.Hour * 100) + value.Minute;
         writer.WriteValue(resultValue);
     }
 }
