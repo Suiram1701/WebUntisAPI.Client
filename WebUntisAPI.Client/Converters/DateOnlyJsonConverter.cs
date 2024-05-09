@@ -8,45 +8,31 @@ namespace WebUntisAPI.Client.Converters;
 
 internal partial class DateOnlyJsonConverter : JsonConverter<DateOnly>
 {
-    private const string _parseRegEx = @"^(\d{4})-?(\d{2})-?(\d{2})$";
-
-#if NET7_0_OR_GREATER
-    [GeneratedRegex(_parseRegEx, RegexOptions.Singleline | RegexOptions.CultureInvariant)]
-    private static partial Regex ParseRegEx();
-#else
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static Regex ParseRegEx()
-    {
-        return new(_parseRegEx);
-    }
-#endif
-
     public override DateOnly ReadJson(JsonReader reader, Type objectType, DateOnly existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        if (reader.TokenType != JsonToken.String)
+        if (reader.TokenType != JsonToken.Integer)
         {
-            throw new JsonSerializationException("A string value were expected.");
+            throw new JsonSerializationException("An integer value were expected.");
         }
 
-        string value = reader.ReadAsString() ?? string.Empty;
-        Match match = ParseRegEx().Match(value);
-
-        if (!match.Success)
+        long value = reader.Value as long? ?? -1L;
+        if (reader.Value?.ToString()?.Length != 8 || value < 0L)
         {
-            Exception innerEx = new FormatException($"A string in the format of '{_parseRegEx}' were expected.");
-            throw new JsonSerializationException("Unable to deserialize the token.");
+            Exception innerEx = new FormatException($"A positive integer value with 8 digits were expected.");
+            throw new JsonSerializationException("Unable to deserialize the token.", innerEx);
         }
 
-        int year = int.Parse(match.Groups[1].Value);
-        int month = int.Parse(match.Groups[2].Value);
-        int day = int.Parse(match.Groups[3].Value);
+        // Value is in the format of yyyyMMdd.
+        int year = (int)(value / 10000);            // Extract digits 1-4
+        int month = (int)(value / 100 % 100);     // Extract digits 5-6
+        int day = (int)(value % 100);               // Extract digits 7-8
 
         return new(year, month, day);
     }
 
     public override void WriteJson(JsonWriter writer, DateOnly value, JsonSerializer serializer)
     {
-        string stringValue = value.ToString("yyyyMMdd");
-        writer.WriteValue(stringValue);
+        int resultValue = value.Year * 10000 + value.Month * 100 + value.Day;     // Bring it in the format of yyyyMMdd.
+        writer.WriteValue(resultValue);
     }
 }

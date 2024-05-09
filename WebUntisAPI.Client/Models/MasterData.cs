@@ -58,8 +58,7 @@ public class MasterData
     /// <summary>
     /// The schoolyears of the school
     /// </summary>
-    [JsonProperty("schoolyears")]
-    [JsonConverter(typeof(MasterDataSchoolYearsJsonConverter))]
+    [JsonProperty("schoolyears", ItemConverterType = typeof(MasterDataSchoolYearJsonConverter))]
     public IEnumerable<SchoolYear> SchoolYears { get; set; } = Enumerable.Empty<SchoolYear>();
 
     /// <summary>
