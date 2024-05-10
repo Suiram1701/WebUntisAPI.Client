@@ -3,10 +3,10 @@ using System;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Interfaces;
 
-namespace WebUntisAPI.Client.Models.Messages;
+namespace WebUntisAPI.Client.Models.Messages.Confirmation;
 
 /// <summary>
-/// Information about a confirmation message
+/// Information about a confirmation message in the inbox.
 /// </summary>
 public class ConfirmationInformation
 {

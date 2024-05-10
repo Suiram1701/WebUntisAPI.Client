@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converters;
+using WebUntisAPI.Client.Models.Messages.Confirmation;
 using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client.Models.Messages;
@@ -57,11 +58,11 @@ public class SentMessagePreview : IMessagePreview
     public IEnumerable<MessagePerson> RecipientPeople { get; set; } = Enumerable.Empty<MessagePerson>();
 
     /// <summary>
-    /// The confirmation state of this message
+    /// The confirmation state of this message.
     /// </summary>
     /// <remarks>
-    /// When <c>null</c> weren't a confirmation requested
+    /// When <c>null</c> weren't a confirmation requested.
     /// </remarks>
     [JsonProperty("requestConfirmationStatus")]
-    public ConfirmationState? RequestConfirmationState { get; set; }
+    public SentMessageConfirmationState? ConfirmationState { get; set; }
 }

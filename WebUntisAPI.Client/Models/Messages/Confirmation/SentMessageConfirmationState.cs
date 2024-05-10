@@ -5,21 +5,21 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models.Messages;
+namespace WebUntisAPI.Client.Models.Messages.Confirmation;
 
 /// <summary>
-/// Represent the state of a confirmation of a message
+/// Represents the state of a sent confirmation message.
 /// </summary>
-public class ConfirmationState
+public struct SentMessageConfirmationState
 {
     /// <summary>
-    /// The count of people that confirmed the message
+    /// The count of the recipients that confirmed the message.
     /// </summary>
     [JsonProperty("confirmedRequestCount")]
     public int ConfirmedRequestCount { get; set; }
 
     /// <summary>
-    /// The count of people that recivied the message
+    /// The count of people that received the message.
     /// </summary>
     [JsonProperty("totalRequestCount")]
     public int TotalRequestCount { get; set; }

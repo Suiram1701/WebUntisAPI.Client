@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models.Messages;
+using WebUntisAPI.Client.Models.Messages.Confirmation;
 using WebUntisAPI.Client.Models.Messages.Recipients;
 
 namespace WebUntisAPI.Client;
@@ -363,6 +364,64 @@ partial class WebUntisClient
 
         string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/{message.Id}/read-confirmation", ct);
         return JsonConvert.DeserializeObject< ConfirmationInformation>(responseString)!;
+    }
+
+    /// <summary>
+    /// Get more details about a confirmation requested message.
+    /// </summary>
+    /// <remarks>
+    /// Do only use this method for messages that requires a confirmation otherwise a <see cref="InvalidOperationException"/> will thrown.
+    /// </remarks>
+    /// <param name="preview">The preview of the confirmation requested message.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Information about the confirmation state of each recipient and recipient user.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    public async Task<IEnumerable<RecipientConfirmation>> GetConfirmationMessageDetailsAsync(SentMessagePreview preview, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(preview, nameof(preview));
+
+        if (preview.ConfirmationState is null)
+        {
+            throw new InvalidOperationException("This message doesn't request a confirmation.");
+        }
+
+        return await GetConfirmationMessageDetailsInternalAsync(preview.Id, ct);
+    }
+
+    /// <summary>
+    /// Get more details about a confirmation requested message.
+    /// </summary>
+    /// <remarks>
+    /// Do only use this method for messages that requires a confirmation otherwise a <see cref="InvalidOperationException"/> will thrown.
+    /// </remarks>
+    /// <param name="message">The confirmation requested message.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Information about the confirmation state of each recipient and recipient user.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    public async Task<IEnumerable<RecipientConfirmation>> GetConfirmationMessageDetailsAsync(SentMessage message, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(message, nameof(message));
+
+        if (message.ConfirmationState is null)
+        {
+            throw new InvalidOperationException("This message doesn't request a confirmation.");
+        }
+
+        return await GetConfirmationMessageDetailsInternalAsync(message.Id, ct);
+    }
+
+    private async Task<IEnumerable<RecipientConfirmation>> GetConfirmationMessageDetailsInternalAsync(int id, CancellationToken ct)
+    {
+        ThrowWhenNotAvailable();
+
+        string responseString = await InternalApiRequestAsync($"/WebUntis/api/rest/view/v1/messages/sent/{id}/request-confirmation-status", ct);
+        return JsonConvert.DeserializeObject<IEnumerable<RecipientConfirmation>>(responseString)!;
     }
 
     /// <summary>
