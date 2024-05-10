@@ -277,7 +277,7 @@ public partial class WebUntisClient : IDisposable
     }
 
     /// <summary>
-    /// igns out the user (You can reuse the client)
+    /// Signs out the user (You can reuse the client)
     /// </summary>
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task SignOutAsync(string? id, CancellationToken ct = default)

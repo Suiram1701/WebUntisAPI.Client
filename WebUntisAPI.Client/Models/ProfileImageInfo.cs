@@ -27,7 +27,7 @@ public class ProfileImageInfo
     /// The MIME type of the image
     /// </summary>
     /// <remarks>
-    /// <c>null</c> when the user doen't have an image
+    /// <c>null</c> when the user doesn't have an image
     /// </remarks>
     public MediaTypeHeaderValue? ImageMimeType { get; set; }
 }
