@@ -196,17 +196,29 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get all messages of you're inbox
+    /// Get all messages of you're inbox.
     /// </summary>
+    /// <param name="searchText">A search text that can be applied. When <c>null</c> no search text will be applied.</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>All messages in the inbox</returns>
+    /// <returns>All messages in the inbox.</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<IEnumerable<InboxMessagePreview>> GetMessageInboxAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<InboxMessagePreview>> GetMessageInboxAsync(string? searchText = null, CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages", ct);
+        ThrowWhenNotAvailable();
+
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/messages",
+            Query = !string.IsNullOrEmpty(searchText)
+                ? $"searchText={searchText}"
+                : string.Empty
+        }.Uri;
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
 
         JObject responseObj = JObject.Parse(responseString);
         IEnumerable<InboxMessagePreview> inboxMessages = responseObj["incomingMessages"]!.ToObject<IEnumerable<InboxMessagePreview>>()!;
@@ -215,40 +227,67 @@ partial class WebUntisClient
         return readConfirmationMessages
             .Select(m =>
             {
-                m.IsConfirmationRequested = true;     // Set the IsConfirmationRequested property for every readConfirmationMessages true that it is possible to differenciate them from incomingMessages
+                m.IsConfirmationRequested = true;     // Set the IsConfirmationRequested property for every readConfirmationMessages true that it is possible to differentiate them from incomingMessages
                 return m;
             })
             .Concat(inboxMessages)
-            .OrderByDescending(m => m.SentDateTime);
+            .OrderByDescending(m => m.SentDateTime)
+            .ToArray();
     }
 
     /// <summary>
-    /// Get every message sent by the signed in user
+    /// Get every message sent by the signed in user.
     /// </summary>
     /// <param name="ct">Cancellation token</param>
+    /// <param name="searchText">A search text that can be applied. When <c>null</c> no search text will be applied.</param>
     /// <returns>All sent messages</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<IEnumerable<SentMessagePreview>> GetSentMessagesAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<SentMessagePreview>> GetSentMessagesAsync(string? searchText = null, CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/sent", ct);
+        ThrowWhenNotAvailable();
+
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/messages/sent",
+            Query = !string.IsNullOrEmpty(searchText)
+                ? $"searchText={searchText}"
+                : string.Empty
+        }.Uri;
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
+
         return JObject.Parse(responseString)["sentMessages"]!.ToObject<IEnumerable<SentMessagePreview>>()!;
     }
 
     /// <summary>
-    /// Get every draft message for the signed in user
+    /// Get every draft message for the signed in user.
     /// </summary>
+    /// <param name="searchText">A search text that can be applied. When <c>null</c> no search text will be applied.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The draft messages saved by the signed in user</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    public async Task<IEnumerable<DraftMessagePreview>> GetSavedDraftsAsync(CancellationToken ct = default)
+    public async Task<IEnumerable<DraftMessagePreview>> GetSavedDraftsAsync(string? searchText = null, CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/messages/drafts", ct);
+        ThrowWhenNotAvailable();
+
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/messages/drafts",
+            Query = !string.IsNullOrEmpty(searchText)
+                ? $"searchText={searchText}"
+                : string.Empty
+        }.Uri;
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
+
         return JObject.Parse(responseString)["draftMessages"]!.ToObject<IEnumerable<DraftMessagePreview>>()!;
     }
 
