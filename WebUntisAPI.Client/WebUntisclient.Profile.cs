@@ -15,6 +15,7 @@ using WebUntisAPI.Client.Models.Interfaces;
 using System.IO;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Extensions;
+using System.Net.Mime;
 
 namespace WebUntisAPI.Client;
 
@@ -104,18 +105,17 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get the profile image of the specified user
+    /// Get the profile image of the specified user.
     /// </summary>
     /// <remarks>
-    /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif
+    /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif.
     /// </remarks>
-    /// <param name="user">The user of the image to get</param>
-    /// <param name="stream">The stream to write the image to</param>
-    /// <param name="progress">Provides a functionality to report the download progress of the image</param>
+    /// <param name="user">The user of the image to get.</param>
+    /// <param name="stream">The stream to write the image to.</param>
+    /// <param name="progress">Provides a functionality to report the download progress of the image.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>
-    /// <c>permissions</c> are the permissions the signed in user have to the image (when <see cref="AccessPermissions.Read"/> is <c>false</c> nothing will wrote to the <paramref name="stream"/> and <c>hasImage</c> will be <c>false</c>). 
-    /// <c>hasImage</c> indicates whether the user has a profile image.
+    /// Information about the users image.
     /// </returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
