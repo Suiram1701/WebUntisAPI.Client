@@ -40,7 +40,7 @@ public class OfficeHour
     /// The date time were the office hour takes place.
     /// </summary>
     [JsonProperty("date")]
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
     /// <summary>
     /// The start time of the office hour.

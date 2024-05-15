@@ -215,3 +215,29 @@ public enum ElementState
     [JsonProperty("SUBSTITUTED")]
     Substituted
 }
+
+/// <summary>
+/// Represents different states of the time slot of an office hour.
+/// </summary>
+public enum TimeSlotState
+{
+    /// <summary>
+    /// Indicates that the signed in user is signed up to the time slot.
+    /// </summary>
+    SignedUp,
+
+    /// <summary>
+    /// Indicates that another user than the signed in one is already signed up to this time slot.
+    /// </summary>
+    Occupied,
+
+    /// <summary>
+    /// Indicates that this time slot is free.
+    /// </summary>
+    Free,
+
+    /// <summary>
+    /// Indicates that the state of time slot couldn't be determined.
+    /// </summary>
+    None
+}
