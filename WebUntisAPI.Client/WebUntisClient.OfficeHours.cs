@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Mime;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -245,5 +246,88 @@ partial class WebUntisClient
             Query = $"periodId={hour.Id}&teacherId={hour.TeacherId}&userText={userText ?? string.Empty}"
         }.Uri);
         await InternalApiRequestAsync(request, ct);
+    }
+
+    /// <summary>
+    /// Get office hour the signed in user is registered for.
+    /// </summary>
+    /// <remarks>
+    /// Instances returned by this method shouldn't used to sign up to an office hour. Also <see cref="OfficeHour.StartTime"/> and <see cref="OfficeHour.EndTime"/> may not contain the real start and end time of the full office hour.
+    /// </remarks>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The office hours</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<IEnumerable<OfficeHour>> GetOfficeHourRegistrationsAsync(CancellationToken ct = default)
+    {
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/public/officehours/registrations", ct);
+        return JObject.Parse(responseString)["data"]!.ToObject<IEnumerable<OfficeHour>>()!;
+    }
+
+    /// <summary>
+    /// Exports the office hours for the current date in the specified file format.
+    /// </summary>
+    /// <param name="class">Filters the office hour on the basis of the assigned class. When <c>null</c> the filter won't be applied.</param>
+    /// <param name="exportFormat">The file format.</param>
+    /// <param name="stream">The stream where the downloaded file should be written to.</param>
+    /// <param name="simpleMode">Indicates whether the simple mode should be used (idk what this does but its by default false).</param>
+    /// <param name="progress">The instance the progress should be reported to.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>A report of the export.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<OfficeHourExportResult> ExportOfficeHoursToFileAsync(OfficeHourClass? @class, ExportFileFormat exportFormat, Stream stream, bool simpleMode = false, IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        return await ExportOfficeHoursToFileAsync(DateOnly.FromDateTime(DateTime.Now), @class, exportFormat, stream, simpleMode, progress, ct);
+    }
+
+    /// <summary>
+    /// Exports the office hours in the specified file format.
+    /// </summary>
+    /// <param name="date">The date</param>
+    /// <param name="class">Filters the office hour on the basis of the assigned class. When <c>null</c> the filter won't be applied.</param>
+    /// <param name="exportFormat">The file format.</param>
+    /// <param name="stream">The stream where the downloaded file should be written to.</param>
+    /// <param name="simpleMode">Indicates whether the simple mode should be used (idk what this does but its by default false).</param>
+    /// <param name="progress">The instance the progress should be reported to.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>A report of the export.</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<OfficeHourExportResult> ExportOfficeHoursToFileAsync(DateOnly date, OfficeHourClass? @class, ExportFileFormat exportFormat, Stream stream, bool simpleMode = false, IProgress<double>? progress = null, CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/reports.do",
+            Query = $"name={"OfficeHours"}&format={exportFormat.ToString().ToLower()}&klasse={@class?.Id ?? -1}&date={date:yyyyMMdd}&simpleMode={simpleMode}"
+        }.Uri;
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
+
+        JToken dataObj = JObject.Parse(responseString)["data"]!;
+        OfficeHourExportResult result = dataObj.ToObject<OfficeHourExportResult>()!;
+
+        if (!result.IsFinished || result.Error)
+            return result;
+
+        Uri fileUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/preports.do",
+            Query = $"msgId={dataObj["messageId"]!.Value<string>()}&{dataObj["reportParams"]!.Value<string>()}"
+        }.Uri;
+        await _client.GetWithProgressAsync(fileUri, stream, progress, ct: ct);
+
+        return result;
     }
 }

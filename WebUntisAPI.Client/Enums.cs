@@ -241,3 +241,24 @@ public enum TimeSlotState
     /// </summary>
     None
 }
+
+/// <summary>
+/// Represents an export file formats.
+/// </summary>
+public enum ExportFileFormat
+{
+    /// <summary>
+    /// The .pdf format.
+    /// </summary>
+    Pdf,
+
+    /// <summary>
+    /// The .xls format.
+    /// </summary>
+    Xls,
+
+    /// <summary>
+    /// The .csv format.
+    /// </summary>
+    Csv
+}
