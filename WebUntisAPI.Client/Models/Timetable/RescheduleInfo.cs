@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Converters;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Timetable;
 
 /// <summary>
 /// Information about a rescheduled period

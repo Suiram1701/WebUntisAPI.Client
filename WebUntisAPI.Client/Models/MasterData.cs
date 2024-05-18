@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
+using WebUntisAPI.Client.Models.Timetable;
 
 namespace WebUntisAPI.Client.Models;
 
@@ -65,7 +66,7 @@ public class MasterData
     /// The timegrid used for the school
     /// </summary>
     /// <remarks>
-    /// The property layout of this object is kindly different than the data returned from <see cref="WebUntisClient.GetTimegridAsync(CancellationToken)"/> but both represent the same data.
+    /// The property layout of this object is kindly different than the data returned from <see cref="WebUntisClient.GetTimeGridAsync(CancellationToken)"/> but both represent the same data.
     /// </remarks>
     [JsonProperty("timeGrid")]
     [JsonConverter(typeof(MasterDataTimegridJsonConverter))]

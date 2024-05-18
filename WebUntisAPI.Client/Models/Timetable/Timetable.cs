@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Interfaces;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Timetable;
 
 /// <summary>
 /// A timetable for an element

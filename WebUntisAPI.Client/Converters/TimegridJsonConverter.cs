@@ -3,13 +3,13 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Timetable;
 
 namespace WebUntisAPI.Client.Converters;
 
-internal class TimegridJsonConverter : JsonConverter<Timegrid>
+internal class TimeGridJsonConverter : JsonConverter<TimeGrid>
 {
-    public override Timegrid ReadJson(JsonReader reader, Type objectType, Timegrid? existingValue, bool hasExistingValue, JsonSerializer serializer)
+    public override TimeGrid ReadJson(JsonReader reader, Type objectType, TimeGrid? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         if (reader.TokenType != JsonToken.StartObject)
         {
@@ -29,7 +29,7 @@ internal class TimegridJsonConverter : JsonConverter<Timegrid>
         return new(schoolyear, persisted, hours, lessonStates);
     }
 
-    public override void WriteJson(JsonWriter writer, Timegrid? value, JsonSerializer serializer)
+    public override void WriteJson(JsonWriter writer, TimeGrid? value, JsonSerializer serializer)
     {
         ArgumentNullException.ThrowIfNull(value, nameof(value));
 

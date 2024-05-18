@@ -6,7 +6,7 @@ using System.Drawing;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Elements;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Timetable;
 
 /// <summary>
 /// A lesson period

@@ -8,20 +8,13 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
-using static API.Test.AuthenticationTests;
+using WebUntisAPI.Client.Models.Timetable;
 
 namespace API.Test;
 
 [TestFixture]
 internal class TimetableTests
 {
-    [Test]
-    public async Task GetTimeGridAsync()
-    {
-        Timegrid timegrid = await SetUp.Client.GetTimegridAsync();
-        Assert.That(timegrid, Is.Not.Null);
-    }
-
     [Test]
     public async Task GetSchoolYearsAsync()
     {
@@ -44,6 +37,13 @@ internal class TimetableTests
     }
 
     [Test]
+    public async Task GetTimeGridAsync()
+    {
+        TimeGrid timeGrid = await SetUp.Client.GetTimeGridAsync();
+        Assert.That(timeGrid, Is.Not.Null);
+    }
+
+    [Test]
     public async Task GetTimetableAsync()
     {
         IUser user = await SetUp.Client.GetSignedInUserAsync();
@@ -55,5 +55,14 @@ internal class TimetableTests
             Assert.That(timetable.Elements.Count(), Is.GreaterThan(0));
             Assert.That(timetable.LastImportTimestamp, Is.LessThan(DateTimeOffset.Now));
         });
+    }
+
+    [Test]
+    public async Task GetNewTimeGridAsync()
+    {
+        WebUntisAPI.Client.Models.NewTimetable.TimeGrid timeGrid = await SetUp.Client.GetNewTimeGridAsync();
+
+        Assert.That(timeGrid, Is.Not.Null);
+        Assert.That(timeGrid.TimeGridDefinitions.Select(tg => tg.Id), Is.Unique);
     }
 }

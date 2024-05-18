@@ -6,9 +6,9 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
+using WebUntisAPI.Client.Models.Timetable;
 
 namespace WebUntisAPI.Client.Converters;
 

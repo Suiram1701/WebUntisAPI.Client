@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using WebUntisAPI.Client.Converters;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Timetable;
 
 /// <summary>
 /// One school hour

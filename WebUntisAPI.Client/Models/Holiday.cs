@@ -33,7 +33,7 @@ public class Holiday : IEquatable<Holiday>, IComparable<Holiday>
     /// <summary>
     /// The start date of the holiday
     /// </summary>
-    [JsonProperty("startDate")] 
+    [JsonProperty("startDate")]
     public DateTime StartDate { get; set; }
 
     [DebuggerHidden]

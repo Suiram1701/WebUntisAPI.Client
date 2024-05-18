@@ -9,52 +9,12 @@ using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Interfaces;
+using WebUntisAPI.Client.Models.NewTimetable;
 
 namespace WebUntisAPI.Client;
 
 partial class WebUntisClient
 {
-    /// <summary>
-    /// Get the timegrid for the school for the current school year
-    /// </summary>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The timegrid</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
-    public async Task<Timegrid> GetTimegridAsync(CancellationToken ct = default)
-    {
-        string response = await InternalApiRequestAsync("/WebUntis/api/public/timegrid", ct);
-        return JObject.Parse(response)["data"]!.ToObject<Timegrid>()!;
-    }
-
-    /// <summary>
-    /// Get the timegrid for the school for the specified school year
-    /// </summary>
-    /// <param name="year">The school year</param>
-    /// <param name="ct">Cancellation token</param>
-    /// <returns>The timegrid for all days</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="HttpRequestException"></exception>
-    public async Task<Timegrid> GetTimegridAsync(SchoolYear year, CancellationToken ct = default)
-    {
-        ThrowWhenNotAvailable();
-
-        UriBuilder uriBuilder = new()
-        {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
-            Path = "/WebUntis/api/public/timegrid",
-            Query = "schoolyearId=" + year.Id
-        };
-        string response = await InternalApiRequestAsync(uriBuilder.Uri, ct);
-
-        return JObject.Parse(response)["data"]!.ToObject<Timegrid>()!;
-    }
-
     /// <summary>
     /// Get all available school years
     /// </summary>
@@ -101,6 +61,47 @@ partial class WebUntisClient
     }
 
     /// <summary>
+    /// Get the time grid for the school for the current school year
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The time grid</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<Models.Timetable.TimeGrid> GetTimeGridAsync(CancellationToken ct = default)
+    {
+        string response = await InternalApiRequestAsync("/WebUntis/api/public/timegrid", ct);
+        return JObject.Parse(response)["data"]!.ToObject<Models.Timetable.TimeGrid>()!;
+    }
+
+    /// <summary>
+    /// Get the time grid for the school for the specified school year
+    /// </summary>
+    /// <param name="year">The school year</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The time grid for all days</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<Models.Timetable.TimeGrid> GetTimeGridAsync(SchoolYear year, CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+
+        UriBuilder uriBuilder = new()
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/public/timegrid",
+            Query = "schoolyearId=" + year.Id
+        };
+        string response = await InternalApiRequestAsync(uriBuilder.Uri, ct);
+
+        return JObject.Parse(response)["data"]!.ToObject<Models.Timetable.TimeGrid>()!;
+    }
+
+    /// <summary>
     /// Get the timetable for an element
     /// </summary>
     /// <param name="element">The element of the timetable to get</param>
@@ -112,7 +113,7 @@ partial class WebUntisClient
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task<Timetable> GetTimetableAsync(IElement element, DateOnly week, CancellationToken ct = default)
+    public async Task<Models.Timetable.Timetable> GetTimetableAsync(IElement element, DateOnly week, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(element, nameof(element));
@@ -129,6 +130,42 @@ partial class WebUntisClient
         };
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        return JObject.Parse(responseString)["data"]!["result"]!.ToObject<Timetable>()!;
+        return JObject.Parse(responseString)["data"]!["result"]!.ToObject<Models.Timetable.Timetable>()!;
+    }
+
+    /// <summary>
+    /// Get the time grid for the school for the current school year.
+    /// </summary>
+    /// <remarks>
+    /// At development time this is on the website marked as BETA feature. When data you received from this endpoint are incorrect or unexpected exceptions were thrown please create an issue on the GitHub page of this package.
+    /// </remarks>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The time grid</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<TimeGrid> GetNewTimeGridAsync(CancellationToken ct = default)
+    {
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/timetable/grid", ct);
+        return JsonConvert.DeserializeObject<Models.NewTimetable.TimeGrid>(responseString)!;
+    }
+
+    /// <summary>
+    /// Get the settings how the timetable should be displayed.
+    /// </summary>
+    /// <remarks>
+    /// At development time this is on the website marked as BETA feature. When data you received from this endpoint are incorrect or unexpected exceptions were thrown please create an issue on the GitHub page of this package.
+    /// </remarks>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The settings</returns>
+    /// <exception cref="ObjectDisposedException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="WebUntisException"></exception>
+    /// <exception cref="HttpRequestException"></exception>
+    public async Task<TimetableSettings> GetNewTimetableSettingsAsync(CancellationToken ct = default)
+    {
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/timetable/entries/settings", ct);
+        return JsonConvert.DeserializeObject<TimetableSettings>(responseString)!;
     }
 }
