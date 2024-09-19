@@ -209,7 +209,6 @@ namespace WebUntisAPI.Client
             // Send request
             string schoolName = loginName.Replace(' ', '+');
             HttpResponseMessage response = await _client.PostAsync(serverUrl + "/WebUntis/jsonrpc.do?school=" + schoolName, requestContent, ct);
-
             // Check cancellation token
             if (ct.IsCancellationRequested)
                 return false;
@@ -240,29 +239,36 @@ namespace WebUntisAPI.Client
             // Get the api auth token and the logged in user
             Task bearerTokenTask = ReloadSessionAsync(ct);
             IUser[] users;
-            if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
+            _userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
+            try
             {
-                Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
-                await Task.WhenAll(bearerTokenTask, studentTask);
-                users = studentTask.Result;
+                if ((UserType)responseObject["result"]["personType"].ToObject<int>() == Client.UserType.Student)     // For student and teacher separate tasks
+                {
+                    Task<Student[]> studentTask = GetStudentsAsync("getLoggedInStudent", ct);
+                    await Task.WhenAll(bearerTokenTask, studentTask);
+                    users = studentTask.Result;
+                }
+                else
+                {
+                    Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
+                    await Task.WhenAll(bearerTokenTask, teacherTask);
+                    users = teacherTask.Result;
+                }
+                _user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
             }
-            else
+            catch(WebUntisException) //NoRight Exception
             {
-                Task<Teacher[]> teacherTask = GetTeachersAsync("getLoggedInTeacher", ct);
-                await Task.WhenAll(bearerTokenTask, teacherTask);
-                users = teacherTask.Result;
+                _user = new Student() {Id = responseObject["result"]["personId"].ToObject<int>() };
             }
-
+           
             if (ct.IsCancellationRequested)     // Check for cancellation
             {
                 _ = LogoutAsync();
                 return false;
             }
 
-            _userType = (UserType)responseObject["result"]["personType"].ToObject<int>();
-            _user = users.FirstOrDefault(user => user.Id == responseObject["result"]["personId"].ToObject<int>());
-
             return true;
+
         }
 
         /// <summary>

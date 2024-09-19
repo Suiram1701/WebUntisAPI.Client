@@ -48,7 +48,7 @@ internal class UserTest
     {
         Client.LoginAsync(s_Server, s_LoginName, s_UserName, s_Password).Wait();
 
-        Task<int> personId = Client.GetPersonIdAsync(Client.User.ForeName, Client.User.LongName, Client.UserType ?? UserType.Student);
+        Task<int> personId = Client.GetPersonIdAsync(Client.User.FirstName, Client.User.LongName, Client.UserType ?? UserType.Student);
         personId.Wait();
         if (personId.Result == Client.User.Id)
             Assert.Pass();

@@ -23,7 +23,7 @@ namespace WebUntisAPI.Client.Models
         /// Fore name of the user
         /// </summary>
         [JsonProperty("foreName")]
-        string ForeName { get; set; }
+        string FirstName { get; set; }
 
         /// <summary>
         /// Last name of the user

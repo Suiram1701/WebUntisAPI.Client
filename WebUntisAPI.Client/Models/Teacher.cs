@@ -17,7 +17,7 @@ namespace WebUntisAPI.Client.Models
         public string Name { get; set; }
 
         /// <inheritdoc/>
-        public string ForeName { get; set; }
+        public string FirstName { get; set; }
 
         /// <inheritdoc/>
         public string LongName { get; set; }
