@@ -109,10 +109,26 @@ public class Period
     /// </summary>
     [JsonProperty("studentGroup")]
     public string StudentGroup { get; set; } = string.Empty;
-
     /// <summary>
-    /// All elements that are associated with this period
+    /// Returns the first part from StudentGroup
     /// </summary>
+    public string LessonShortName
+    {
+        get
+        {
+            try
+            {
+                return StudentGroup.Split("_")[0];
+            }
+            catch
+            {
+                return string.Empty;
+            }
+        }
+        private set { }
+    }    /// <summary>
+         /// All elements that are associated with this period
+         /// </summary>
     [JsonProperty("elements")]
     public IEnumerable<ElementId> Elements { get; set; } = Array.Empty<ElementId>();
 
