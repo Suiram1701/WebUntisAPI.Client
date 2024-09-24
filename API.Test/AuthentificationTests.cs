@@ -25,7 +25,7 @@ internal class AuthenticationTests
         {
             Assert.That(credentials.ServerName, Is.EqualTo(untisConfig["serverName"]));
             Assert.That(credentials.School, Is.EqualTo(untisConfig["loginName"]));
-            Assert.That(credentials.SchoolId.ToString(), Is.EqualTo(untisConfig["schoolId"]));
+            Assert.That(credentials.SchoolId.ToString(), Is.EqualTo(untisConfig["schoolId"])); //ScholId in appsettings needed
             Assert.That(credentials.Username, Is.EqualTo(untisConfig["username"]));
         });
 
@@ -59,7 +59,6 @@ internal class AuthenticationTests
         SignInResult result = await client.SignInAsync(serverName, schoolName, "abc", "def", null);
         Assert.That(result.Successful, Is.False);
     }
-
     [Test]
     public void GetSessionIatExp()
     {
@@ -74,4 +73,6 @@ internal class AuthenticationTests
             Assert.That(exp, Is.GreaterThan(current));
         });
     }
+
+
 }

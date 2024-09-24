@@ -38,7 +38,7 @@ public class Timetable
     /// <param name="lastImportTimestamp">The last import timestamp</param>
     public Timetable(IEnumerable<Period> periods, IEnumerable<IElement> elements, DateTimeOffset lastImportTimestamp)
     {
-        Periods = periods;
+        Periods = periods.OrderBy(c => c.Date).ThenBy(c => c.StartTime);
         Elements = elements;
         LastImportTimestamp = lastImportTimestamp;
     }

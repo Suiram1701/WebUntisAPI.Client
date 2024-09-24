@@ -143,7 +143,7 @@ public partial class WebUntisClient : IDisposable
         ArgumentNullException.ThrowIfNull(username, nameof(username));
         ArgumentNullException.ThrowIfNull(password, nameof(password));
 
-        if (mfaToken is not null)
+        if (!string.IsNullOrEmpty(mfaToken))
         {
             if (mfaToken.Length != 6)
                 throw new ArgumentException("The provided mfa token have to be a length of 6 chars.");
@@ -295,7 +295,7 @@ public partial class WebUntisClient : IDisposable
     /// <returns>The user</returns>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="InvalidOperationException"></exception>-
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task<IUser> GetSignedInUserAsync(CancellationToken ct = default)
     {
@@ -354,9 +354,30 @@ public partial class WebUntisClient : IDisposable
         if (result)
         {
             _jwtToken = response;
+            byte[] jwtContentPartB;
+            try
+            {
+                jwtContentPartB = Convert.FromBase64String(_jwtToken!.Split('.')[1]);
 
+            }
+            catch (FormatException)
+            {
+                var base64Url = _jwtToken!.Split('.')[1];
+
+                //Base64Url -> Base64
+                string base64 = base64Url.Replace('-', '+')
+                    .Replace('_', '/');
+
+                // Add Padding if needed
+                switch (base64.Length % 4)
+                {
+                    case 2: base64 += "=="; break;
+                    case 3: base64 += "="; break;
+                }
+
+                jwtContentPartB = Convert.FromBase64String(base64);
+            }
             // Parse the returned jwt in preparation for other methods
-            byte[] jwtContentPartB = Convert.FromBase64String(_jwtToken!.Split('.')[1]);
             string jwtContentPart = Encoding.UTF8.GetString(jwtContentPartB);
             _jwtContent = JObject.Parse(jwtContentPart);
         }

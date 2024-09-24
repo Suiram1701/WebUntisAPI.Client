@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Elements;
@@ -109,7 +108,6 @@ public class Period
     /// </summary>
     [JsonProperty("studentGroup")]
     public string StudentGroup { get; set; } = string.Empty;
-
     /// <summary>
     /// All elements that are associated with this period
     /// </summary>
