@@ -17,7 +17,7 @@ internal class UserTest
     [Test]
     public async Task GetCurrentPersonAsync()
     {
-        IUser user = await SetUp.Client.GetSignedInUserAsync(); // Different values? May obsolete test?
+        IUser user = await SetUp.Client.GetSignedInUserAsync();
 
         string realUsername = SetUp.Configuration.GetSection("untis")["username"]!;
         Assert.That(user.Name, Is.EqualTo(realUsername));

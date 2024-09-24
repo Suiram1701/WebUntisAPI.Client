@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using WebUntisAPI.Client.Converters;
 using WebUntisAPI.Client.Models.Elements;
@@ -110,25 +109,8 @@ public class Period
     [JsonProperty("studentGroup")]
     public string StudentGroup { get; set; } = string.Empty;
     /// <summary>
-    /// Returns the first part from StudentGroup
+    /// All elements that are associated with this period
     /// </summary>
-    public string LessonShortName
-    {
-        get
-        {
-            try
-            {
-                return StudentGroup.Split("_")[0];
-            }
-            catch
-            {
-                return string.Empty;
-            }
-        }
-        private set { }
-    }    /// <summary>
-         /// All elements that are associated with this period
-         /// </summary>
     [JsonProperty("elements")]
     public IEnumerable<ElementId> Elements { get; set; } = Array.Empty<ElementId>();
 
