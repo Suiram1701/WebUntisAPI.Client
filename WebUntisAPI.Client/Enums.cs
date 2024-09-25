@@ -155,17 +155,36 @@ public enum CellState
     Shift,
 
     /// <summary>
-    /// Stands for a period that whose room was changed
+    /// Stands for a period whose room was changed
     /// </summary>
     [JsonProperty("ROOMSUBSTITUTION")]
     RoomSubstitution,
 
     /// <summary>
-    /// Stands for a period where a exam happens
+    /// Stands for a period where an exam happens
     /// </summary>
     [JsonProperty("EXAM")]
-    Exam
+    Exam,
+
+    /// <summary>
+    /// Stands for a period that was cancelled
+    /// </summary>
+    [JsonProperty("CANCEL")]
+    Cancel,
+
+    /// <summary>
+    /// Stands for a period that was substituted
+    /// </summary>
+    [JsonProperty("SUBSTITUTION")]
+    Substitution,
+
+    /// <summary>
+    /// Stands for an additional period
+    /// </summary>
+    [JsonProperty("ADDITIONAL")]
+    Additional 
 }
+
 
 /// <summary>
 /// Different types of elements
@@ -213,7 +232,13 @@ public enum ElementState
     /// The element is substituted
     /// </summary>
     [JsonProperty("SUBSTITUTED")]
-    Substituted
+    Substituted,
+
+    /// <summary>
+    /// The element is absent
+    /// </summary>
+    [JsonProperty("ABSENT")]
+    Absent
 }
 
 /// <summary>
