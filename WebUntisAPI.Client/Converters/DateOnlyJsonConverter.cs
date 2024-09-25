@@ -16,6 +16,9 @@ internal partial class DateOnlyJsonConverter : JsonConverter<DateOnly>
         }
 
         long value = reader.Value as long? ?? -1L;
+        if (value == 0)
+            return default; 
+        
         if (reader.Value?.ToString()?.Length != 8 || value < 0L)
         {
             Exception innerEx = new FormatException($"A positive integer value with 8 digits were expected.");
