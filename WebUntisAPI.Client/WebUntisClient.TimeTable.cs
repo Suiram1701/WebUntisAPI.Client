@@ -10,6 +10,7 @@ using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Interfaces;
 using WebUntisAPI.Client.Models.NewTimetable;
+using WebUntisAPI.Client.Models.NewTimetable.FilterElements;
 
 namespace WebUntisAPI.Client;
 
@@ -157,15 +158,109 @@ partial class WebUntisClient
     /// <remarks>
     /// At development time this is on the website marked as BETA feature. When data you received from this endpoint are incorrect or unexpected exceptions were thrown please create an issue on the GitHub page of this package.
     /// </remarks>
+    /// <param name="format">The id of the format of the timetable.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>The settings</returns>
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task<TimetableSettings> GetNewTimetableSettingsAsync(CancellationToken ct = default)
+    public async Task<TimetableSettings> GetNewTimetableSettingsAsync(int format = 1, CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/timetable/entries/settings", ct);
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/timetable/entries/settings",
+            Query = $"format={format}"
+        }.Uri;
+
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
         return JsonConvert.DeserializeObject<TimetableSettings>(responseString)!;
+    }
+
+    /// <summary>
+    /// Gets the available timetable filters of the specified <paramref name="resourceType"/>.
+    /// </summary>
+    /// <param name="resourceType">The resource type to get the filters for.</param>
+    /// <param name="timetableType">The type of the timetable. <see cref="TimetableType.My_Timetable"/> is only used when the user requests his own timetable but there no differences if also <see cref="TimetableType.Standard"/> is used.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The filters for the specified <paramref name="resourceType"/>.</returns>
+    public async Task<TimetableFilters> GetNewTimetableFiltersAsync(ElementType resourceType, TimetableType timetableType = TimetableType.Standard, CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(resourceType);
+        ArgumentNullException.ThrowIfNull(timetableType);
+
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/timetable/filter",
+            Query = $"resourceType={resourceType.ToString().ToUpperInvariant()}&timetableType={timetableType.ToString().ToUpperInvariant()}"
+        }.Uri;
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
+        return JsonConvert.DeserializeObject<TimetableFilters>(responseString)!;
+    }
+
+    /// <summary>
+    /// Gets the timetable for a specified filter that were get through <see cref="GetNewTimetableFiltersAsync(ElementType, TimetableType, CancellationToken)"/>.
+    /// </summary>
+    /// <param name="dateRange">The date range </param>
+    /// <param name="filterElement">The timetable element to filter for.</param>
+    /// <param name="filters">Period filters to apply. By default every kind of period is requested.</param>
+    /// <param name="formatId">The id of the format of the timetable.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>A collection containing every day where data were available in the specified date range.</returns>
+    public async Task<IEnumerable<TimetableDay>> GetNewTimetableAsync(
+        DateRange dateRange,
+        ITimetableFilterElement filterElement,
+        PeriodType filters = PeriodType.Normal_Teaching_Period | PeriodType.Additional_Period | PeriodType.Event | PeriodType.Stand_By_Period | PeriodType.Office_Hour | PeriodType.Exam | PeriodType.Break_Supervision,
+        int formatId = 1,
+        CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(dateRange);
+        ArgumentNullException.ThrowIfNull(filterElement);
+        ArgumentNullException.ThrowIfNull(filters);
+        ArgumentNullException.ThrowIfNull(formatId);
+
+        return await GetNewTimetableAsync(dateRange, filterElement.Element, filters, formatId, ct);
+    }
+
+    /// <summary>
+    /// Gets the timetable for a specified element.
+    /// </summary>
+    /// <param name="dateRange">The date range </param>
+    /// <param name="element">The element to get the timetable for.</param>
+    /// <param name="filters">Period filters to apply. By default every kind of period is requested.</param>
+    /// <param name="formatId">The id of the format of the timetable.</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>A collection containing every day where data were available in the specified date range.</returns>
+    public async Task<IEnumerable<TimetableDay>> GetNewTimetableAsync(
+        DateRange dateRange,
+        IElement element,
+        PeriodType filters = PeriodType.Normal_Teaching_Period | PeriodType.Additional_Period | PeriodType.Event | PeriodType.Stand_By_Period | PeriodType.Office_Hour | PeriodType.Exam | PeriodType.Break_Supervision,
+        int formatId = 1,
+        CancellationToken ct = default)
+    {
+        ThrowWhenNotAvailable();
+        ArgumentNullException.ThrowIfNull(dateRange);
+        ArgumentNullException.ThrowIfNull(element);
+        ArgumentNullException.ThrowIfNull(filters);
+        ArgumentNullException.ThrowIfNull(formatId);
+
+        string resourceType = element.GetElementType().ToString().ToUpperInvariant();
+        string periodTypes = filters.ToString().Replace(" ", string.Empty).ToUpperInvariant();
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = ServerName,
+            Path = "/WebUntis/api/rest/view/v1/timetable/entries",
+            Query = $"start={dateRange.Start:yyyy-MM-dd}&end={dateRange.End:yyyy-MM-dd}&resourceType={resourceType}&resources={element.Id}&periodTypes={periodTypes}&format={formatId}" 
+        }.Uri;
+
+        string responseString = await InternalApiRequestAsync(requestUri, ct);
+        return JObject.Parse(responseString)["days"]!.ToObject<IEnumerable<TimetableDay>>()!;
     }
 }

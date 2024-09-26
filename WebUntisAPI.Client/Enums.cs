@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace WebUntisAPI.Client;
 
@@ -286,4 +287,129 @@ public enum ExportFileFormat
     /// The .csv format.
     /// </summary>
     Csv
+}
+
+/// <summary>
+/// Flags to enable different types of timetable entries.
+/// </summary>
+[Flags]
+public enum PeriodType
+{
+    /// <summary>
+    /// Shows normal teaching periods
+    /// </summary>
+    [JsonProperty("NORMAL_TEACHING_PERIOD")]
+    Normal_Teaching_Period = 1,
+
+    /// <summary>
+    /// Shows additional periods
+    /// </summary>
+    [JsonProperty("ADDITIONAL_PERIOD")]
+    Additional_Period = 2,
+
+    /// <summary>
+    /// Shows event periods
+    /// </summary>
+    [JsonProperty("EVENT")]
+    Event = 4,
+
+    /// <summary>
+    /// Shows stand by periods
+    /// </summary>
+    [JsonProperty("STAND_BY_PERIOD")]
+    Stand_By_Period = 8,
+
+    /// <summary>
+    /// Shows office hours
+    /// </summary>
+    [JsonProperty("OFFICE_HOUR")]
+    Office_Hour = 16,
+
+    /// <summary>
+    /// Shows exam periods
+    /// </summary>
+    [JsonProperty("EXAM")]
+    Exam = 32,
+
+    /// <summary>
+    /// Shows break supervision periods
+    /// </summary>
+    [JsonProperty("BREAK_SUPERVISION")]
+    Break_Supervision = 64,
+}
+
+/// <summary>
+/// Represents different statuses of periods.
+/// </summary>
+public enum PeriodStatus
+{
+    /// <summary>
+    /// The period takes place regular.
+    /// </summary>
+    [JsonProperty("REGULAR")]
+    Regular,
+
+    /// <summary>
+    /// Something changed in the period.
+    /// </summary>
+    [JsonProperty("CHANGED")]
+    Changed,
+
+    /// <summary>
+    /// The period is cancelled.
+    /// </summary>
+    [JsonProperty("CANCELLED")]
+    Cancelled
+}
+
+/// <summary>
+/// Represents different status of a period element.
+/// </summary>
+public enum PeriodElementStatus
+{
+    /// <summary>
+    /// The element is regular.
+    /// </summary>
+    [JsonProperty("REGULAR")]
+    Regular,
+
+    /// <summary>
+    /// The element were added.
+    /// </summary>
+    [JsonProperty("ADDED")]
+    Added,
+
+    /// <summary>
+    /// The element were removed.
+    /// </summary>
+    [JsonProperty("REMOVED")]
+    Removed
+}
+
+/// <summary>
+/// Different ways of requesting a timetable.
+/// </summary>
+public enum TimetableType
+{
+    /// <summary>
+    /// Standard
+    /// </summary>
+    Standard,
+
+    /// <summary>
+    /// My timetable
+    /// </summary>
+    My_Timetable
+}
+
+/// <summary>
+/// Different types of a back entry.
+/// </summary>
+public enum BackEntryType
+{
+    /// <summary>
+    /// A holiday
+    /// </summary>
+    [JsonProperty("HOLIDAY")]
+    Holiday
 }

@@ -20,6 +20,11 @@ internal class HexColorJsonConverter : JsonConverter<Color>
         {
             try
             {
+                if (!value.StartsWith('#'))
+                {
+                    value = "#" + value;
+                }
+
                 return ColorTranslator.FromHtml(value);
             }
             catch (Exception ex)

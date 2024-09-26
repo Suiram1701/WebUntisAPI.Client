@@ -63,12 +63,12 @@ public class MasterData
     public IEnumerable<SchoolYear> SchoolYears { get; set; } = Enumerable.Empty<SchoolYear>();
 
     /// <summary>
-    /// The timegrid used for the school
+    /// The time grid used for the school
     /// </summary>
     /// <remarks>
     /// The property layout of this object is kindly different than the data returned from <see cref="WebUntisClient.GetTimeGridAsync(CancellationToken)"/> but both represent the same data.
     /// </remarks>
     [JsonProperty("timeGrid")]
     [JsonConverter(typeof(MasterDataTimegridJsonConverter))]
-    public ReadOnlyDictionary<DayOfWeek, IEnumerable<SchoolHour>> Timegrid { get; set; } = new(new Dictionary<DayOfWeek, IEnumerable<SchoolHour>>());
+    public ReadOnlyDictionary<DayOfWeek, IEnumerable<SchoolHour>> TimeGrid { get; set; } = new(new Dictionary<DayOfWeek, IEnumerable<SchoolHour>>());
 }
