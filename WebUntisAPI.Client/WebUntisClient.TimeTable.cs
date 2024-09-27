@@ -131,7 +131,16 @@ partial class WebUntisClient
         };
         string responseString = await InternalApiRequestAsync(uriBuilder.Uri, ct);
 
-        return JObject.Parse(responseString)["data"]!["result"]!.ToObject<Models.Timetable.Timetable>()!;
+        JObject dataObj = (JObject)JObject.Parse(responseString)["data"]!;
+        if (dataObj["error"] is JObject errorObj)
+        {
+            string code = errorObj["code"]!.Value<int>().ToString();
+            string message = errorObj["data"]!["messageKey"]!.Value<string>()!;
+
+            throw new WebUntisException(new WebUntisError[] { new(code, message) });
+        }
+
+        return dataObj["result"]!.ToObject<Models.Timetable.Timetable>()!;
     }
 
     /// <summary>
