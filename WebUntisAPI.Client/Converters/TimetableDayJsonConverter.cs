@@ -3,8 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Net.Http;
 using WebUntisAPI.Client.Extensions;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
@@ -17,9 +16,10 @@ internal class TimetableDayJsonConverter : JsonConverter<TimetableDay>
     public override TimetableDay? ReadJson(JsonReader reader, Type objectType, TimetableDay? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         JObject obj = JObject.Load(reader);
-
+        if (obj["status"]!.ToString() == "NOT_ALLOWED")
+            throw new HttpRequestException("The API request limit has been exceeded. Please try again later.");
         IElement? element = null;
-        if (obj["resource"] is not null)
+        if (!string.IsNullOrEmpty(obj["resourceType"]!.ToString()) && obj["resource"] != null)
         {
             ElementType elementType = Enum.Parse<ElementType>(obj["resourceType"]!.Value<string>()!, ignoreCase: true);
             element = elementType switch

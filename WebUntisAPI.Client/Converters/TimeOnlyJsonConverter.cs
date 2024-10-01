@@ -15,8 +15,16 @@ internal partial class TimeOnlyJsonConverter : JsonConverter<TimeOnly>
         {
             JsonToken.String => ReadStringJson(reader),
             JsonToken.Integer => ReadIntegerJson(reader),
+            JsonToken.Date => ReadDateJson(reader),
             _ => throw new JsonSerializationException("A string or integer value were expected.")
         };
+    }
+    private static TimeOnly ReadDateJson(JsonReader reader)
+    {
+        if (reader.Value is DateTime dateTime)
+            return TimeOnly.FromDateTime(dateTime);
+        throw new JsonSerializationException("A valid DateTime value was expected.");
+        
     }
 
     private static TimeOnly ReadStringJson(JsonReader reader)
