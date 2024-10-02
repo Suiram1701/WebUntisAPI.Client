@@ -16,8 +16,13 @@ internal class TimetableDayJsonConverter : JsonConverter<TimetableDay>
     public override TimetableDay? ReadJson(JsonReader reader, Type objectType, TimetableDay? existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
         JObject obj = JObject.Load(reader);
-        if (obj["status"]!.ToString() == "NOT_ALLOWED")
-            throw new HttpRequestException("The API request limit has been exceeded. Please try again later.");
+
+        PeriodStatus status = obj["status"]!.ToObject<PeriodStatus>();
+        if (status == PeriodStatus.NotAllowed)
+        {
+            return new() { Status = status };
+        }
+
         IElement? element = null;
         if (!string.IsNullOrEmpty(obj["resourceType"]!.ToString()) && obj["resource"] != null)
         {
@@ -34,7 +39,6 @@ internal class TimetableDayJsonConverter : JsonConverter<TimetableDay>
         }
 
         DateOnly date = obj["date"]!.ToObject<DateOnly>();
-        PeriodStatus status = obj["status"]!.ToObject<PeriodStatus>();
         IEnumerable<Period> periods = obj["gridEntries"]!.ToObject<IEnumerable<Period>>() ?? Enumerable.Empty<Period>();
         IEnumerable<BackEntry> backEntries = obj["backEntries"]!.ToObject<IEnumerable<BackEntry>>() ?? Enumerable.Empty<BackEntry>();
 

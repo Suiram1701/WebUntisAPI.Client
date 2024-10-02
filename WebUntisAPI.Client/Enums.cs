@@ -359,7 +359,13 @@ public enum PeriodStatus
     /// The period is cancelled.
     /// </summary>
     [JsonProperty("CANCELLED")]
-    Cancelled
+    Cancelled,
+
+    /// <summary>
+    /// Indicates that this period isn't available. Mostly cause because this period isn't part of a school year.
+    /// </summary>
+    [JsonProperty("NOT_ALLOWED")]
+    NotAllowed
 }
 
 /// <summary>

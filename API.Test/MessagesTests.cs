@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models.Messages;
 using WebUntisAPI.Client.Models.Messages.Recipients;
 
@@ -32,13 +33,21 @@ internal class MessagesTests
     [Test]
     public async Task GetStudentRecipientsAsync()
     {
-        (IEnumerable<StudentRecipient> students, IEnumerable<RecipientSection> sections) = await SetUp.Client.GetStudentRecipientsAsync();
-
-        Assert.Multiple(() =>
+        try
         {
-            Assert.That(students.Select(student => student.Id), Is.Unique);
-            Assert.That(sections.Select(section => section.SectionType), Is.Unique);
-        });
+            (IEnumerable<StudentRecipient> students, IEnumerable<RecipientSection> sections) = await SetUp.Client.GetStudentRecipientsAsync();
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(students.Select(student => student.Id), Is.Unique);
+                Assert.That(sections.Select(section => section.SectionType), Is.Unique);
+            });
+        }
+        catch (WebUntisException ex)
+            when (ex.Message == "INTERNAL_ERROR: Sie haben nicht die erforderlichen Benutzerrechte um die Funktion auszuführen.\r\n")
+        {
+            Assert.Ignore("User does not have the permission to execute this test.");
+        }
     }
 
     [Test]

@@ -152,7 +152,14 @@ partial class WebUntisClient
     /// <summary>
     /// Get the filtered recipients by the applied filters and search text.
     /// </summary>
-    /// <param name="recipientOption">The recipient option</param>
+    /// <param name="recipientOption">
+    /// The recipient option.
+    /// Commonly used options are:
+    /// <list type="bullet">
+    ///     <item><c>STAFF</c></item>
+    ///     <item><c>CUSTOM</c></item>
+    /// </list>
+    /// </param>
     /// <param name="searchText">The search text to apply. When <c>null</c> or an empty string will this ignored.</param>
     /// <param name="appliedFilters">The filters to apply. The format is the same that were returned by <see cref="GetRecipientsFiltersAsync(string, CancellationToken)"/> with the differences that you only have to hand over the filter type and the values that you want to apply.</param>
     /// <param name="ct">Cancellation token</param>
