@@ -215,11 +215,7 @@ public enum ElementType
     /// <summary>
     /// A student
     /// </summary>
-    Student = 5,
-    /// <summary>
-    /// An info entry
-    /// </summary>
-    Info = 6
+    Student = 5
 }
 
 /// <summary>
