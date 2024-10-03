@@ -58,7 +58,7 @@ internal class SetUp
     [OneTimeTearDown]
     public async Task TearDownAsync()
     {
-        await Client.SignOutAsync(null);
+        await Client.SignOutAsync();
         Client.Dispose();
     }
 }

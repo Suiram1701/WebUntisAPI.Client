@@ -15,11 +15,11 @@ namespace API.Test;
 internal class UserTest
 {
     [Test]
-    public async Task GetCurrentPersonAsync()
+    public void GetCurrentPerson()
     {
-        IUser user = await SetUp.Client.GetSignedInUserAsync();
-
+        IUser user = SetUp.Client.Session!.User;
         string realUsername = SetUp.Configuration.GetSection("untis")["username"]!;
+
         Assert.That(user.Name, Is.EqualTo(realUsername));
     }
 }

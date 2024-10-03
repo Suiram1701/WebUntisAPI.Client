@@ -188,10 +188,8 @@ partial class WebUntisClient
             new JProperty("searchText", searchText ?? string.Empty)
         };
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v2/messages/recipients/{recipientOption}/filter",
         }.Uri)
         {
@@ -216,10 +214,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/messages",
             Query = !string.IsNullOrEmpty(searchText)
                 ? $"searchText={searchText}"
@@ -256,10 +252,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/messages/sent",
             Query = !string.IsNullOrEmpty(searchText)
                 ? $"searchText={searchText}"
@@ -284,10 +278,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/messages/drafts",
             Query = !string.IsNullOrEmpty(searchText)
                 ? $"searchText={searchText}"
@@ -365,10 +357,8 @@ partial class WebUntisClient
             _ => throw new ArgumentException(string.Format("A not build-in implementation of {0} isn't supported by this method.", nameof(IMessagePreview)), nameof(preview))
         };
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages{pathExtension}/{preview.Id}",
             Query = $"contentAsHtml={contentAsHtml}"
         };
@@ -539,9 +529,10 @@ partial class WebUntisClient
         ArgumentNullException.ThrowIfNull(subject, nameof(subject));
         ArgumentNullException.ThrowIfNull(content, nameof(content));
         ArgumentNullException.ThrowIfNull(recipients, nameof(recipients));
+        ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
+
         if (!recipients.Any() && !recipientGroups.Any())
             throw new ArgumentException("The message have to be at least one recipient.", nameof(recipients));
-        ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -558,10 +549,8 @@ partial class WebUntisClient
             new JProperty("forbidReply", forbidReply),
         };
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v2/messages"
         }.Uri)
         {
@@ -596,6 +585,7 @@ partial class WebUntisClient
         ArgumentNullException.ThrowIfNull(subject, nameof(subject));
         ArgumentNullException.ThrowIfNull(content, nameof(content));
         ArgumentNullException.ThrowIfNull(attachments, nameof(attachments));
+
         if (attachments.Any(attachment => !attachment.Item2.CanRead))
             throw new InvalidOperationException("Every attachment stream have to be readable.");
 
@@ -610,10 +600,8 @@ partial class WebUntisClient
             new JProperty("oneDriveAttachments", new JArray())
         };
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v2/messages/drafts"
         }.Uri)
         {
@@ -662,10 +650,8 @@ partial class WebUntisClient
             )
         };
 
-        using HttpRequestMessage request = new(HttpMethod.Put, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Put, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v2/messages/drafts/{message.Id}"
         }.Uri)
         {
@@ -707,10 +693,8 @@ partial class WebUntisClient
             new JProperty("oneDriveAttachments", new JArray())
         };
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v2/messages/{replyForm.Id}/reply"
         }.Uri)
         {
@@ -779,6 +763,7 @@ partial class WebUntisClient
     public async Task<MessageReplyForm> GetReplyFormAsync(InboxMessage message, bool contentAsHtml = false, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(message, nameof(message));
+
         if (!message.IsReplyAllowed || message.IsReplyForbidden)
             throw new InvalidOperationException("It isn't allowed to reply this message.");
         if (!(message.RequestConfirmation?.IsReplyAllowed ?? true))
@@ -791,10 +776,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}/reply-form",
             Query = $"contentAsHtml={contentAsHtml}"
         };
@@ -845,10 +828,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}/revoke"
         }.Uri);
         await InternalApiRequestAsync(request, ct);
@@ -912,10 +893,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        using HttpRequestMessage request = new(HttpMethod.Delete, new UriBuilder()
+        using HttpRequestMessage request = new(HttpMethod.Delete, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = $"/WebUntis/api/rest/view/v1/messages/{id}"
         }.Uri);
         await InternalApiRequestAsync(request, ct);

@@ -4,6 +4,7 @@ using OtpNet;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -28,18 +29,14 @@ public partial class WebUntisClient : IDisposable
     /// <summary>
     /// Indicates whether the client is currently logged in
     /// </summary>
-    public bool LoggedIn { get; private set; }
+    [MemberNotNullWhen(true, nameof(Session))]
+    public bool IsLoggedIn => _session is not null;
 
     /// <summary>
-    /// The host name of the webuntis server
+    /// The current active session.
     /// </summary>
-    /// <remarks>
-    /// <c>null</c> means that the client isn't currently logged in
-    /// </remarks>
-    public string? ServerName { get; private set; }
-
-    private string? _jwtToken;
-    private JObject? _jwtContent;
+    public WebUntisSession? Session => _session;
+    private WebUntisSession? _session;
 
     private readonly HttpClient _client;
     private readonly bool _disposeClient;
@@ -149,8 +146,8 @@ public partial class WebUntisClient : IDisposable
                 throw new ArgumentException("The provided mfa token have to be a length of 6 chars.");
         }
 
-        if (LoggedIn)
-            throw new InvalidOperationException($"The client is already signed in. Use {nameof(SignInAsync)} to sign out.");
+        if (IsLoggedIn)
+            throw new InvalidOperationException($"The client is already signed in. Use {nameof(SignOutAsync)} to sign out.");
 
         using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
         {
@@ -167,6 +164,7 @@ public partial class WebUntisClient : IDisposable
                 new("token", mfaToken ?? string.Empty)
             })
         };
+
         using HttpResponseMessage response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
@@ -180,21 +178,33 @@ public partial class WebUntisClient : IDisposable
             _ => throw new Exception("Unable to determine the result of the sign in attempt.")
         };
 
-        ServerName = server;     // this is set before the evaluation whether sign in was successful because ClearSession requires the host name to clear the cookies correctly
-
+        // Creates session from response if successful
         if (result.Successful)
         {
-            LoggedIn = true;
+            WebUntisSession session = await CreateSessionInternalAsync(server, ct);
+            _session = session;
 
-            if (!await ReloadSessionAsync(ct))
+            string appDataResponse = await InternalApiRequestAsync("/WebUntis/api/rest/view/v1/app/data", ct);
+            JObject userData = (JObject)JObject.Parse(appDataResponse)["user"]!;
+            if (userData["roles"]!.ToObject<string[]>()!.Contains("STUDENT"))
             {
-                ClearSession();
-                throw new Exception("An error happened while loading the session.");
+                session._user = new Student
+                {
+                    Id = userData["person"]!["id"]!.Value<int>(),
+                    Name = userData["name"]!.Value<string>()!,
+                    Displayname = userData["person"]!["displayName"]!.Value<string>()!
+                };
             }
-        }
-        else
-        {
-            ClearSession();
+            else
+            {
+                session._user = new Teacher
+                {
+                    Id = userData["person"]!["id"]!.Value<int>(),
+                    Name = userData["name"]!.Value<string>()!,
+                    Displayname = userData["person"]!["displayName"]!.Value<string>()!
+                };
+            }
+            _session = session;
         }
 
         return result;
@@ -217,14 +227,13 @@ public partial class WebUntisClient : IDisposable
     /// Signs in a user
     /// </summary>
     /// <param name="credentials">App credentials that were requested in recent session or were read from a qr code.</param>
-    /// <param name="id">An identifier for the request. (when null a random GUI will be used)</param>
     /// <param name="ct">Cancellation token</param>
-    /// <returns><c>success</c> indicates whether the sign in attempt was successful. <c>masterData</c> a lot of general data that were send by the server. <c>masterData</c> is only <c>null</c> when the attempt failed.</returns>
+    /// <returns>A lot of general data that were send by the server. Is <c>null</c> when the login attempt failed.</returns>
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="HttpRequestException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="ObjectDisposedException"></exception>
-    public async Task<(bool success, MasterData? masterData)> SignInAsync(AppCredentials credentials, string? id, CancellationToken ct = default)
+    public async Task<MasterData?> SignInAsync(AppCredentials credentials, CancellationToken ct = default)
     {
         // Check for disposing
 #if NET8_0_OR_GREATER
@@ -237,20 +246,13 @@ public partial class WebUntisClient : IDisposable
         if (Uri.CheckHostName(credentials.ServerName) is UriHostNameType.Unknown or UriHostNameType.Basic)
             throw new ArgumentException("The ServerName have to be a valid hostname.", nameof(credentials));
 
-        if (LoggedIn)
+        if (IsLoggedIn)
             throw new InvalidOperationException($"The client is already signed in. Use {nameof(SignInAsync)} to sign out.");
 
         byte[] secretBytes = Base32Encoding.ToBytes(credentials.Key);
         Totp totpGenerator = new(secretBytes, 30, totpSize: 6);
 
-        Uri requestUri = new UriBuilder
-        {
-            Scheme = Uri.UriSchemeHttps,
-            Host = credentials.ServerName,
-            Path = "/WebUntis/jsonrpc_intern.do",
-            Query = $"school={credentials.School}"
-        }.Uri;
-        JArray @params = new()
+        JArray requestParams = new()
         {
             new JObject
             {
@@ -262,76 +264,94 @@ public partial class WebUntisClient : IDisposable
                 })
             }
         };
+        Uri requestUri = new UriBuilder
+        {
+            Scheme = Uri.UriSchemeHttps,
+            Host = credentials.ServerName,
+            Path = "/WebUntis/jsonrpc_intern.do",
+            Query = $"school={credentials.School}"
+        }.Uri;
+        JObject responseJson = await InternalJsonRpcRequestAsync(requestParams, "getUserData2017", requestUri, ct);
 
+        if (responseJson["error"] is JObject error)
+        {
+            int code = error["code"]!.Value<int>()!;
+            string message = error["message"]!.Value<string>()!;
+
+            IEnumerable<WebUntisError> errors = new[] { new WebUntisError(code.ToString(), message) };
+            throw new WebUntisException(errors);
+        }
+
+        // Creates session from response if successful
         try
         {
-            JObject responseJson = await InternalJsonRpcRequestAsync(@params, "getUserData2017", id, requestUri, ct);
+            WebUntisSession session = await CreateSessionInternalAsync(credentials.ServerName, ct);
+
+            JObject userData = (JObject)responseJson["userData"]!;
+            if (userData["elemType"]!.Value<string>()!.Equals("STUDENT"))
+            {
+                session._user = new Student
+                {
+                    Id = userData["elemId"]!.Value<int>(),
+                    Displayname = userData["displayName"]!.Value<string>()!
+                };
+            }
+            else
+            {
+                session._user = new Teacher
+                {
+                    Id = userData["elemId"]!.Value<int>(),
+                    Displayname = userData["displayName"]!.Value<string>()!
+                };
+            }
+            _session = session;
 
             MasterData masterData = responseJson["masterData"]!.ToObject<MasterData>()!;
-            return (true, masterData);
+            return masterData;
         }
-        catch (WebUntisException ex) when (ex.Errors.Any(e => e.Code.Equals((-8504).ToString())))     // error code -8504 means 'bad credentials'
+        catch (WebUntisException ex)
+            when (ex.Errors.Any(e => e.Code.Equals((-8504).ToString())))     // error code -8504 means 'bad credentials'
         {
-            return (false, null);
+            return null;
         }
+    }
+
+    private async Task<WebUntisSession> CreateSessionInternalAsync(string server, CancellationToken ct)
+    {
+        WebUntisSession session = new()
+        {
+            ServerUri = new UriBuilder
+            {
+                Scheme = Uri.UriSchemeHttps,
+                Host = server
+            }.Uri
+        };
+
+        Uri jwtRequestUri = new UriBuilder(session.ServerUri)
+        {
+            Path = "/WebUntis/api/token/new"
+        }.Uri;
+        string jwtBearer = await InternalApiRequestAsync(jwtRequestUri, ct, skipAuthorization: true);     // authorization is done via cookie
+        session.UpdateJwtBearer(jwtBearer);
+
+        return session;
     }
 
     /// <summary>
     /// Signs out the user (You can reuse the client)
     /// </summary>
-    /// <exception cref="ObjectDisposedException"></exception>
-    public async Task SignOutAsync(string? id, CancellationToken ct = default)
-    {
-        ThrowWhenNotAvailable();
-
-        await InternalJsonRpcRequestAsync(new JObject(), "logout", id, ct: ct);
-        ClearSession();
-    }
-
-    /// <summary>
-    /// Get the currently signed in user
-    /// </summary>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The user</returns>
-    /// <exception cref="HttpRequestException"></exception>
-    /// <exception cref="WebUntisException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>-
     /// <exception cref="ObjectDisposedException"></exception>
-    public async Task<IUser> GetSignedInUserAsync(CancellationToken ct = default)
+    public Task SignOutAsync(CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
+        _session = null;
 
-        // Determine the type of the user by in the jwt saved 'roles' property
-        string userRoles = _jwtContent!["roles"]!.Value<string>()!;
-        ElementType userType = userRoles.Contains("STUDENT")
-            ? ElementType.Student
-            : ElementType.Teacher;
-
-        UriBuilder uriBuilder = new()
-        {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
-            Path = "/WebUntis/api/public/timetable/weekly/pageconfig",
-            Query = $"type={(int)userType}"
-        };
-        string response = await InternalApiRequestAsync(uriBuilder.Uri, ct);
-
-        JToken responseElement = JObject.Parse(response)["data"]!["elements"]![0]!;
-        Type tUser = responseElement["type"]!.Value<int>() switch
-        {
-            (int)ElementType.Teacher => typeof(Teacher),
-            (int)ElementType.Student => typeof(Student),
-            _ => throw new Exception("The in the response specified element type isn't a user.")
-        };
-
-        IUser user = (IUser)responseElement.ToObject(tUser)!;
-        user.CanViewTimetable = true;
-
-        return user;
+        return Task.CompletedTask;
     }
 
     /// <summary>
-    /// Refresh the session
+    /// Refreshes the current session
     /// </summary>
     /// <remarks>
     /// Until this action was successfully ended no request should made
@@ -344,103 +364,40 @@ public partial class WebUntisClient : IDisposable
     /// <exception cref="ObjectDisposedException"></exception>
     public async Task<bool> ReloadSessionAsync(CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         string response = await InternalApiRequestAsync("/WebUntis/api/token/new", ct);
+        return Session!.UpdateJwtBearer(response);
+    }
 
-        // determine whether a new jwt was returned
-        string[] jwtParts = response.Split('.');
-        bool result = jwtParts.Length == 3
-            && jwtParts.Take(2).All(p => p.StartsWith("ey"));
+    private async Task<string> InternalApiRequestAsync(string path, CancellationToken ct, bool skipAuthorization = false)
+    {
+        ThrowWhenNotAvailable(skipAuthorization);
 
-        if (result)
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            _jwtToken = response;
-            byte[] jwtContentPartB;
-            try
-            {
-                jwtContentPartB = Convert.FromBase64String(_jwtToken!.Split('.')[1]);
-
-            }
-            catch (FormatException)
-            {
-                var base64Url = _jwtToken!.Split('.')[1];
-
-                //Base64Url -> Base64
-                string base64 = base64Url.Replace('-', '+')
-                    .Replace('_', '/');
-
-                // Add Padding if needed
-                switch (base64.Length % 4)
-                {
-                    case 2: base64 += "=="; break;
-                    case 3: base64 += "="; break;
-                }
-
-                jwtContentPartB = Convert.FromBase64String(base64);
-            }
-            // Parse the returned jwt in preparation for other methods
-            string jwtContentPart = Encoding.UTF8.GetString(jwtContentPartB);
-            _jwtContent = JObject.Parse(jwtContentPart);
-        }
-        return result;
-    }
-
-    /// <summary>
-    /// Get the time where the current session were issued
-    /// </summary>
-    /// <returns>The date time where the current session was issued</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    public DateTimeOffset GetIssuedTime()
-    {
-        ThrowWhenNotAvailable();
-
-        long iat = _jwtContent!["iat"]!.Value<long>();
-        return DateTimeOffset.FromUnixTimeSeconds(iat);
-    }
-
-    /// <summary>
-    /// Get the time where the current session will be expired
-    /// </summary>
-    /// <remarks>
-    /// You have to reload the session with <see cref="ReloadSessionAsync(CancellationToken)"/> before the returned date time
-    /// </remarks>
-    /// <returns>The date time where the current session will be expired</returns>
-    /// <exception cref="ObjectDisposedException"></exception>
-    /// <exception cref="InvalidOperationException"></exception>
-    public DateTimeOffset GetExpiresTime()
-    {
-        ThrowWhenNotAvailable();
-
-        long exp = _jwtContent!["exp"]!.Value<long>();
-        return DateTimeOffset.FromUnixTimeSeconds(exp);
-    }
-
-    private async Task<string> InternalApiRequestAsync(string path, CancellationToken ct)
-    {
-        ThrowWhenNotAvailable();
-
-        UriBuilder uriBuilder = new()
-        {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = path
         };
         using HttpRequestMessage request = new(HttpMethod.Get, uriBuilder.Uri);
 
-        return await InternalApiRequestAsync(request, ct);
+        return await InternalApiRequestAsync(request, ct, skipAuthorization);
     }
 
-    private async Task<string> InternalApiRequestAsync(Uri uri, CancellationToken ct)
+    private async Task<string> InternalApiRequestAsync(Uri uri, CancellationToken ct, bool skipAuthorization = false)
     {
         using HttpRequestMessage request = new(HttpMethod.Get, uri);
-        return await InternalApiRequestAsync(request, ct);
+        return await InternalApiRequestAsync(request, ct, skipAuthorization);
     }
 
-    private async Task<string> InternalApiRequestAsync(HttpRequestMessage request, CancellationToken ct)
+    private async Task<string> InternalApiRequestAsync(HttpRequestMessage request, CancellationToken ct, bool skipAuthorization = false)
     {
-        ThrowWhenNotAvailable();
+        ThrowWhenNotAvailable(skipAuthorization);
 
-        request.Headers.Authorization = new("Bearer", _jwtToken);
+        if (!skipAuthorization)
+        {
+            request.Headers.Authorization = new("Bearer", Session!.AuthorizationBearer);
+        } 
+
         using HttpResponseMessage response = await _client.SendAsync(request, ct);
 
         string responseString = await response.Content.ReadAsStringAsync(ct);
@@ -463,30 +420,27 @@ public partial class WebUntisClient : IDisposable
         return responseString;
     }
 
-    private async Task<JObject> InternalJsonRpcRequestAsync(JToken @params, string method, string? id, string requestPath = "/WebUntis/jsonrpc.do", CancellationToken ct = default)
+    private async Task<JObject> InternalJsonRpcRequestAsync(JToken @params, string method, string requestPath = "/WebUntis/jsonrpc.do", CancellationToken ct = default)
     {
-        return await InternalJsonRpcRequestAsync(@params, method, id, new UriBuilder
+        return await InternalJsonRpcRequestAsync(@params, method, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = requestPath
         }.Uri, ct);
     }
 
-    private async Task<JObject> InternalJsonRpcRequestAsync(JToken @params, string method, string? id, Uri requestrUri, CancellationToken ct = default)
+    private async Task<JObject> InternalJsonRpcRequestAsync(JToken @params, string method, Uri requestUri, CancellationToken ct = default)
     {
-        id ??= Guid.NewGuid().ToString();
-
+        string requestId = Guid.NewGuid().ToString();
         JObject requestJson = new()
         {
-            new JProperty("id", id),
+            new JProperty("id", requestId),
             new JProperty("method", method),
             new JProperty("params", @params),
             new JProperty("jsonrpc", "2.0")
         };
 
         using HttpContent content = new StringContent(requestJson.ToString(), Encoding.UTF8, MediaTypeNames.Application.Json);
-        using HttpResponseMessage response = await _client.PostAsync(requestrUri, content, ct);
+        using HttpResponseMessage response = await _client.PostAsync(requestUri, content, ct);
 
         string responseString = await response.Content.ReadAsStringAsync(ct);
         JObject responseJson = JObject.Parse(responseString);
@@ -499,11 +453,15 @@ public partial class WebUntisClient : IDisposable
             IEnumerable<WebUntisError> errors = new[] { new WebUntisError(code.ToString(), message) };
             throw new WebUntisException(errors);
         }
+        else if (responseJson["id"]!.Value<string>() != requestId)
+        {
+            throw new InvalidOperationException("The received request id does not match the sent one.");
+        }
 
         return (JObject)responseJson["result"]!;
     }
 
-    private void ThrowWhenNotAvailable()
+    private void ThrowWhenNotAvailable(bool skipAuthorization = false)
     {
         // Check for disposing
 #if NET8_0_OR_GREATER
@@ -512,34 +470,8 @@ public partial class WebUntisClient : IDisposable
         if (_disposedValue)
             throw new ObjectDisposedException(GetType().FullName);
 #endif
-        if (!LoggedIn)
+        if (!skipAuthorization && !IsLoggedIn)
             throw new InvalidOperationException("The client is currently not signed in!");
-    }
-
-    private void ClearSession()
-    {
-        string servername = ServerName!;
-
-        _jwtToken = null;
-        _jwtContent = null;
-
-        // Clear the cookies of the webuntis domain when its possible
-        FieldInfo iHandler = typeof(HttpMessageInvoker).GetField("_handler", BindingFlags.NonPublic | BindingFlags.Instance)!;
-        HttpMessageHandler? handler = iHandler.GetValue(_client) as HttpMessageHandler;
-
-        if (handler is HttpClientHandler clientHandler)
-        {
-            CookieContainer cookieContainer = clientHandler.CookieContainer;
-            UriBuilder builder = new()
-            {
-                Scheme = Uri.UriSchemeHttps,
-                Host = servername
-            };
-
-            // Remove every cookie
-            foreach (Cookie cookie in cookieContainer.GetCookies(builder.Uri).Cast<Cookie>())
-                cookie.Expired = true;
-        }
     }
 
     #region IDisposable
@@ -560,11 +492,8 @@ public partial class WebUntisClient : IDisposable
     {
         if (!_disposedValue)
         {
+            _session = null;
             _client.CancelPendingRequests();
-
-            // When not manually logged out then logout
-            if (LoggedIn)
-                ClearSession();
 
             if (disposing)
             {

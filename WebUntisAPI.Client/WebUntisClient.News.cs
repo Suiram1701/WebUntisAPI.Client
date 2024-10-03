@@ -37,8 +37,7 @@ partial class WebUntisClient
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public Task<NewsWidget> GetNewsFeedAsync(CancellationToken ct = default) =>
-        GetNewsFeedAsync(DateOnly.FromDateTime(DateTime.Now), ct);
+    public Task<NewsWidget> GetNewsFeedAsync(CancellationToken ct = default) => GetNewsFeedAsync(DateOnly.FromDateTime(DateTime.Now), ct);
 
     /// <summary>
     /// Get all news of the school for the specified day
@@ -54,10 +53,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/news/newsWidgetData",
             Query = $"date={date:yyyyMMdd}"
         };

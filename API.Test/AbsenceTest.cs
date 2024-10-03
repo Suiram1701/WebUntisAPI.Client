@@ -11,7 +11,7 @@ internal class AbsenceTest
     [Test]
     public async Task GetAbsencesAsync()
     {
-        if (await SetUp.Client.GetSignedInUserAsync() is not Student student)
+        if (SetUp.Client.Session!.User is not Student student)
         {
             Assert.Ignore("Executing user has to be a student.");
             return;
@@ -24,7 +24,7 @@ internal class AbsenceTest
     [Test]
     public async Task GetAbsencesAsync_Emptydata()
     {
-        if (await SetUp.Client.GetSignedInUserAsync() is not Student student)
+        if (SetUp.Client.Session!.User is not Student student)
         {
             Assert.Ignore("Executing user has to be a student.");
             return;

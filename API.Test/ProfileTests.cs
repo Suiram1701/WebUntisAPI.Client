@@ -44,7 +44,7 @@ internal class ProfileTests
     [Test]
     public async Task GetContactDetailsAsync()
     {
-        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        IUser user = SetUp.Client.Session!.User;
         (AccessPermissions permissions, ContactDetails? contactDetails) = await SetUp.Client.GetContactDetailsAsync(user);
 
         Assert.Multiple(() =>
@@ -58,7 +58,7 @@ internal class ProfileTests
     [Test]
     public async Task GetProfileImageAsync()
     {
-        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        IUser user = SetUp.Client.Session!.User;
         ProfileImageInfo info = await SetUp.Client.GetProfileImageAsync(user, Stream.Null);
 
         Assert.Multiple(() =>

@@ -82,10 +82,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/officehours/hours",
             Query = $"date={date:yyyyMMdd}&klasseId={@class?.Id ?? -1}"
         }.Uri;
@@ -130,10 +128,8 @@ partial class WebUntisClient
             return null;
         }
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = settings.Anonymous
                 ? "/WebUntis/pimage.do"
                 : "/WebUntis/image.do",
@@ -161,10 +157,8 @@ partial class WebUntisClient
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(hour, nameof(hour));
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/officehours/registrationdata",
             Query = $"periodId={hour.Id}&teacherId={hour.TeacherId}"
         }.Uri;
@@ -205,10 +199,8 @@ partial class WebUntisClient
             new JProperty("userText", userText ?? string.Empty)
         }.ToString();
 
-        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Post, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/officehours/registrations"
         }.Uri)
         {
@@ -238,10 +230,8 @@ partial class WebUntisClient
             throw new ArgumentException("The parameter can be a maximum of 255 characters long.", nameof(userText));
         }
 
-        using HttpRequestMessage request = new(HttpMethod.Delete, new UriBuilder
+        using HttpRequestMessage request = new(HttpMethod.Delete, new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/officehours/registrations",
             Query = $"periodId={hour.Id}&teacherId={hour.TeacherId}&userText={userText ?? string.Empty}"
         }.Uri);
@@ -304,10 +294,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/reports.do",
             Query = $"name={"OfficeHours"}&format={exportFormat.ToString().ToLower()}&klasse={@class?.Id ?? -1}&date={date:yyyyMMdd}&simpleMode={simpleMode}"
         }.Uri;
@@ -319,10 +307,8 @@ partial class WebUntisClient
         if (!result.IsFinished || result.Error)
             return result;
 
-        Uri fileUri = new UriBuilder
+        Uri fileUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/preports.do",
             Query = $"msgId={dataObj["messageId"]!.Value<string>()}&{dataObj["reportParams"]!.Value<string>()}"
         }.Uri;

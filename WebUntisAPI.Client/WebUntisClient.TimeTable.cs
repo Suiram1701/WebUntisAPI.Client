@@ -90,10 +90,8 @@ partial class WebUntisClient
     {
         ThrowWhenNotAvailable();
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/timegrid",
             Query = "schoolyearId=" + year.Id
         };
@@ -119,13 +117,12 @@ partial class WebUntisClient
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(element, nameof(element));
 
-        if (!element.CanViewTimetable)
-            throw new InvalidOperationException($"The current session isn't allowed to view the timetable of {element.Name}");
+        // will be removed later
+        //if (!element.CanViewTimetable)
+        //    throw new InvalidOperationException($"The current session isn't allowed to view the timetable of {element.Name}");
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/public/timetable/weekly/data",
             Query = $"elementType={(int)element.GetElementType()}&elementId={element.Id}&date={week:yyyy-MM-dd}"
         };
@@ -176,10 +173,8 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<TimetableSettings> GetNewTimetableSettingsAsync(int format = 1, CancellationToken ct = default)
     {
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/timetable/entries/settings",
             Query = $"format={format}"
         }.Uri;
@@ -201,10 +196,8 @@ partial class WebUntisClient
         ArgumentNullException.ThrowIfNull(resourceType);
         ArgumentNullException.ThrowIfNull(timetableType);
 
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/timetable/filter",
             Query = $"resourceType={resourceType.ToString().ToUpperInvariant()}&timetableType={timetableType.ToString().ToUpperInvariant()}"
         }.Uri;
@@ -261,10 +254,8 @@ partial class WebUntisClient
 
         string resourceType = element.GetElementType().ToString().ToUpperInvariant();
         string periodTypes = filters.ToString().Replace(" ", string.Empty).ToUpperInvariant();
-        Uri requestUri = new UriBuilder
+        Uri requestUri = new UriBuilder(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/rest/view/v1/timetable/entries",
             Query = $"start={dateRange.Start:yyyy-MM-dd}&end={dateRange.End:yyyy-MM-dd}&resourceType={resourceType}&resources={element.Id}&periodTypes={periodTypes}&format={formatId}" 
         }.Uri;

@@ -8,13 +8,13 @@ namespace WebUntisAPI.Client.Models;
 public class ContactDetails
 {
     /// <summary>
-    /// The person id (not the same user id that you get from <see cref="WebUntisClient.GetSignedInUserAsync(System.Threading.CancellationToken)"/>)
+    /// The person id (not the same user id that you get from <see cref="WebUntisSession.User"/>)
     /// </summary>
     [JsonProperty("personId")]
     public int PersonId { get; set; }
 
     /// <summary>
-    /// The person type id (not the same id that you get from <see cref="WebUntisClient.GetSignedInUserAsync(System.Threading.CancellationToken)"/>)
+    /// The person type id (not the same id that you get from <see cref="WebUntisSession.User"/>)
     /// </summary>
     [JsonProperty("personType")]
     public int PersonType { get; set; }

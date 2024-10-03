@@ -86,10 +86,8 @@ partial class WebUntisClient
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(user, nameof(user));
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/profile/contactdetails",
             Query = $"personId={user.Id}&isRequestForStudent={false}"     // idk why isRequestForStudent must set to false also when the request where send by a student but when I set it to true I get always 'wrong' data
         };
@@ -131,10 +129,8 @@ partial class WebUntisClient
         if (!stream.CanWrite)
             throw new InvalidOperationException("The stream have to be writable.");
 
-        UriBuilder uriBuilder = new()
+        UriBuilder uriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/api/profile/image",
             Query = $"type={(int)user.GetElementType()}&id={user.Id}"
         };
@@ -165,10 +161,8 @@ partial class WebUntisClient
             };
         }
 
-        UriBuilder imageUriBuilder = new()
+        UriBuilder imageUriBuilder = new(Session!.ServerUri)
         {
-            Scheme = Uri.UriSchemeHttps,
-            Host = ServerName,
             Path = "/WebUntis/image.do",
             Query = $"cat={categoryId}&id={imageId}"
         };

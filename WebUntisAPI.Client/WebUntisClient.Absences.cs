@@ -27,10 +27,9 @@ namespace WebUntisAPI.Client
         public async Task<AbsenceData> GetAbsencesAsync(DateOnly startDate, DateOnly endDate, Student student, int excuseStatusId = -1, CancellationToken ct = default)
         {
             ThrowWhenNotAvailable();
-            UriBuilder uriBuilder = new()
+
+            UriBuilder uriBuilder = new(Session!.ServerUri)
             {
-                Scheme = Uri.UriSchemeHttps,
-                Host = ServerName,
                 Path = "/WebUntis/api/classreg/absences/students",
                 Query = $"startDate={startDate:yyyyMMdd}&endDate={endDate:yyyyMMdd}&studentId={student.Id}&excuseStatusId={excuseStatusId}"
             };

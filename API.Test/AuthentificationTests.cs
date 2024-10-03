@@ -30,9 +30,9 @@ internal class AuthenticationTests
         });
 
         using WebUntisClient client = new();
-        (bool success, MasterData? data) = await client.SignInAsync(credentials, null);
+        MasterData? data = await client.SignInAsync(credentials);
 
-        Assert.That(success, Is.True);
+        Assert.That(data, Is.Not.Null);
     }
 
     [Test]
@@ -62,15 +62,13 @@ internal class AuthenticationTests
     [Test]
     public void GetSessionIatExp()
     {
-        DateTimeOffset iat = SetUp.Client.GetIssuedTime();
-        DateTimeOffset exp = SetUp.Client.GetExpiresTime();
-
         DateTimeOffset current = DateTimeOffset.Now.AddSeconds(5);     // idk why but I have to add some seconds the current tim because the iat value is to large 
+        WebUntisSession session = SetUp.Client.Session!;
 
         Assert.Multiple(() =>
         {
-            Assert.That(iat, Is.LessThanOrEqualTo(current));
-            Assert.That(exp, Is.GreaterThan(current));
+            Assert.That(session.IssuedTime, Is.LessThanOrEqualTo(current));
+            Assert.That(session.ExpiresTime, Is.GreaterThan(current));
         });
     }
 

@@ -48,7 +48,7 @@ internal class TimetableTests
     [Test]
     public async Task GetTimetableAsync()
     {
-        IUser user = await SetUp.Client.GetSignedInUserAsync();
+        IUser user = SetUp.Client.Session!.User;
         Timetable timetable = await SetUp.Client.GetTimetableAsync(user, new DateOnly(2024, 9, 9));
 
         Assert.Multiple(() =>
