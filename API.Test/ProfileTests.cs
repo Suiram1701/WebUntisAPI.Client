@@ -59,7 +59,7 @@ internal class ProfileTests
     public async Task GetProfileImageAsync()
     {
         IUser user = SetUp.Client.Session!.User;
-        ProfileImageInfo info = await SetUp.Client.GetProfileImageAsync(user, Stream.Null);
+        ProfileImage info = await SetUp.Client.GetProfileImageAsync(user, Stream.Null);
 
         Assert.Multiple(() =>
         {

@@ -105,12 +105,7 @@ partial class WebUntisClient
     /// <summary>
     /// Get the profile image of the specified user.
     /// </summary>
-    /// <remarks>
-    /// The in the stream written image data will be in one of these formats: .tiff, .jfif, .bmp, .gif, .svg, .png, .webp, .svgz, .jpg, .jpeg, .ico, .xbm, .dib, .pjp, .apng, .tif, .pjpeg or .avif.
-    /// </remarks>
     /// <param name="user">The user of the image to get.</param>
-    /// <param name="stream">The stream to write the image to.</param>
-    /// <param name="progress">Provides a functionality to report the download progress of the image.</param>
     /// <param name="ct">Cancellation token</param>
     /// <returns>
     /// Information about the users image.
@@ -120,14 +115,10 @@ partial class WebUntisClient
     /// <exception cref="ArgumentNullException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task<ProfileImageInfo> GetProfileImageAsync(IUser user, Stream stream, IProgress<double>? progress = null, CancellationToken ct = default)
+    public async Task<ProfileImage> GetProfileImageAsync(IUser user, CancellationToken ct = default)
     {
         ThrowWhenNotAvailable();
         ArgumentNullException.ThrowIfNull(user, nameof(user));
-
-        ArgumentNullException.ThrowIfNull(stream, nameof(stream));
-        if (!stream.CanWrite)
-            throw new InvalidOperationException("The stream have to be writable.");
 
         UriBuilder uriBuilder = new(Session!.ServerUri)
         {
@@ -143,22 +134,12 @@ partial class WebUntisClient
 
         if (imageId == -1)     // user has no image
         {
-            return new()
-            {
-                Permissions = permissions,
-                HasImage = false,
-                ImageMimeType = null
-            };
+            return new() { Permissions = permissions }; 
         }
 
-        if (!permissions.Read)     // user has no access
+        if (!permissions.Read)     // user doesn't have access
         {
-            return new()
-            {
-                Permissions = permissions,
-                HasImage = true,
-                ImageMimeType = null
-            };
+            return new() { Permissions = permissions };
         }
 
         UriBuilder imageUriBuilder = new(Session!.ServerUri)
@@ -166,14 +147,14 @@ partial class WebUntisClient
             Path = "/WebUntis/image.do",
             Query = $"cat={categoryId}&id={imageId}"
         };
-        using HttpResponseMessage response = await _client.GetWithProgressAsync(imageUriBuilder.Uri, stream, progress, ct: ct);
+        using HttpResponseMessage response = await _client.GetAsync(imageUriBuilder.Uri, ct);
         response.EnsureSuccessStatusCode();
 
         return new()
         {
             Permissions = permissions,
-            HasImage = true,
-            ImageMimeType = response.Content.Headers.ContentType
+            ImageMimeType = response.Content.Headers.ContentType,
+            ImageStream = await response.Content.ReadAsStreamAsync(ct)
         };
     }
 
