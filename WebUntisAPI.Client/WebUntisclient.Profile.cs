@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WebUntisAPI.Client.Models.Messages;
 using Newtonsoft.Json.Linq;
-using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Exceptions;
 using System.Collections.ObjectModel;
 using WebUntisAPI.Client.Models.Interfaces;
@@ -16,6 +15,7 @@ using System.IO;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Extensions;
 using System.Net.Mime;
+using WebUntisAPI.Client.Models.Profile;
 
 namespace WebUntisAPI.Client;
 
@@ -31,6 +31,8 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<IEnumerable<WebUntisLanguage>> GetWebUntisLanguagesAsync(CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/languages", ct);
         return JObject.Parse(responseString)["data"]!["languages"]!.ToObject<IEnumerable<WebUntisLanguage>>()!;
     }
@@ -46,6 +48,8 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<AccountConfig> GetAccountConfigAsync(CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/config", ct);
         return JObject.Parse(responseString)["data"]!.ToObject<AccountConfig>()!;
     }
@@ -61,6 +65,8 @@ partial class WebUntisClient
     /// <exception cref="HttpRequestException"></exception>
     public async Task<GeneralAccountInfo> GetGeneralAccountInfoAsync(CancellationToken ct = default)
     {
+        ThrowWhenNotAvailable();
+
         string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/general", ct);
 
         JToken dataToken = JObject.Parse(responseString)["data"]!;
@@ -159,18 +165,22 @@ partial class WebUntisClient
     }
 
     /// <summary>
-    /// Get the app credentials that can be used to sign in into this account
+    /// Get data for different ways to access the account of the logged in user.
     /// </summary>
     /// <param name="ct">Cancellation token</param>
-    /// <returns>The credentials</returns> 
+    /// <returns>The access data</returns> 
     /// <exception cref="ObjectDisposedException"></exception>
     /// <exception cref="InvalidOperationException"></exception>
     /// <exception cref="WebUntisException"></exception>
     /// <exception cref="HttpRequestException"></exception>
-    public async Task<AppCredentials> GetAppCredentialsAsync(CancellationToken ct = default)
+    public async Task<AccessData> GetAccessDataAsync(CancellationToken ct = default)
     {
-        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/access", ct);
+        ThrowWhenNotAvailable();
 
-        return JObject.Parse(responseString)["data"]!["appCredentials"]!.ToObject<AppCredentials>()!;
+        string responseString = await InternalApiRequestAsync("/WebUntis/api/profile/access", ct);
+        AccessData data = JObject.Parse(responseString)["data"]!.ToObject<AccessData>()!;
+        data.TotpCredentials.ServerName = Session!.ServerUri.Host;
+
+        return data;
     }
 }

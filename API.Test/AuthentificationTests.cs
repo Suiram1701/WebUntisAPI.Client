@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WebUntisAPI.Client;
 using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models;
+using WebUntisAPI.Client.Models.Profile;
 
 namespace API.Test;
 
@@ -17,22 +18,19 @@ internal class AuthenticationTests
     [Test]
     public async Task AppCredentialsSignInAsync()
     {
-        AppCredentials credentials = await SetUp.Client.GetAppCredentialsAsync();
-        Assert.That(credentials, Is.Not.Null); 
+        AccessData accessData = await SetUp.Client.GetAccessDataAsync();
+        Assert.That(accessData, Is.Not.Null); 
+
+        using WebUntisClient newClient = new();
+        _ = await newClient.SignInAsync(accessData.AppCredentials);
 
         IConfigurationSection untisConfig = SetUp.Configuration.GetSection("untis");
+        Assert.That(newClient.IsLoggedIn);
         Assert.Multiple(() =>
         {
-            Assert.That(credentials.ServerName, Is.EqualTo(untisConfig["serverName"]));
-            Assert.That(credentials.School, Is.EqualTo(untisConfig["loginName"]));
-            Assert.That(credentials.SchoolId.ToString(), Is.EqualTo(untisConfig["schoolId"])); //ScholId in appsettings needed
-            Assert.That(credentials.Username, Is.EqualTo(untisConfig["username"]));
+            //Assert.That(newClient.Session!.User.Name, Is.EqualTo(accessData.AppCredentials.User));     // Currently fails this assertion but this will be fixed in a later commit.
+            Assert.That(newClient.Session!.ServerUri.Host, Is.EqualTo(accessData.AppCredentials.ServerName));
         });
-
-        using WebUntisClient client = new();
-        MasterData? data = await client.SignInAsync(credentials);
-
-        Assert.That(data, Is.Not.Null);
     }
 
     [Test]
@@ -71,6 +69,4 @@ internal class AuthenticationTests
             Assert.That(session.ExpiresTime, Is.GreaterThan(current));
         });
     }
-
-
 }

@@ -50,7 +50,6 @@ internal class SetUp
         }
 
         SignInResult result = await Client.SignInAsync(serverName, loginName, username, password, generatetSecret);
-
         if (!result.Successful)
             throw new UnauthorizedAccessException("Could not login the user.");
     }

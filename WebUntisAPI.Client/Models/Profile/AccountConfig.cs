@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Profile;
 
 /// <summary>
 /// Account configuration details

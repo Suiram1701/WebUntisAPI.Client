@@ -8,7 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Profile;
 
 /// <summary>
 /// Represents credentials that can be used to sign in a user
@@ -40,7 +40,7 @@ public class AppCredentials
     /// The username of the user to sign in
     /// </summary>
     [JsonProperty("user")]
-    public string Username { get; set; } = string.Empty;
+    public string User { get; set; } = string.Empty;
 
     /// <summary>
     /// The secret key that is used to sign in
@@ -80,7 +80,7 @@ public class AppCredentials
             ServerName = queryParams["url"],
             School = queryParams["school"],
             SchoolId = schoolId,
-            Username = queryParams["user"],
+            User = queryParams["user"],
             Key = queryParams["key"]
         };
     }
@@ -124,7 +124,7 @@ public class AppCredentials
         if (Uri.CheckHostName(ServerName) is UriHostNameType.Unknown or UriHostNameType.Basic)
             throw new ArgumentException("The server name have to be a valid host name.", nameof(ServerName));
 
-        string uriString = $"untis://setschool?url={ServerName}&school={School}&user={Username}&key={Key}&schoolNumber={SchoolId}";
+        string uriString = $"untis://setschool?url={ServerName}&school={School}&user={User}&key={Key}&schoolNumber={SchoolId}";
         return new Uri(uriString, UriKind.Absolute);
     }
 }

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Profile;
 
 /// <summary>
 /// A language supported by WebUntis

@@ -18,6 +18,7 @@ using WebUntisAPI.Client.Exceptions;
 using WebUntisAPI.Client.Models;
 using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Models.Interfaces;
+using WebUntisAPI.Client.Models.Profile;
 
 namespace WebUntisAPI.Client;
 
@@ -259,7 +260,7 @@ public partial class WebUntisClient : IDisposable
                 new JProperty("auth", new JObject
                 {
                     new JProperty("clientTime", DateTimeOffset.Now.ToUnixTimeMilliseconds()),
-                    new JProperty("user", credentials.Username),
+                    new JProperty("user", credentials.User),
                     new JProperty("otp", totpGenerator.ComputeTotp())
                 })
             }

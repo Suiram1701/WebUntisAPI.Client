@@ -7,7 +7,7 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebUntisAPI.Client.Models;
+namespace WebUntisAPI.Client.Models.Profile;
 
 /// <summary>
 /// Provides additional information to the stream of a profile image

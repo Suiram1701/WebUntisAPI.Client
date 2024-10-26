@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static API.Test.AuthenticationTests;
-using WebUntisAPI.Client.Models;
 using NUnit.Framework;
 using WebUntisAPI.Client.Models.Interfaces;
+using WebUntisAPI.Client.Models.Profile;
+using Microsoft.Extensions.Configuration;
 
 namespace API.Test;
 
@@ -59,12 +60,32 @@ internal class ProfileTests
     public async Task GetProfileImageAsync()
     {
         IUser user = SetUp.Client.Session!.User;
-        ProfileImage info = await SetUp.Client.GetProfileImageAsync(user, Stream.Null);
+        ProfileImage info = await SetUp.Client.GetProfileImageAsync(user);
 
+        Assert.That(info, Is.Not.Null);
         Assert.Multiple(() =>
         {
             Assert.That(info.Permissions.Read);
             Assert.That(info.Permissions.Write);
+        });
+    }
+
+    [Test]
+    public async Task GetAccessDataAsync()
+    {
+        AccessData accessData = await SetUp.Client.GetAccessDataAsync();
+
+        IConfigurationSection untisConfig = SetUp.Configuration.GetSection("untis");
+        Assert.That(accessData, Is.Not.Null);
+        Assert.Multiple(() =>
+        {
+            Assert.That(accessData.AppCredentials.ServerName, Is.EqualTo(untisConfig["serverName"]));
+            Assert.That(accessData.AppCredentials.School, Is.EqualTo(untisConfig["loginName"]));
+            Assert.That(accessData.AppCredentials.SchoolId.ToString(), Is.EqualTo(untisConfig["schoolId"]));
+            Assert.That(accessData.AppCredentials.User, Is.EqualTo(untisConfig["username"]));
+
+            Assert.That(accessData.TotpCredentials.ServerName, Is.EqualTo(untisConfig["serverName"]));
+            Assert.That(accessData.TotpCredentials.User, Is.EqualTo(untisConfig["username"]));
         });
     }
 }
