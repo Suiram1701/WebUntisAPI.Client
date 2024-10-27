@@ -20,6 +20,10 @@ internal class AuthenticationTests
     {
         AccessData accessData = await SetUp.Client.GetAccessDataAsync();
         Assert.That(accessData, Is.Not.Null); 
+        if (!accessData.AppCredentials.IsEnabled)
+        {
+            Assert.Ignore("Unable to run test with disabled app credentials in user account.");
+        }
 
         using WebUntisClient newClient = new();
         _ = await newClient.SignInAsync(accessData.AppCredentials);

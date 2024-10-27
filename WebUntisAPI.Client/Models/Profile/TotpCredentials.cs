@@ -31,10 +31,16 @@ public class TotpCredentials
     public string Secret { get; set; } = default!;
 
     /// <summary>
-    /// Indicates whether 2fa is enabled for the user.
+    /// Indicates whether 2fa is required to use.
     /// </summary>
     [JsonProperty("isTotpRequired")]
     public bool TotpRequired { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user has 2fa enabled.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsEnabled => !string.IsNullOrEmpty(Secret);
 
     /// <summary>
     /// Creates an uri that contains the totp credential of this instance that can be used to create a qr code for an authenticator app.

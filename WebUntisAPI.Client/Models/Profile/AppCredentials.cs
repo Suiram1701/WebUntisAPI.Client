@@ -48,6 +48,12 @@ public class AppCredentials
     [JsonProperty("key")]
     public string Key { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Indicates whether the user has app credentials log in enabled.
+    /// </summary>
+    [JsonIgnore]
+    public bool IsEnabled => !string.IsNullOrEmpty(Key);
+
     private const string _parseRegEx = @"^untis:\/\/setschool\?(?:(\w+?=[\w\d\s-\.]+)&?){5,}$";
 
     /// <summary>

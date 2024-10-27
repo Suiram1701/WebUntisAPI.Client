@@ -16,6 +16,7 @@ using WebUntisAPI.Client.Models.Elements;
 using WebUntisAPI.Client.Extensions;
 using System.Net.Mime;
 using WebUntisAPI.Client.Models.Profile;
+using System.Text;
 
 namespace WebUntisAPI.Client;
 
