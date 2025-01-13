@@ -78,7 +78,7 @@ public partial class WebUntisClient : IDisposable
     /// <exception cref="ArgumentNullException"></exception>
     public WebUntisClient(HttpClient client, bool disposeClient)
     {
-        ArgumentNullException.ThrowIfNull(_client, nameof(_client));
+        ArgumentNullException.ThrowIfNull(client, nameof(client));
 
         _client = client;
         _disposeClient = disposeClient;
